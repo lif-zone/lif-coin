@@ -1,22 +1,20 @@
 #!/usr/bin/env node
 'use strict'; /* eslint-env node */
 process.title = 'lif_node';
-require('../browser/browser_env.js');
-const Network = require('../lib/protocol/network');
+import '../browser/browser_env.js';
+import Network from '../lib/protocol/network.js';
 Network.set('lifmain');
-const consensus = require('../lib/protocol/consensus');
-const FullNode = require('../lib/node/fullnode');
-const Miner = require('../lib/mining/miner');
-const Mnemonic = require('../lib/hd/mnemonic');
-const HDPrivateKey = require('../lib/hd/private');
-const KeyRing = require('../lib/primitives/keyring');
-const Address = require('../lib/primitives/address');
-const Output = require('../lib/primitives/output');
-const Script = require('../lib/script/script');
-const MTX = require('../lib/primitives/mtx');
-const Coin = require('../lib/primitives/coin');
-const {ewait} = require('lif-kernel/util.js');
-const assert = require('bsert');
+import FullNode from '../lib/node/fullnode.js';
+import Miner from '../lib/mining/miner.js';
+import Mnemonic from '../lib/hd/mnemonic.js';
+import HDPrivateKey from '../lib/hd/private.js';
+import KeyRing from '../lib/primitives/keyring.js';
+import Address from '../lib/primitives/address.js';
+import Script from '../lib/script/script.js';
+import MTX from '../lib/primitives/mtx.js';
+import Coin from '../lib/primitives/coin.js';
+import {ewait} from 'lif-kernel/util.js';
+import assert from 'bsert';
 
 function bech32(mnemonic, net){
   let _mnemonic = Mnemonic.fromPhrase(mnemonic);
@@ -41,7 +39,7 @@ function bech32(mnemonic, net){
 let wallet1 = bech32('six clip senior spy fury aerobic volume sheriff critic number feature inside');
 let wallet2 = bech32('morning like hello gym core stage wood deposit artefact monster turn absorb');
 let wallet3 = bech32('all all all all all all all all all all all all');
-const sha256 = require('bcrypto/lib/sha256');
+import sha256 from 'bcrypto/lib/sha256.js';
 function electrum_from_addr(addr){
   return Script.fromAddress(addr).sha256().reverse().toString('hex');
 }
@@ -235,7 +233,7 @@ async function send_tx(){
     await mine_blocks(1);
 }
 
-async function main(){
+export async function main(){
   await start();
   if (+process.env.mine)
     await mine_blocks(1);
@@ -244,4 +242,4 @@ async function main(){
 }
 if (!process.browser)
   main();
-module.exports = {start, main, mine_blocks, send_tx};
+
