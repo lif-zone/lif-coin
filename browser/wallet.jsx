@@ -889,7 +889,7 @@ function Mine_screen({wallet}){
           </tr>
           <tr>
             <td style={{color: '#666', paddingRight: 16}}>Total hashes</td>
-            <td><strong>{stats.total ? stats.total.toLocaleString() : '…'}</strong></td>
+            <td><strong>{stats.total_h ? stats.total_h.toLocaleString() : '…'}</strong></td>
           </tr>
           <tr>
             <td style={{color: '#666', paddingRight: 16}}>Hashes to win</td>
@@ -1011,7 +1011,7 @@ function Mine_pool_screen({wallet}){
           </tr>
           <tr>
             <td style={{color: '#666', paddingRight: 16}}>Total hashes</td>
-            <td><strong>{stats.total ? stats.total.toLocaleString() : '…'}</strong></td>
+            <td><strong>{stats.total_h ? stats.total_h.toLocaleString() : '…'}</strong></td>
           </tr>
           <tr>
             <td style={{color: '#666', paddingRight: 16}}>Hashes to win</td>

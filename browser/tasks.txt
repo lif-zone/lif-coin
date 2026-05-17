@@ -72,23 +72,25 @@ make wallet.jsx support multiple wallets
   + add to wallet an instant mining page (client). it requests blocks heades
     to mine. once receiving it - it mines, and sends results, and waits to
     get resulting TX to his address. Must take no more than 10 seconds.
+  - update total_h to count hashs so far
   - add request for reduced fees, by providing prev tx, and asking to
     update it.
   - add UI of estimations how much will be earned, and how much expected per day
     of mining, and how much expected per month of mining.
 - add $ value: 1LIF==1USD. BTC - get dynamic. a click on the value changes
   the display. in USD - show up to the cent $40.41 LIF, $1500.00 BTC
-- add an outgoing proxy from lif_node to lif server.
-- add rpc.rconnect() - remote connection. Gives an object similar to and rpc(),
+- tun: add rpc.rconnect() - remote connection. Gives an object similar to and rpc(),
   but with remove connection.
-- add support for websocket subscription on new transactions, and updating
-  accordingly. including tx from mempool (for instant mining win feedback).
-- add lif-net incoming connections to lif-coin:8432
-- add lif-net outgoing connections to github
-- make lif/git source to bring most up-to-date versions
+- lif-net
+  - add an outgoing proxy from lif_node to lif server.
+  - add lif-net incoming connections to lif-coin:8432
+  - add lif-net outgoing connections to github
+  - make lif/git source to bring most up-to-date versions
 
 Low priority:
 -------------
+- add support for websocket subscription on new transactions, and updating
+  accordingly. including tx from mempool (for instant mining win feedback).
 - add mining control CPU 5% - 100%, in drop down.
 - in CPU usage, it continues adding more mining threads - up to 4.
 - add support for WebGPU and WASM, and in NodeJS for native SHA instructions
