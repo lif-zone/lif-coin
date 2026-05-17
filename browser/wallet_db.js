@@ -882,7 +882,7 @@ export function mine_solo({netconf, saddr, min, max, target, steps=true}){
 
 let g_rg = {};
 let g_rg_id = ''+Math.floor(Math.random()*1000000000);
-export function mine_instant({netconf, saddr}){
+export function mine_instant({netconf, saddr, target}){
   return etask(function*mine_instant()
 {
   this.on('cancel', ()=>console.log('mine_instant canceled'));
@@ -915,7 +915,8 @@ export function mine_instant({netconf, saddr}){
     return {err: 'pool: reward lees than fee'};
   rg.template++;
   const header = buf_from_hex(template.header);
-  let opt = {pow: netconf.pow, header, target: template.target};
+  target ||= template.target;
+  let opt = {pow: netconf.pow, header, target};
   let mine_et = mine_steps(opt);
   mine_et.on('update', up=>this.emit('update', up));
   let mine_ret = yield mine_et;

@@ -769,7 +769,7 @@ function Receive_screen({address, symbol, netconf}){
 // Mine Screen
 function target_get(){
   if (settings.ls.devtools && settings.ls.dev_target)
-    return 0xffff001d;
+    return 0x1d00ffff;
 }
 
 function fmt_duration(sec){
