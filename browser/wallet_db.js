@@ -1043,7 +1043,7 @@ export function mine_instant_pool({wallet, reward_share}){
     });
     let do_update = ()=>{
       let total_h = nwin*nhash_win_slice;
-      let hps = total_h/Math.max(date_time()-time_base_local, 1);
+      let hps = Math.floor(total_h/Math.max(date_time()-time_base_local, 1));
       this.emit('update', {hps, slice_h: nhash_win_slice,
         total_h, nhash_win, submit_err_n, submit_err,
         win_n, pay_n, win_v, pay_v});
