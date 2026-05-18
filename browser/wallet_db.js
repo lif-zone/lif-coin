@@ -1046,6 +1046,7 @@ export function mine_instant_pool({wallet, reward_share, target}){
     const fee = tx_send({wallet, saddr_to: wallet.c.changeAddrInfo.address,
       value: 1}).fee;
     let nwin = 0;
+    let last_up = {now: Date.now(), total_h: 0};
     if (slice_reward<=fee)
       return {error: 'reward smaller than fees'};
     console.log('starting mining pool', template.header);
@@ -1079,19 +1080,20 @@ export function mine_instant_pool({wallet, reward_share, target}){
         min: offer.min, max: offer.max};
     });
     let do_update = ()=>{
-      let hps = Math.floor(total_h/Math.max(date_time()-time_base_local, 1));
+      let now = Date.now();
+      let hps = Math.floor((total_h-last_up.total_h)/
+        Math.max(now-last_up.now, 1)*1000);
       this.emit('update', {hps, slice_h: nhash_win_slice,
         total_h, nhash_win, submit_err_n, submit_err,
         win_n, pay_n, win_v, pay_v});
+      last_up = {now, total_h};
     };
     rpc.method('mine_instant_update', up=>{
-      if (up.mine_h)
-        total_h += up.mine_h;
+      total_h += up.mine_h||0;
     });
     function mine_instant_submit(params){ return etask(function*(){
       let {addr, header: h, mine_h} = params;
-      if (mine_h)
-        total_h += mine_h;
+      total_h += mine_h||0;
       if (!addr)
         return {error: 'no reward addr'};
       let _h = buf_from_hex(h);
