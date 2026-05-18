@@ -73,8 +73,6 @@ make wallet.jsx support multiple wallets
     to mine. once receiving it - it mines, and sends results, and waits to
     get resulting TX to his address. Must take no more than 10 seconds.
   - update total_h to count hashs so far
-  - add request for reduced fees, by providing prev tx, and asking to
-    update it.
   - add UI of estimations how much will be earned, and how much expected per day
     of mining, and how much expected per month of mining.
 - add $ value: 1LIF==1USD. BTC - get dynamic. a click on the value changes
@@ -91,6 +89,8 @@ Low priority:
 -------------
 - add support for websocket subscription on new transactions, and updating
   accordingly. including tx from mempool (for instant mining win feedback).
+- instant mining: add request for reduced fees, by providing prev tx, and
+  asking to update it.
 - add mining control CPU 5% - 100%, in drop down.
 - in CPU usage, it continues adding more mining threads - up to 4.
 - add support for WebGPU and WASM, and in NodeJS for native SHA instructions

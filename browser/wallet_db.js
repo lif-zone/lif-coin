@@ -932,7 +932,10 @@ export function mine_instant({netconf, saddr, target}){
   }
   let opt = {pow: netconf.pow, header, target: slice_target};
   let mine_et = mine_steps(opt);
-  mine_et.on('update', up=>this.emit('update', up));
+  mine_et.on('update', up=>{
+    this.emit('update', up);
+    rg_c.call(rg_id, 'mine_instant_update', {mine_h: up.mine_h});
+  });
   let mine_ret = yield mine_et;
   console.log('mine_res', mine_ret);
   if (!mine_ret.found)
@@ -997,6 +1000,7 @@ export function mine_instant_pool({wallet, reward_share, target}){
   const offers = {};
   const nslice = 1024;
   const slice_sz = Math.floor(0x100000000/nslice);
+  let total_h = 0;
   try {
     const el = _el(netconf);
     yield rg_c.rg_id(g_rg_id);
@@ -1049,17 +1053,19 @@ export function mine_instant_pool({wallet, reward_share, target}){
         min: offer.min, max: offer.max};
     });
     let do_update = ()=>{
-      let total_h = nwin*nhash_win_slice;
       let hps = Math.floor(total_h/Math.max(date_time()-time_base_local, 1));
       this.emit('update', {hps, slice_h: nhash_win_slice,
         total_h, nhash_win, submit_err_n, submit_err,
         win_n, pay_n, win_v, pay_v});
     };
-    rpc.method('mine_instant_update', params=>{
-      console.log('TODO call do_update and update statistics');
+    rpc.method('mine_instant_update', up=>{
+      if (up.mine_h)
+        total_h += up.mine_h;
     });
     function mine_instant_submit(params){ return etask(function*(){
-      let {addr, header: h} = params;
+      let {addr, header: h, mine_h} = params;
+      if (mine_h)
+        total_h += mine_h;
       if (!addr)
         return {error: 'no reward addr'};
       let _h = buf_from_hex(h);

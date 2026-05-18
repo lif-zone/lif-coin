@@ -166,6 +166,7 @@ export function mine_steps({pow, header, time_local,
   let hps = 10; // initial hashs per second. in reality is around 1M hps
   let slice_ms = 1000;
   let total_h = 0;
+  let mine_h = 0;
   let at = min;
   time_local ||= date_time();
   let time_diff = header_get_time(header)-time_local;
@@ -175,7 +176,8 @@ export function mine_steps({pow, header, time_local,
   let nhash_win = Number(target_to_nhash_win(target_from_compact(target)));
   for (;;){
     let slice_h = Math.max(Math.floor(hps*slice_ms/1000), 1);
-    this.emit('update', {hps, slice_h, total_h, nhash_win});
+    this.emit('update', {hps, slice_h, total_h, nhash_win, mine_h});
+    mine_h = 0;
     let time = date_time();
     if (time!=time_last){
       header_set_time(_header, time+time_diff);
@@ -186,9 +188,11 @@ export function mine_steps({pow, header, time_local,
     let ret = yield mine_worker_call({pow, header: _header, target,
       min: at, max: Math.min(at+slice_h, 0x100000000)});
     if (ret.found){
+      mine_h += ret.nonce-at;
       total_h += ret.nonce-at;
       return {...ret, total_h};
     }
+    mine_h += slice_h;
     total_h += slice_h;
     let tend = Date.now();
     let ms = Math.max(tend-tstart, 1);
