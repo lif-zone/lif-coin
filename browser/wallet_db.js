@@ -1066,7 +1066,7 @@ export function mine_instant_pool({wallet, reward_share, target}){
       let nonce = header_get_nonce(_h);
       let time = header_get_time(_h);
       // check target full block winner
-      ret = mine({pow, header: _h, min: nonce, max: nonce+1, target});
+      let ret = mine({pow, header: _h, min: nonce, max: nonce+1, target});
       if (ret){
         console.log('seems like got a winning block!', h);
         let ret = yield el.mine_submit_header(h);
@@ -1079,7 +1079,7 @@ export function mine_instant_pool({wallet, reward_share, target}){
         }
       }
       // check target in range for reward - if so - give reward
-      let ret = mine({pow, header: _h, min: nonce, max: nonce+1,
+      ret = mine({pow, header: _h, min: nonce, max: nonce+1,
         target: slice_target});
       if (!ret)
         return {error: 'pool cheat: not in target'};
