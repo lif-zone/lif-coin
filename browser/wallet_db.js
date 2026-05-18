@@ -49,7 +49,7 @@ const netconf_def = {
     name: 'Lifcoin', // Life Chai
     symbol: 'LIF',
     network: networks_lif,
-    electrum: 'ws://localhost:8432',
+    electrum: '/.lif.net/electrum',
     explorer_tx: 'http://localhost:5000/tx/',
     coin_type: 1842,
     fee_def: 5000000, // 1MB = 50LIF
@@ -79,6 +79,12 @@ const netconf_def = {
     test: true,
   },
 };
+
+function ws_origin(){
+  let protocol = location.protocol=='http:' ? 'ws:' :
+    location.protocol=='https:' ? 'wss:' : assert();
+  return protocol+'//'+location.host;
+}
 
 const g_settings = {};
 function settings_load(){
@@ -143,7 +149,10 @@ const g_electrum = {};
 class electrum_rpc {
   constructor(netconf){
     this.netconf = netconf;
-    this.url = netconf.electrum;
+    let url = netconf.electrum;
+    if (url[0]=='/')
+      url = ws_origin()+url;
+    this.url = url;
   }
   async connect(){
     let rpc;
@@ -220,9 +229,7 @@ export function _el(netconf){
 const g_lif_rg = {};
 class lif_rg_rpc {
   constructor(){
-    let protocol = location.protocol=='http:' ? 'ws:' :
-      location.protocol=='https:' ? 'wss:' : null;
-    this.url = protocol+'//'+location.host+'/.lif.rg';
+    this.url = ws_origin()+'/.lif.rg';
   }
   async connect(){
     let rpc;
