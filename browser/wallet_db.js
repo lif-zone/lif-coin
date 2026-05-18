@@ -83,6 +83,8 @@ const netconf_def = {
   },
 };
 
+export const LIF_SERVER_DEF = 'http://localhost:8432';
+
 function ws_origin(){
   let protocol = location.protocol=='http:' ? 'ws:' :
     location.protocol=='https:' ? 'wss:' : assert();
@@ -139,7 +141,7 @@ export function settings_save(){
   const s = g_settings;
   const {ls} = g_settings;
   for (const [k, nc_def] of OE(netconf_def))
-    s.netconf[k].electrum = ls.netconf[k].electrum;
+    s.netconf[k].electrum = ls.netconf[k].electrum||nc_def.electrum;
   localStorage.setItem('settings', JSON.stringify(g_settings.ls));
 }
 
@@ -147,27 +149,11 @@ export function settings_get(){
   return g_settings;
 }
 
-export const LIF_SERVER_DEF = 'http://localhost:8432';
 export function lif_server_get(){
   return g_settings.ls.lif_server;
 }
 export function lif_server_set(val){
   g_settings.ls.lif_server = val;
-  settings_save();
-}
-
-export function electrum_get(){
-  let servers = {};
-  for (let [k, netconf] of OE(g_settings))
-    servers[k] = netconf.electrum;
-  return servers;
-}
-
-export function electrum_set(electrum){
-  const s = g_settings;
-  const {ls} = s;
-  for (let [k, server] of OE(electrum))
-    s.netconf[k].electrum = ls.netconf[k].electrum = server;
   settings_save();
 }
 
