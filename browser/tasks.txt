@@ -72,8 +72,8 @@ make wallet.jsx support multiple wallets
   + add to wallet an instant mining page (client). it requests blocks heades
     to mine. once receiving it - it mines, and sends results, and waits to
     get resulting TX to his address. Must take no more than 10 seconds.
+  + rpc no result/error
   * instant_pool_server update total_h to count hashs so far
-  - rpc no result/error
   - bug: mining reward stays in mempool
   - bug: funding payouts for multiple wins
   - add simple reward UI of estimations how much will be earned,
