@@ -90,6 +90,8 @@ make wallet.jsx support multiple wallets
   - add lif-net outgoing connections to github
   - make lif/git source to bring most up-to-date versions
 - locate github latest releases, and releases by tags
+- UI solution to update version: instead of
+  Devtools->Application->Service Worker->Update->Unregister
 
 For release
 -----------
