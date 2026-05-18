@@ -960,7 +960,7 @@ export function mine_instant({netconf, saddr, target}){
   let mine_et = mine_steps(opt);
   mine_et.on('update', up=>{
     this.emit('update', up);
-    rg_c.call(rg_id, 'mine_instant_update', {mine_h: up.mine_h});
+    rg_c.rcall(rg_id, 'mine_instant_update', {mine_h: up.mine_h});
   });
   let mine_ret = yield mine_et;
   console.log('mine_res', mine_ret);
