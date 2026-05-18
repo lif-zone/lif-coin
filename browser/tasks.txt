@@ -72,11 +72,16 @@ make wallet.jsx support multiple wallets
   + add to wallet an instant mining page (client). it requests blocks heades
     to mine. once receiving it - it mines, and sends results, and waits to
     get resulting TX to his address. Must take no more than 10 seconds.
-  - update total_h to count hashs so far
-  - add UI of estimations how much will be earned, and how much expected per day
+  - instant_pool_server update total_h to count hashs so far
+  - bug: mining reward stays in mempool
+  - bug: funding payouts for multiple wins
+  - add simple reward UI of estimations how much will be earned,
+    and how much expected per day
     of mining, and how much expected per month of mining.
+    move existing UI to 'advanced'
 - add $ value: 1LIF==1USD. BTC - get dynamic. a click on the value changes
   the display. in USD - show up to the cent $40.41 LIF, $1500.00 BTC
+  anything under a cent, show as a cent.
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to and rpc(),
   but with remove connection.
 - lif-net

@@ -56,6 +56,7 @@ const netconf_def = {
     fee_max: 10000000,
     lif_kv: true,
     pow: 'sha256lif',
+    usd: 1,
   },
   btc: {
     name: 'Bitcoin',
@@ -67,6 +68,7 @@ const netconf_def = {
     explorer_tx: 'https://mempool.space/tx/',
     coin_type: 0,
     fee_def: 1000, // 1MB = 0.01BTC
+    usd: 50000,
   },
   btc_testnet: {
     name: 'Bitcoin Testnet',
@@ -77,6 +79,7 @@ const netconf_def = {
     coin_type: 1,
     fee_def: 1000,
     test: true,
+    usd: 0.01,
   },
 };
 
@@ -84,6 +87,29 @@ function ws_origin(){
   let protocol = location.protocol=='http:' ? 'ws:' :
     location.protocol=='https:' ? 'wss:' : assert();
   return protocol+'//'+location.host;
+}
+
+async function get_btc_usd() {
+  const [cg, binance, cb] = await Promise.all([
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd').then(r => r.json()),
+    fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT').then(r => r.json()),
+    fetch('https://api.exchange.coinbase.com/products/BTC-USD/ticker').then(r => r.json())
+  ]);
+  const prices = {
+    coingecko: cg.bitcoin.usd,
+    binance: parseFloat(binance.price),
+    coinbase: parseFloat(cb.price),
+  };
+  // find median
+  let p = prices.values().filter(v=>v).sort();
+  if (!p.length)
+    return;
+  if (p.length==1)
+    return p[0];
+  if (p.length==2)
+    return (p[0]+p[1])/2;
+  let i = Math.floor(p.length/2);
+  return p[i];
 }
 
 const g_settings = {};
