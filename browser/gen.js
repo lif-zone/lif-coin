@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-'use strict'; /* eslint-env node */
+'use strict';
 process.title = 'gen';
 
 const assert = require('bsert');

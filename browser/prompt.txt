@@ -1136,3 +1136,11 @@ USER: Add in wallet page, on the left of existing mining button, a button to go 
 CLAUDE: Added onMinePool prop to Wallet_screen. Button shows left of existing mine button only when netconf.lif_kv && balance >= 50*1e8. Wired up wallet_mine_pool screen in BrightWallet with back navigation and Mine_pool_screen rendering.
 
 ---
+
+---
+
+USER: In lif-kernel/server_lib.js, upon receiving a websocket request to /.lif/electrum, proxy it to ws://localhost:8432/
+
+CLAUDE: Added WebSocket to the ws import. Added wss_electrum WebSocketServer and a proxy handler in ws_upgrade for /.lif/electrum: upgrades the client connection, opens WebSocket to ws://localhost:8432/, pipes messages bidirectionally, closes both sides on disconnect or upstream error.
+
+---
