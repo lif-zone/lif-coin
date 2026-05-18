@@ -922,8 +922,15 @@ export function mine_instant({netconf, saddr, target}){
     return {err: 'pool: reward lees than fee'};
   rg.template++;
   const header = buf_from_hex(template.header);
-  target ||= template.target;
-  let opt = {pow: netconf.pow, header, target};
+  let slice_target;
+  if (target){
+    // simulate real target
+    const nhash_win = Number(target_to_nhash_win(target_from_compact(target)));
+    const nhash_win_slice = Math.floor(nhash_win/template.nslice);
+    slice_target = target_to_compact(target_from_nhash_win(
+      nhash_win_slice));
+  }
+  let opt = {pow: netconf.pow, header, target: slice_target};
   let mine_et = mine_steps(opt);
   mine_et.on('update', up=>this.emit('update', up));
   let mine_ret = yield mine_et;
@@ -976,7 +983,7 @@ function header_match(a, b){
 }
 
 let STALE_OFFER = 60; // 1 minute
-export function mine_instant_pool({wallet, reward_share}){
+export function mine_instant_pool({wallet, reward_share, target}){
   return etask(function*mine_instant_pool()
 {
   this.on('cancel', ()=>console.log('mine_instant_pool canceled'));
@@ -997,7 +1004,7 @@ export function mine_instant_pool({wallet, reward_share}){
     const template = yield el.mine_get_template(saddr);
     const {reward} = template;
     const header = buf_from_hex(template.header);
-    const target = header_get_target(header);
+    target ||= header_get_target(header);
     const time_base = header_get_time(header);
     const time_base_local = date_time();
     const time_diff = time_base_local-time_base;
@@ -1037,7 +1044,7 @@ export function mine_instant_pool({wallet, reward_share}){
       header_set_time(h, time_now);
       offer = offers[i] = {min: i*slice_sz, max: (i+1)*slice_sz, addr,
         time_local: now, last_update: now, win: []};
-      return {reward: slice_reward, fee,
+      return {reward: slice_reward, nslice, fee,
         header: buf_to_hex(h), target: slice_target,
         min: offer.min, max: offer.max};
     });
@@ -1058,13 +1065,8 @@ export function mine_instant_pool({wallet, reward_share}){
       let _h = buf_from_hex(h);
       let nonce = header_get_nonce(_h);
       let time = header_get_time(_h);
-      // check target in range for reward - if so - give reward
-      let ret = mine({pow, header: _h, min: nonce, max: nonce+1,
-        target: slice_target});
-      if (!ret)
-        return {error: 'pool cheat: not in target'};
       // check target full block winner
-      ret = mine({pow, header: _h, min: nonce, max: nonce+1});
+      ret = mine({pow, header: _h, min: nonce, max: nonce+1, target});
       if (ret){
         console.log('seems like got a winning block!', h);
         let ret = yield el.mine_submit_header(h);
@@ -1076,6 +1078,11 @@ export function mine_instant_pool({wallet, reward_share}){
           do_update();
         }
       }
+      // check target in range for reward - if so - give reward
+      let ret = mine({pow, header: _h, min: nonce, max: nonce+1,
+        target: slice_target});
+      if (!ret)
+        return {error: 'pool cheat: not in target'};
       // locate offer, validate it matches nonce range and time range
       let i = Math.floor(nonce/slice_sz);
       let offer = offers[i];
