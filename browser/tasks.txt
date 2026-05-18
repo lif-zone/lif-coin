@@ -89,9 +89,22 @@ make wallet.jsx support multiple wallets
   - add lif-net incoming connections to lif-coin:8432
   - add lif-net outgoing connections to github
   - make lif/git source to bring most up-to-date versions
+- locate github latest releases, and releases by tags
+
+For release
+-----------
+- add LIF production network with production target (4G).
+  move current network to test network.
+- prepare genesis block inscriptions:
+  - 42 words, The 42 of 18: The Meaning of Lif
+    The Meaning of Rich Life: The 42 of 10 18: 6-7
+    Hamavdil ben kodesh le hol. Separating the 7 from 6.
+  - add marking in genesis block of bitcoin block hash.
+  - 5 book names: beginning, names, calling, talking, things.
 
 Low priority:
 -------------
+- register 1842 coin with SLIP
 - add support for websocket subscription on new transactions, and updating
   accordingly. including tx from mempool (for instant mining win feedback).
 - instant mining: add request for reduced fees, by providing prev tx, and
@@ -115,10 +128,10 @@ Low priority:
   - support lif kernel JsRx and make esplora run on it
 - add support for lif no-cors via out servers routing requests in return
   to mining or tx with money.
-- add LIF test network, and additional bitcoin test networks.
 - tx broadcast that fails should show a message that it failed
 - in wallet domain operations: change to default just DNS and site, and
   clicking advanced will allow full JSON edit, and full key edit
+- add support for additional bitcoin test networks.
 
 coding conventions:
 -------------------
