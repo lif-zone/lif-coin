@@ -175,7 +175,7 @@ export function mine_steps({pow, header, time_local,
   target ||= header_get_target(header);
   let nhash_win = Number(target_to_nhash_win(target_from_compact(target)));
   for (;;){
-    let slice_h = Math.max(Math.floor(hps*slice_ms/1000), 1);
+    let slice_h = Math.max(Math.floor(hps*slice_ms/1000), 1000);
     this.emit('update', {hps, slice_h, total_h, nhash_win, mine_h});
     mine_h = 0;
     let time = date_time();
