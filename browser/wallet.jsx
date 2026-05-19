@@ -1813,7 +1813,6 @@ function Get_domain_screen({wallet, onSent, domain=''}){
             fontSize: 13, boxSizing: 'border-box'}}
         />
       </div>
-      <Fee_field value={fee} onChange={setFee} netconf={netconf} />
       <button onClick={handle_add} disabled={sending||!isValid||nameStatus=='taken'} style={{marginTop: 12}}>
         {sending ? 'Registering…' : 'Register'}
       </button>
