@@ -1789,7 +1789,12 @@ function Get_domain_screen({wallet, onSent, domain=''}){
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Get Domain</h3>
       <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} /></div>
-      {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
+      <div>Cost: <Amount value={fee} netconf={netconf} /></div>
+      {!balOk &&
+        <div style={{color: 'red', fontSize: 12, marginTop: 2}}>
+          Insufficient balance
+        </div>
+      }
       <div style={{marginTop: 12}}>
         <label>Domain name:</label>
         <input
