@@ -1682,6 +1682,96 @@ function Kv_edit_screen({wallet, kv_d, onSent}){
   );
 }
 
+function Get_domain_screen({wallet, onSent}){
+  const modal = useModal();
+  const {netconf} = wallet;
+  const {setValid, isValid} = useFormValid();
+  const [name, setName] = useState('');
+  const [site, setSite] = useState('');
+  const [sending, setSending] = useState(false);
+  const [nameStatus, setNameStatus] = useState(null);
+  const kv_key = ()=>'dns/'+name.trim();
+  const kv_val = ()=>JSON.stringify({site: site.trim()});
+  const [fee, setFee] = useState(0);
+  const bal = wallet_bal(wallet);
+  const balOk = fee <= bal;
+  useEffect(()=>{ setValid('bal', balOk); }, [balOk]);
+  useEffect(()=>{
+    setFee(kv_tx_add({wallet, key: kv_key(), val: kv_val()}).fee);
+  }, [name, site]);
+  useEffect(()=>{
+    (async()=>{
+      const key = kv_key();
+      if (!name.trim()){
+        setNameStatus(null);
+        return;
+      }
+      setNameStatus('checking');
+      await esleep(500);
+      try {
+        const kv = await _el(netconf).kv_get(key);
+        setNameStatus(kv ? 'taken' : 'available');
+      } catch(e){
+        setNameStatus('error');
+      }
+    })();
+  }, [name]);
+  const handle_add = async()=>{
+    if (!name.trim())
+      return await modal.alert('Name is required');
+    if (!site.trim())
+      return await modal.alert('Site is required');
+    setSending(true);
+    try {
+      const {fee: _fee, tx} = kv_tx_add({wallet, key: kv_key(), val: kv_val(), fee});
+      await tx_broadcast(netconf, tx);
+      setFee(_fee);
+      await modal.alert(`Domain registration sent!\nTXID: ${tx.getId()}`);
+      setName('');
+      setSite('');
+      onSent?.();
+    } catch(err){
+      await modal.alert(err.message);
+    } finally {
+      setSending(false);
+    }
+  };
+  return (
+    <div style={{marginTop: 16, maxWidth: 480}}>
+      <h3>Get Domain</h3>
+      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} /></div>
+      {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
+      <div style={{marginTop: 12}}>
+        <label>Domain name:</label>
+        <input
+          placeholder="e.g. jungo"
+          value={name}
+          onChange={e=>setName(e.target.value.trim())}
+          style={{display: 'block', width: '100%', marginTop: 4, fontFamily: 'monospace',
+            fontSize: 13, boxSizing: 'border-box'}}
+        />
+        {nameStatus=='checking' && <div style={{fontSize: 12, color: '#aaa', marginTop: 3}}>Checking…</div>}
+        {nameStatus=='available' && <div style={{fontSize: 12, color: 'green', marginTop: 3}}>Available</div>}
+        {nameStatus=='taken' && <div style={{fontSize: 12, color: '#c00', marginTop: 3}}>Already taken</div>}
+      </div>
+      <div style={{marginTop: 12}}>
+        <label>Site:</label>
+        <input
+          placeholder="e.g. lif:git/myproject"
+          value={site}
+          onChange={e=>setSite(e.target.value.trim())}
+          style={{display: 'block', width: '100%', marginTop: 4, fontFamily: 'monospace',
+            fontSize: 13, boxSizing: 'border-box'}}
+        />
+      </div>
+      <Fee_field value={fee} onChange={setFee} netconf={netconf} />
+      <button onClick={handle_add} disabled={sending||!isValid||nameStatus=='taken'} style={{marginTop: 12}}>
+        {sending ? 'Registering…' : 'Register'}
+      </button>
+    </div>
+  );
+}
+
 // Settings Screen
 function Settings_screen({onDevtools, onBack})
 {

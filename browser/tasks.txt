@@ -75,12 +75,11 @@ make wallet.jsx support multiple wallets
   + rpc no result/error
   + instant_pool_server update total_h to count hashs so far
   c bug: mining reward stays in mempool
-  - bug: funding payouts for multiple wins
   - add simple reward UI of estimations how much will be earned,
     and how much expected per day
     of mining, and how much expected per month of mining.
     move existing UI to 'advanced'
-- UI for 404 domain not found: to create wallet, and mine, and put content
+* UI for 404 domain not found: to create wallet, and mine, and put content
   on wallet. Ask for email, and when purchasing domain, register it as
   'owner' and when arriving to that domain, put it as "this domain is owned
   by xxx@gmail.com. If you would like to purchase this domain - contact
@@ -112,6 +111,7 @@ For release
 
 Low priority:
 -------------
+- instant mine: funding payouts for multiple wins
 - register 1842 coin with SLIP
 - add support for websocket subscription on new transactions, and updating
   accordingly. including tx from mempool (for instant mining win feedback).
