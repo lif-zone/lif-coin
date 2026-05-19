@@ -1152,3 +1152,11 @@ USER: When a user wants to purchase a new domain, he is transferred to /?get_dom
 CLAUDE: Added select_lif_wallet() standalone function: filters wallets by network=='lif', picks highest balance (or first if all zero), or creates new LIF wallet if none exist. In BrightWallet mount useEffect: detect ?get_domain=, strip LIF_DOMAINS suffix, call select_lif_wallet, set activeWalletId and navigate to wallet_get_domain screen. Added wallet_get_domain screen rendering Get_domain_screen with defaultName prop. Added defaultName prop to Get_domain_screen, pre-fills name state.
 
 ---
+
+---
+
+USER: Clicking <Amount> should cycle display modes: usd/coin/sat. Stored in settings.ls.amount. USD rounds up to 2 decimals using netconf.usd price. Sat is integer. Mode is global (all Amount components update).
+
+CLAUDE: Added Amount_context and Amount_provider with mode state persisted to settings.ls.amount (default 'usd'). Updated Amount component to consume context, cycle modes on click (usd→coin→sat→usd), render accordingly. USD uses Math.ceil for upward rounding, looks up price from settings.netconf by symbol. Wrapped App in Amount_provider.
+
+---

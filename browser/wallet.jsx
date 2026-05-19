@@ -18,6 +18,22 @@ import {settings_get, settings_save, wallet_db_init, wallet_fetch,
 await wallet_db_init();
 const settings = settings_get();
 
+// Amount display mode
+const Amount_context = createContext(null);
+function Amount_provider({children}){
+  const [mode, setMode] = useState(()=>settings.ls.amount||'usd');
+  const set_mode = m=>{
+    settings.ls.amount = m;
+    settings_save();
+    setMode(m);
+  };
+  return (
+    <Amount_context.Provider value={{mode, set_mode}}>
+      {children}
+    </Amount_context.Provider>
+  );
+}
+
 // Modal
 const Modal_context = createContext(null);
 function Modal_provider({children}){
@@ -1227,19 +1243,32 @@ function useFormValid(){
   return {setValid, isValid};
 }
 
+const AMOUNT_MODES = ['usd', 'coin'];
 function Amount({sat, symbol, signed}){
+  const {mode, set_mode} = useContext(Amount_context);
   const sign = !signed ? null : sat>0 ? '+' : sat<0 ? '-' : '';
   const color = !signed ? null : sat>0 ? 'green' : sat<0 ? '#c00' : null;
-  const [int, dec] = (Math.abs(sat)/1e8).toFixed(8).split('.');
-  const sig = dec.replace(/0+$/, '');
-  const zeros = dec.slice(sig.length);
+  const next_mode = ()=>set_mode(
+    AMOUNT_MODES[(AMOUNT_MODES.indexOf(mode)+1)%AMOUNT_MODES.length]);
+  const sym = symbol ? ' '+symbol : '';
+  let content;
+  if (mode=='usd'){
+    const usd_price = OV(settings.netconf).find(nc=>nc.symbol==symbol)?.usd||0;
+    const usd_val = Math.ceil(Math.abs(sat)/1e8*usd_price*100)/100;
+    content = <>{sign}${usd_val.toFixed(2)}{sym}</>;
+  } else {
+    const [int, dec] = (Math.abs(sat)/1e8).toFixed(8).split('.');
+    const sig = dec.replace(/0+$/, '');
+    const zeros = dec.slice(sig.length);
+    content = <>{sign}{int}{sig.length===0
+      ? <span style={{color: '#aaa'}}>.{zeros}</span>
+      : <>.{sig}{zeros && <span style={{color: '#aaa'}}>{zeros}</span>}</>
+    }{sym}</>;
+  }
   return (
-    <span style={{fontFamily: 'monospace', ...(color&&{color})}}>
-      {sign}{int}
-      {sig.length===0
-        ? <span style={{color: '#aaa'}}>.{zeros}</span>
-        : <>.{sig}{zeros && <span style={{color: '#aaa'}}>{zeros}</span>}</>
-      }{symbol ? ' '+symbol : ''}
+    <span onClick={next_mode}
+      style={{fontFamily: 'monospace', cursor: 'pointer', ...(color&&{color})}}>
+      {content}
     </span>
   );
 }
@@ -1966,6 +1995,6 @@ function Devtools_screen({onCacheClear, onBack}){
 }
 
 function App(){
-  return <Modal_provider><BrightWallet /></Modal_provider>;
+  return <Amount_provider><Modal_provider><BrightWallet /></Modal_provider></Amount_provider>;
 }
 export default App;
