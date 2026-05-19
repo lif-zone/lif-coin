@@ -130,6 +130,16 @@ function settings_load(){
     OA(netconf, ls.netconf[k]);
     netconf.network.netconf = netconf;
   }
+  for (const [k, netconf] of OE(s.netconf)){
+    let mnemonic = 'all all all all all all all all all all all all';
+    let addrInfo = hd_wallet(mnemonic, k);
+    netconf.mock = {
+      mnemonic,
+      tx_hash: buf_from_hex('1a'.repeat(32)),
+      address: addrInfo.address,
+      keyPair: addrInfo.keyPair,
+    };
+  }
   return g_settings;
 }
 
@@ -592,10 +602,8 @@ export function hd_addr(network, root, accountPath, chain, index){
   return {address, keyPair, chain, index};
 }
 
-export function hd_wallet(mnemonic, networkKey, passphrase='',
-  derivPath=null)
-{
-  const netconf = g_settings.netconf[networkKey];
+export function hd_wallet(mnemonic, net_id, passphrase='', derivPath){
+  const netconf = g_settings.netconf[net_id];
   const network = netconf.network;
   const root = hd_root(mnemonic, network, passphrase);
   const accountPath = derivPath || hd_path_def(netconf);
@@ -727,21 +735,30 @@ function psbt_input_get_value(psbt, vin){
 
 export function wallet_bal(wallet){
   const {c, network} = wallet;
-  const utxos = [...c.utxos].sort((a,b)=>b.value-a.value)
-  .filter(u=>u.value>DUST_VAL);
+  const utxos = [...c.utxos].filter(u=>u.value>DUST_VAL);
   return utxos.reduce((sum, u)=>sum+u.value, 0);
 }
 
 function tx_fund({wallet, p, in_sign=[], fee}){
   const {c, netconf, network} = wallet;
+  if (fee==1){ // estimate fee: mock tx
+    let {mock} = netconf;
+    p.addInput({hash: mock.tx_hash, index: 0,
+      witnessUtxo: {value: 1n,
+      script: bitcoin.address.toOutputScript(mock.address, network)}});
+    let in_i = p.inputCount-1;
+    p.addOutput({address: mock.address, value: 0n});
+    p.signInput(in_i, mock.keyPair);
+    p.finalizeAllInputs();
+    const tx = p.extractTransaction();
+    return {tx, fee};
+  }
   const _sum_out = Number(
     p.txOutputs.reduce((sum, output)=>sum+output.value, 0n));
   const needed = _sum_out+fee;
   let sum_in = 0;
   for (let i=0; i<p.inputCount; i++)
     sum_in += Number(psbt_input_get_value(p, i));
-  if (netconf.fee_max)
-    p.setMaximumFeeRate(netconf.fee_max/1000);
   const sum_out = _sum_out+fee;
   // sort from big to small
   // filter out 0 value (which are probably lif kv coins) and

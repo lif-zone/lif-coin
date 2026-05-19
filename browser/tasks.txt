@@ -141,6 +141,27 @@ Low priority:
   clicking advanced will allow full JSON edit, and full key edit
 - add support for additional bitcoin test networks.
 
+React rewrite
+-------------
+Screen routing (screen state + all those {screen=='x' && <Component />}) → React Router (react-router-dom). Each screen becomes a <Route>,         
+navigation becomes useNavigate(). This alone would cut a lot.                                                                                      
+                                                                                                                                                   
+Forms (manual useState per field, useFormValid, fee/address fields) → React Hook Form. Replaces most form state with useForm(), register(),        
+handleSubmit(). Works well with validation.                                                                                                        
+
+Async data fetching (the useEffect + setLoading + setConnErr + setBalance pattern repeated in every screen) → TanStack Query                       
+(@tanstack/react-query). Replaces all that with useQuery() and handles caching, loading, error states automatically.                               
+                                                                                                                                                   
+Inline styles (every element has style={{...}}) → Tailwind CSS or a small component library like Radix UI primitives. Even just extracting shared  
+styles to a styles.js object would help.                                                                                                           
+                                                                                                                                                   
+Modal system (the custom Modal_context) → Radix UI Dialog is a drop-in that handles accessibility, focus trapping, etc. for free.                  
+                                                                                                                                                   
+The highest ROI in order:                                                                                                                          
+1. React Router — biggest reduction, the screen state machine is ~100 lines of logic                                                               
+2. TanStack Query — eliminates repetitive fetch boilerplate across many screens                                                                    
+3. React Hook Form — cleans up the form screens                                                                                                    
+
 coding conventions:
 -------------------
 - no spaces around arrow functions:

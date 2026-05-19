@@ -74,11 +74,32 @@ const newCardStyle = {
   color: '#666',
 };
 
+// Select or create the best LIF wallet for domain purchase
+function select_lif_wallet(){
+  const all = OV(wallets_get());
+  const lif = all.filter(w=>w.ls.network=='lif');
+  if (!lif.length){
+    const mnemonic = bip39.generateMnemonic();
+    const id = Date.now().toString();
+    const n = all.length+1;
+    wallet_add({id, name: 'Wallet #'+n, network: 'lif', mnemonic,
+      passphrase: '', derivPath: null});
+    return id;
+  }
+  let best = lif[0];
+  for (const w of lif){
+    if ((w.c.balance||0) > (best.c.balance||0))
+      best = w;
+  }
+  return best.ls.id;
+}
+
 // Main App
 function BrightWallet(){
   const [wallets, setWallets] = useState(()=>wallets_get());
   const [screen, setScreen] = useState('home');
   const [activeWalletId, setActiveWalletId] = useState(null);
+  const [getDomain, setGetDomain] = useState(null);
   const [selectedTxData, setSelectedTxData] = useState(null);
   const [selectedKeyData, setSelectedKeyData] = useState(null);
   const [cacheVer, setCacheVer] = useState(0);
@@ -86,7 +107,15 @@ function BrightWallet(){
   const [walletLoading, setWalletLoading] = useState(false);
   const [homeRefreshTick, setHomeRefreshTick] = useState(0);
   useEffect(()=>{
+    let raw = new URL(location.href).searchParams.get('get_domain');
+    if (!raw)
+      return;
+    let domain = raw;
+    const id = select_lif_wallet();
     setWallets(wallets_get());
+    setActiveWalletId(id);
+    setGetDomain(domain);
+    setScreen('wallet_get_domain');
   }, []);
   const addWallet = (w_ls)=>{
     wallet_add(w_ls);
@@ -112,7 +141,8 @@ function BrightWallet(){
       setScreen('wallet_info');
     else if (screen=='wallet_send' || screen=='wallet_receive' ||
       screen=='wallet_kv_add' || screen=='wallet_kv_add_raw' || screen=='wallet_settings' ||
-      screen=='wallet_mine' || screen=='wallet_mine_pool')
+      screen=='wallet_mine' || screen=='wallet_mine_pool' ||
+      screen=='wallet_get_domain')
       setScreen('wallet_info');
     else if (screen=='devtools')
       setScreen('settings');
@@ -188,6 +218,13 @@ function BrightWallet(){
           address={wallet.c.receiveAddress}
           symbol={wallet.netconf.symbol}
           netconf={wallet.netconf}
+        />
+      )}
+      {screen=='wallet_get_domain' && wallet && (
+        <Get_domain_screen
+          wallet={wallet}
+          defaultName={getDomain}
+          onSent={()=>setScreen('wallet_info')}
         />
       )}
       {screen=='wallet_kv_add' && wallet && (
@@ -1682,11 +1719,22 @@ function Kv_edit_screen({wallet, kv_d, onSent}){
   );
 }
 
-function Get_domain_screen({wallet, onSent}){
+function sub_dns(hostname){
+  let v;
+  let h = hostname.split('.').reverse();
+  let sub_idx;
+  if (h[0]=='localhost')
+    sub_idx = 1; // LIF-DOMAIN.localhost
+  else
+    sub_idx = 2; // LIF-DOMAIN.lif.zone
+  return h.slice(sub_idx).reverse().join('.');
+}
+
+function Get_domain_screen({wallet, onSent, defaultName=''}){
   const modal = useModal();
   const {netconf} = wallet;
   const {setValid, isValid} = useFormValid();
-  const [name, setName] = useState('');
+  const [name, setName] = useState(sub_dns(defaultName));
   const [site, setSite] = useState('');
   const [sending, setSending] = useState(false);
   const [nameStatus, setNameStatus] = useState(null);
@@ -1697,7 +1745,8 @@ function Get_domain_screen({wallet, onSent}){
   const balOk = fee <= bal;
   useEffect(()=>{ setValid('bal', balOk); }, [balOk]);
   useEffect(()=>{
-    setFee(kv_tx_add({wallet, key: kv_key(), val: kv_val()}).fee);
+    let {fee} = kv_tx_add({wallet, key: kv_key(), val: kv_val()});
+    setFee(fee);
   }, [name, site]);
   useEffect(()=>{
     (async()=>{

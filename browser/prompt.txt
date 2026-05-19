@@ -1144,3 +1144,11 @@ USER: In lif-kernel/server_lib.js, upon receiving a websocket request to /.lif/e
 CLAUDE: Added WebSocket to the ws import. Added wss_electrum WebSocketServer and a proxy handler in ws_upgrade for /.lif/electrum: upgrades the client connection, opens WebSocket to ws://localhost:8432/, pipes messages bidirectionally, closes both sides on disconnect or upstream error.
 
 ---
+
+---
+
+USER: When a user wants to purchase a new domain, he is transferred to /?get_domain=mydomain.lif.zone. Detect this, select best LIF wallet (highest balance, or first, or create new), go to Get_domain_screen. LIF wallet selection/creation in a separate function.
+
+CLAUDE: Added select_lif_wallet() standalone function: filters wallets by network=='lif', picks highest balance (or first if all zero), or creates new LIF wallet if none exist. In BrightWallet mount useEffect: detect ?get_domain=, strip LIF_DOMAINS suffix, call select_lif_wallet, set activeWalletId and navigate to wallet_get_domain screen. Added wallet_get_domain screen rendering Get_domain_screen with defaultName prop. Added defaultName prop to Get_domain_screen, pre-fills name state.
+
+---
