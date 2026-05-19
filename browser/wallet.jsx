@@ -1244,10 +1244,11 @@ function useFormValid(){
 }
 
 const AMOUNT_MODES = ['usd', 'coin'];
-function Amount({sat, symbol, signed}){
+function Amount({sat, symbol, signed, cost}){
   const {mode, set_mode} = useContext(Amount_context);
-  const sign = !signed ? null : sat>0 ? '+' : sat<0 ? '-' : '';
-  const color = !signed ? null : sat>0 ? 'green' : sat<0 ? '#c00' : null;
+  const sign = !signed ? null : sat>0 ? '' : sat<0 ? '-' : '';
+  const color = cost ? '#c00' :
+    !signed ? null : sat>0 ? 'green' : sat<0 ? '#c00' : null;
   const next_mode = e=>{
     e.stopPropagation();
     set_mode(AMOUNT_MODES[(AMOUNT_MODES.indexOf(mode)+1)%AMOUNT_MODES.length]);
@@ -1300,7 +1301,7 @@ function Fee_field({value, onChange, netconf}){
       ) : (
         <span onClick={()=>{ setStr((value/1e8).toFixed(8)); setEditing(true); }}
           style={{cursor: 'pointer', borderBottom: '1px dotted #999'}}
-        ><Amount sat={value} symbol={symbol} /></span>
+        ><Amount sat={value} symbol={symbol} cost /></span>
       )}
     </div>
   );
@@ -1449,7 +1450,7 @@ function Send_screen({wallet, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Send {symbol}</h3>
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={symbol} /></div>
+      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={symbol} signed /></div>
       {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
       <Addr_field value={toAddress} onChange={setToAddress} netconf={netconf} onValid={v=>setValid('addr',v)} />
       <Amount_field value={amountSat} onChange={setAmountSat} symbol={symbol} onValid={v=>setValid('amount',v)} min={1} />
@@ -1519,7 +1520,7 @@ function Kv_add_screen({wallet, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Register Domain</h3>
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} /></div>
+      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
       {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
       <div style={{marginTop: 12}}>
         <label>Domain name:</label>
@@ -1685,7 +1686,7 @@ function Kv_send_screen({wallet, kv_d, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Transfer Name</h3>
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} /></div>
+      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
       {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
       <div style={{marginTop: 8, color: '#666', fontSize: 13}}>
         Transferring: <span style={{fontFamily: 'monospace'}}>{kv_d.key}</span>
@@ -1734,7 +1735,7 @@ function Kv_edit_screen({wallet, kv_d, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Edit Domain Name</h3>
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} /></div>
+      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
       {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
       <div style={{marginTop: 8, color: '#666', fontSize: 13}}>
         Name: <span style={{fontFamily: 'monospace'}}>{kv_d.key}</span>
@@ -1819,8 +1820,8 @@ function Get_domain_screen({wallet, onSent, domain=''}){
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Get Domain</h3>
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} /></div>
-      <div>Cost: <Amount value={fee} netconf={netconf} /></div>
+      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
+      <div>Cost: <Amount value={fee} netconf={netconf} cost /></div>
       {!balOk &&
         <div style={{color: 'red', fontSize: 12, marginTop: 2}}>
           Insufficient balance
