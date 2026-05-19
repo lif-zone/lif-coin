@@ -1184,3 +1184,11 @@ USER: Fee_field should have an edit button (✎) to the left of <Amount> instead
 CLAUDE: Added value→initial string, onBlur, and autoFocus props to Amount_field (value was already a prop but ignored). Rewrote Fee_field: shows <Amount> + ✎ button in display mode, switches to <Amount_field value={value} autoFocus onBlur={()=>setEditing(false)}> in edit mode.
 
 ---
+
+---
+
+USER: Amount_field should show a clickable unit label ($ LIF, LIF, sat LIF) to the right that cycles global mode. On mode change, convert value to new mode's format. On blur, normalize (2 dec for usd, 8 for coin, integer for sat).
+
+CLAUDE: Rewrote Amount_field: consumes Amount_context for mode/set_mode. Added sat_to_str/str_to_sat helpers. useEffect with prev_mode ref converts str when mode changes. handle_blur normalizes on exit. Unit label is clickable (stopPropagation), cycles AMOUNT_MODES. Placeholder adapts per mode.
+
+---

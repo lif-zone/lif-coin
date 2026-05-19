@@ -1373,26 +1373,69 @@ function Addr_field({value, onChange, netconf, onValid, placeholder='Recipient a
 }
 
 function Amount_field({value, onChange, symbol, onValid, onBlur, min=0, autoFocus}){
-  const [str, setStr] = useState(()=>value ? (value/1e8).toFixed(8) : '');
-  const sat = Math.round(parseFloat(str)*1e8);
+  const {mode, set_mode} = useContext(Amount_context);
+  const usd_price = OV(settings.netconf).find(nc=>nc.symbol==symbol)?.usd||0;
+  const sat_to_str = (sat, m)=>{
+    sat = sat||0;
+    if (m=='usd') return (sat/1e8*usd_price).toFixed(2);
+    if (m=='sat') return ''+Math.round(sat);
+    return (sat/1e8).toFixed(8);
+  };
+  const str_to_sat = (s, m)=>{
+    const n = parseFloat(s)||0;
+    if (m=='usd') return usd_price ? Math.round(n/usd_price*1e8) : 0;
+    if (m=='sat') return Math.round(n);
+    return Math.round(n*1e8);
+  };
+  const [str, setStr] = useState(()=>sat_to_str(value, mode));
+  const strRef = useRef(str);
+  strRef.current = str;
+  const prev_mode = useRef(mode);
+  useEffect(()=>{
+    if (prev_mode.current==mode) return;
+    const sat = str_to_sat(strRef.current, prev_mode.current);
+    setStr(sat_to_str(sat, mode));
+    prev_mode.current = mode;
+  }, [mode]);
+  const sat = str_to_sat(str, mode);
   const valid = sat >= min;
   useEffect(()=>{ onValid?.(valid); }, [valid]);
-  const commit = v=>{
+  const handle_change = v=>{
     setStr(v);
-    onChange(Math.round(parseFloat(v)*1e8) || 0);
+    onChange(str_to_sat(v, mode));
+  };
+  const handle_blur = ()=>{
+    const s = str_to_sat(str, mode);
+    setStr(sat_to_str(s, mode));
+    onChange(s);
+    onBlur?.();
+  };
+  const unit_label = mode=='usd' ? '$ '+symbol : mode=='sat' ? 'sat '+symbol : symbol;
+  const placeholder = mode=='usd' ? '0.00' : mode=='sat' ? '0' : '0.00000000';
+  const next_mode = e=>{
+    e.stopPropagation();
+    set_mode(AMOUNT_MODES[(AMOUNT_MODES.indexOf(mode)+1)%AMOUNT_MODES.length]);
   };
   return (
-    <div>
-      <input
-        type="text"
-        placeholder={`Amount (${symbol})`}
-        value={str}
-        onChange={e=>commit(e.target.value)}
-        onBlur={onBlur}
-        autoFocus={autoFocus}
-        style={{display: 'block', width: '100%', marginTop: 8, boxSizing: 'border-box',
-          ...(!valid && str && {borderColor: 'red'})}}
-      />
+    <div style={{marginTop: 8}}>
+      <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={str}
+          onChange={e=>handle_change(e.target.value)}
+          onBlur={handle_blur}
+          autoFocus={autoFocus}
+          style={{flex: 1, boxSizing: 'border-box',
+            ...(!valid && str && {borderColor: 'red'})}}
+        />
+        <span onClick={next_mode}
+          style={{cursor: 'pointer', fontFamily: 'monospace', fontSize: 13,
+            color: '#555', whiteSpace: 'nowrap', userSelect: 'none',
+            borderBottom: '1px dotted #999'}}>
+          {unit_label}
+        </span>
+      </div>
       {!valid && str && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Invalid amount</div>}
     </div>
   );

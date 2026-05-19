@@ -700,8 +700,10 @@ export function addr_valid(network, addr){
 
 function tx_psbt(network){
   const p = new bitcoin.Psbt({network});
-  if (network.netconf.fee_max)
-    p.setMaximumFeeRate(network.netconf.fee_max/1000);
+  // disable this 'overpriced fee'. This logic should be in UI
+  // since max TX size if 1e6 (1MB blocks) and max 21M coins, so to disable
+  // we set it to number of all satoshis, divided by block size in bytes
+  p.setMaximumFeeRate(20e6*1e8/1e6);
   return p;
 }
 
@@ -741,20 +743,20 @@ export function wallet_bal(wallet){
 
 function tx_fund({wallet, p, in_sign=[], fee}){
   const {c, netconf, network} = wallet;
+  const _sum_out = Number(
+    p.txOutputs.reduce((sum, output)=>sum+output.value, 0n));
   if (fee==0){ // estimate fee: mock tx
     let {mock} = netconf;
     p.addInput({hash: mock.tx_hash, index: 0,
-      witnessUtxo: {value: 1n,
+      witnessUtxo: {value: BigInt(_sum_out+10),
       script: bitcoin.address.toOutputScript(mock.address, network)}});
     let in_i = p.inputCount-1;
-    p.addOutput({address: mock.address, value: 0n});
+    p.addOutput({address: mock.address, value: 1n});
     p.signInput(in_i, mock.keyPair);
     p.finalizeAllInputs();
     const tx = p.extractTransaction();
     return {tx, fee};
   }
-  const _sum_out = Number(
-    p.txOutputs.reduce((sum, output)=>sum+output.value, 0n));
   const needed = _sum_out+fee;
   let sum_in = 0;
   for (let i=0; i<p.inputCount; i++)
