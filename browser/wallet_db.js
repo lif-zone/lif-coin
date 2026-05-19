@@ -53,7 +53,6 @@ const netconf_def = {
     explorer_tx: 'http://localhost:5000/tx/',
     coin_type: 1842,
     fee_def: 5000000, // 1MB = 50LIF
-    fee_max: 10000000,
     lif_kv: true,
     pow: 'sha256lif',
     usd: 1,
