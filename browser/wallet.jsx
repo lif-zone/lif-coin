@@ -223,7 +223,7 @@ function BrightWallet(){
       {screen=='wallet_get_domain' && wallet && (
         <Get_domain_screen
           wallet={wallet}
-          defaultName={getDomain}
+          domain={getDomain}
           onSent={()=>setScreen('wallet_info')}
         />
       )}
@@ -1730,11 +1730,11 @@ function sub_dns(hostname){
   return h.slice(sub_idx).reverse().join('.');
 }
 
-function Get_domain_screen({wallet, onSent, defaultName=''}){
+function Get_domain_screen({wallet, onSent, domain=''}){
   const modal = useModal();
   const {netconf} = wallet;
   const {setValid, isValid} = useFormValid();
-  const [name, setName] = useState(sub_dns(defaultName));
+  const [name, setName] = useState(sub_dns(domain));
   const [site, setSite] = useState('');
   const [sending, setSending] = useState(false);
   const [nameStatus, setNameStatus] = useState(null);
