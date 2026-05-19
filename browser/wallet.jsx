@@ -1279,29 +1279,17 @@ function Amount({sat, symbol, signed, cost}){
 function Fee_field({value, onChange, netconf}){
   const symbol = netconf.symbol;
   const [editing, setEditing] = useState(false);
-  const [str, setStr] = useState((value/1e8).toFixed(8));
-  useEffect(()=>{
-    if (!editing)
-      setStr((value/1e8).toFixed(8));
-  }, [value, editing]);
-  const commit = ()=>{
-    const v = Math.max(1, Math.round(parseFloat(str)*1e8)||value);
-    onChange(v);
-    setEditing(false);
-  };
   return (
-    <div style={{marginTop: 8, fontSize: 13}}>
-      <span style={{color: '#666'}}>Fee: </span>
+    <div style={{marginTop: 8, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6}}>
+      <span style={{color: '#666'}}>Fee:</span>
       {editing ? (
-        <>
-          <input type="text" value={str} onChange={e=>setStr(e.target.value)}
-            onBlur={commit} autoFocus style={{width: 120, fontFamily: 'monospace', fontSize: 13}} />
-          {' '}{symbol}
-        </>
+        <Amount_field value={value} onChange={onChange} symbol={symbol} min={1} autoFocus
+          onBlur={()=>setEditing(false)} />
       ) : (
-        <span onClick={()=>{ setStr((value/1e8).toFixed(8)); setEditing(true); }}
-          style={{cursor: 'pointer', borderBottom: '1px dotted #999'}}
-        ><Amount sat={value} symbol={symbol} cost /></span>
+        <>
+          <Amount sat={value} symbol={symbol} cost />
+          <button onClick={()=>setEditing(true)} style={{fontSize: 11, padding: '1px 6px'}}>✎</button>
+        </>
       )}
     </div>
   );
@@ -1384,8 +1372,8 @@ function Addr_field({value, onChange, netconf, onValid, placeholder='Recipient a
   );
 }
 
-function Amount_field({value, onChange, symbol, onValid, min=0}){
-  const [str, setStr] = useState('');
+function Amount_field({value, onChange, symbol, onValid, onBlur, min=0, autoFocus}){
+  const [str, setStr] = useState(()=>value ? (value/1e8).toFixed(8) : '');
   const sat = Math.round(parseFloat(str)*1e8);
   const valid = sat >= min;
   useEffect(()=>{ onValid?.(valid); }, [valid]);
@@ -1400,6 +1388,8 @@ function Amount_field({value, onChange, symbol, onValid, min=0}){
         placeholder={`Amount (${symbol})`}
         value={str}
         onChange={e=>commit(e.target.value)}
+        onBlur={onBlur}
+        autoFocus={autoFocus}
         style={{display: 'block', width: '100%', marginTop: 8, boxSizing: 'border-box',
           ...(!valid && str && {borderColor: 'red'})}}
       />

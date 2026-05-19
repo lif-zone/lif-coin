@@ -1168,3 +1168,19 @@ USER: Bug: clicking <Amount> both changes mode AND triggers parent click (wallet
 CLAUDE: Added e.stopPropagation() in next_mode handler so clicks don't bubble to parent elements.
 
 ---
+
+---
+
+USER: Are Amount_field and Fee_field the same? Can they be merged?
+
+CLAUDE: No - they are different. Fee_field displays a computed fee as <Amount> that the user can click to edit inline (takes netconf, no validation). Amount_field is a free-text input for user to type an amount (takes symbol + onValid + min). Different UX patterns, not worth merging.
+
+---
+
+---
+
+USER: Fee_field should have an edit button (✎) to the left of <Amount> instead of click-to-edit. Clicking it switches to <Amount_field>. Add missing features to Amount_field to support this.
+
+CLAUDE: Added value→initial string, onBlur, and autoFocus props to Amount_field (value was already a prop but ignored). Rewrote Fee_field: shows <Amount> + ✎ button in display mode, switches to <Amount_field value={value} autoFocus onBlur={()=>setEditing(false)}> in edit mode.
+
+---
