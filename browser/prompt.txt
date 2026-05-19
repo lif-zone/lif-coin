@@ -1160,3 +1160,11 @@ USER: Clicking <Amount> should cycle display modes: usd/coin/sat. Stored in sett
 CLAUDE: Added Amount_context and Amount_provider with mode state persisted to settings.ls.amount (default 'usd'). Updated Amount component to consume context, cycle modes on click (usd→coin→sat→usd), render accordingly. USD uses Math.ceil for upward rounding, looks up price from settings.netconf by symbol. Wrapped App in Amount_provider.
 
 ---
+
+---
+
+USER: Bug: clicking <Amount> both changes mode AND triggers parent click (wallet card, transaction row). Amount click should eat the event.
+
+CLAUDE: Added e.stopPropagation() in next_mode handler so clicks don't bubble to parent elements.
+
+---

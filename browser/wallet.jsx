@@ -1248,8 +1248,10 @@ function Amount({sat, symbol, signed}){
   const {mode, set_mode} = useContext(Amount_context);
   const sign = !signed ? null : sat>0 ? '+' : sat<0 ? '-' : '';
   const color = !signed ? null : sat>0 ? 'green' : sat<0 ? '#c00' : null;
-  const next_mode = ()=>set_mode(
-    AMOUNT_MODES[(AMOUNT_MODES.indexOf(mode)+1)%AMOUNT_MODES.length]);
+  const next_mode = e=>{
+    e.stopPropagation();
+    set_mode(AMOUNT_MODES[(AMOUNT_MODES.indexOf(mode)+1)%AMOUNT_MODES.length]);
+  };
   const sym = symbol ? ' '+symbol : '';
   let content;
   if (mode=='usd'){
