@@ -103,6 +103,7 @@ async function get_btc_usd() {
   };
   // find median
   let p = prices.values().filter(v=>v).sort();
+  p = p.filter(v=>v>=10000); // sanity check BTC > 10,000 USD
   if (!p.length)
     return;
   if (p.length==1)
