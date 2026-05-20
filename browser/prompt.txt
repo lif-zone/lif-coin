@@ -1234,3 +1234,9 @@ USER: Also, move the Wallet_backup() widget below the Mine_fund() (Above the "Re
 
 CLAUDE: Moved <Wallet_backup> from the top of Kv_add_screen's JSX to below <Mine_fund>, just above the Register button. Order is now: form fields → Fee_field → Mine_fund → Wallet_backup → Register button.
 ---
+
+---
+USER: I created a new wallet. 0 TXes. the "Receive" button is disabled. Why?
+
+CLAUDE: The Receive button had disabled={!allAddrs.length}. allAddrs comes from wallet.c.addrs which is only populated after network sync. A new wallet has no synced addrs yet. Since Receive only needs wallet.c.receiveAddress (always derived from HD key, no sync needed), removed the disabled condition from the Receive button entirely.
+---

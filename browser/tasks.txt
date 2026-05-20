@@ -86,8 +86,6 @@ make wallet.jsx support multiple wallets
   'owner' and when arriving to that domain, put it as "this domain is owned
   by xxx@gmail.com. If you would like to purchase this domain - contact
   xxx@gmail.com.
-  - if wallet does not have sufficient funds:
-    instant mining progress bar % widget
   + backup wallet widget: if wallet was not backed up: display words,
     and click <I wrote it down>. Then the words turn to ***, and another box
     appears: write the words. below it <I forgot the words> (left).
@@ -95,6 +93,8 @@ make wallet.jsx support multiple wallets
     continue until you backup your wallet words.
     And tell "If forgot" if you for
     if you click Register domain without correct words - it will
+  * if wallet does not have sufficient funds:
+    instant mining progress bar % widget
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to
   and rpc(), but with remove connection.
 - lif-net
