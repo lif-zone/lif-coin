@@ -874,7 +874,10 @@ function Mine_screen({wallet}){
             et = mine_instant({netconf, saddr, target});
           else
             et = mine_solo({netconf, saddr, target});
-          et.on('update', up=>setStats(stats = {...stats, ...up}));
+          et.on('update', up=>{
+            stats = {...stats, ...up, ...mine_stats_calc(up)};
+            setStats(stats);
+          });
           ret = yield et;
           if (mode=='instant'){
             if (ret.tx){
@@ -906,8 +909,8 @@ function Mine_screen({wallet}){
     return ()=>clearInterval(id);
   }, [on]);
   useEffect(()=>()=>{ runningRef.current = false; }, []);
-  const st = stats.hps ? mine_stats_calc(stats) : {};
   const mode_shares_blocks = mode=='instant' ? 'Shares' : 'Blocks';
+  if (stats){}
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Mine for free</h3>
@@ -952,7 +955,7 @@ function Mine_screen({wallet}){
             <td><strong>
               {(stats.total_h||0).toLocaleString()}
               {' / '}
-              {(st.win_h||0).toLocaleString()}
+              {(stats.win_h||0).toLocaleString()}
             </strong></td>
           </tr>
           <tr>
@@ -960,20 +963,20 @@ function Mine_screen({wallet}){
             <td><strong>
               {fmt_duration(elapsed)}
               {' / '}
-              {fmt_duration(st.win_time)}
+              {fmt_duration(stats.win_time)}
             </strong></td>
           </tr>
           <tr>
             <td style={{color: '#666', paddingRight: 16}}>Expected earnings</td>
             <td><strong>
               <div>
-                Hour: <Amount sat={st.earn_hour||0} signed symbol={symbol}/>
+                Hour: <Amount sat={stats.earn_hour||0} signed symbol={symbol}/>
               </div>
               <div>
-                Day: <Amount sat={st.earn_hour*24||0} signed symbol={symbol}/>
+                Day: <Amount sat={stats.earn_hour*24||0} signed symbol={symbol}/>
               </div>
               <div>
-                Month: <Amount sat={st.earn_hour*30*24||0} signed symbol={symbol}/>
+                Month: <Amount sat={stats.earn_hour*30*24||0} signed symbol={symbol}/>
               </div>
             </strong></td>
           </tr>
@@ -1012,7 +1015,11 @@ function Mine_pool_screen({wallet}){
       let et;
       try {
         et = mine_instant_pool({wallet, reward_share, target});
-        et.on('update', up=>setStats(up));
+        et.on('update', up=>{
+          let st = {...stats, ...up, ...mine_stats_calc(up)};
+          st.earn_hour = Math.floor((st.earn_hour||0)*(1-reward_share));
+          setStats(st);
+        });
         et.on('pay', pay=>{
           console.log('payout', pay);
           assert(pay.tx);
@@ -1026,7 +1033,6 @@ function Mine_pool_screen({wallet}){
         ret = {err: ''+err};
       }
       setLastStatus(ret.err);
-        if (ret.err)
       setOn(false);
     });
   };
@@ -1039,8 +1045,6 @@ function Mine_pool_screen({wallet}){
     return ()=>clearInterval(id);
   }, [on]);
   useEffect(()=>()=>{ runningRef.current = false; }, []);
-  const st = stats.hps ? mine_stats_calc(stats) : {};
-  st.earn_hour = Math.floor((st.earn_hour||0)*(1-reward_share));
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Mining pool server</h3>
@@ -1089,7 +1093,7 @@ function Mine_pool_screen({wallet}){
             <td><strong>
               {(stats.total_h||0).toLocaleString()}
               {' / '}
-              {(st.win_h||0).toLocaleString()}
+              {(stats.win_h||0).toLocaleString()}
             </strong></td>
           </tr>
           <tr>
@@ -1097,20 +1101,20 @@ function Mine_pool_screen({wallet}){
             <td><strong>
               {fmt_duration(elapsed)}
               {' / '}
-              {fmt_duration(st.win_time)}
+              {fmt_duration(stats.win_time)}
             </strong></td>
           </tr>
           <tr>
             <td style={{color: '#666', paddingRight: 16}}>Expected earnings</td>
             <td><strong>
               <div>
-                Hour: <Amount sat={st.earn_hour||0} signed symbol={symbol}/>
+                Hour: <Amount sat={stats.earn_hour||0} signed symbol={symbol}/>
               </div>
               <div>
-                Day: <Amount sat={st.earn_hour*24||0} signed symbol={symbol}/>
+                Day: <Amount sat={stats.earn_hour*24||0} signed symbol={symbol}/>
               </div>
               <div>
-                Month: <Amount sat={st.earn_hour*30*24||0} signed symbol={symbol}/>
+                Month: <Amount sat={stats.earn_hour*30*24||0} signed symbol={symbol}/>
               </div>
             </strong></td>
           </tr>

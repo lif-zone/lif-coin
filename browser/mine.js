@@ -160,9 +160,8 @@ export function mine_worker_call(mine_cmd){ return etask(function*(){
 }); }
 
 export function mine_stats_calc({hps, target, reward}){
-  hps ||= 50000;
   let win_h = Number(target_to_nhash(target_from_compact(target)));
-  let win_time = Math.floor(win_h/hps);
+  let win_time = hps ? Math.floor(win_h/hps) : 0;
   let earn_hour = Math.floor(hps*60*60/win_h*reward);
   return {win_h, win_time, earn_hour};
 }
