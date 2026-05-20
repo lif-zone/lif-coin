@@ -1541,16 +1541,17 @@ function mnemonic_norm(mn){
 function Wallet_backup_validate({wallet, onUpdate}){
   const [phase, setPhase] = useState('show');
   const [input, setInput] = useState('');
-  if (wallet.ls.backup_date)
+  const [done, setDone] = useState(false);
+  if (done || wallet.ls.backup_date)
     return null;
   const mnemonic = wallet.ls.mnemonic;
   const hidden = mnemonic.replace(/[^\s]/g, '*');
   const words_match = mnemonic_norm(input)==mnemonic_norm(mnemonic);
-  const handle_continue = ()=>onUpdate({backup_date: Date.now()});
+  const handle_continue = ()=>{ onUpdate({backup_date: Date.now()}); setDone(true); };
   const handle_forgot = ()=>{ setPhase('show'); setInput(''); };
   return (
     <div style={{marginTop: 16, border: '1px solid #f90', borderRadius: 6, padding: 12}}>
-      <div style={{fontWeight: 'bold', marginBottom: 8}}>Write down your wallet seed words</div>
+      <div style={{fontWeight: 'bold', marginBottom: 8}}>Backup your wallet seed words:</div>
       <textarea
         rows={4}
         readOnly
@@ -1560,7 +1561,7 @@ function Wallet_backup_validate({wallet, onUpdate}){
       />
       {phase=='show' && (
         <button style={{marginTop: 8}} onClick={()=>setPhase('verify')}>
-          I wrote it down
+          I wrote it down on paper
         </button>
       )}
       {phase=='verify' && (

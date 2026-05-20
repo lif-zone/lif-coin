@@ -1203,3 +1203,9 @@ CLAUDE: Added Wallet_backup_validate component before Kv_add_screen in wallet.js
 - On Continue: calls onUpdate({backup_date: Date.now()}) which persists via existing updateWallet mechanism
 - Added onUpdate prop to Kv_add_screen signature and its call site in BrightWallet
 ---
+
+---
+USER: it has a bug: I clicked "Continue", and the widget did not close/disappear
+
+CLAUDE: Fixed by adding local `done` state to Wallet_backup_validate. The root cause: onUpdate mutates wallet.ls in place then calls setWallets(wallets_get()), but wallets_get() returns the same g_wallets object reference so React may skip the parent re-render. Fix: handle_continue now also calls setDone(true), so the component returns null immediately from its own state update.
+---
