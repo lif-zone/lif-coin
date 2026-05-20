@@ -1209,3 +1209,28 @@ USER: it has a bug: I clicked "Continue", and the widget did not close/disappear
 
 CLAUDE: Fixed by adding local `done` state to Wallet_backup_validate. The root cause: onUpdate mutates wallet.ls in place then calls setWallets(wallets_get()), but wallets_get() returns the same g_wallets object reference so React may skip the parent re-render. Fix: handle_continue now also calls setDone(true), so the component returns null immediately from its own state update.
 ---
+
+---
+USER: Add a widget <Mine_fund>. it will get the target amount needed as 'value', 'start' (true/false) and whether to immediately start mining. it checks the current wallet's balance. if bal>=value, then the widget is 'empty'. If the balance is not sufficient, it shows a "Available {bal} / Cost {value}" and a progress bar for the mining. The logic for instant mining and getting progress updates is in Mine_screen() (mine_instant, not mine_solo).
+
+CLAUDE: Added Mine_fund component before Mine_screen in wallet.jsx. Props: wallet, value, start.
+- Returns null when wallet_bal(wallet) + winV >= value (widget disappears)
+- Auto-starts mining on mount if start=true
+- Uses mine_instant in etask loop (same pattern as Mine_screen), tracks winV via ref+state
+- Shows "Available {effectiveBal} / Cost {value}" with Amount components
+- Progress bar: green fill, width = min(effectiveBal/value*100, 100)%
+- Shows "Mining… {hps} H/s" when on, Start/Stop mining button
+- Cleans up etask on unmount
+---
+
+---
+USER: Use that widget in Kv_add_screen(), below the Fee field (just above the Register button).
+
+CLAUDE: Added <Mine_fund wallet={wallet} value={fee} start={!balOk} /> between Fee_field and the Register button in Kv_add_screen. value=fee (cost of the transaction), start=!balOk (auto-starts mining if balance is already insufficient).
+---
+
+---
+USER: Also, move the Wallet_backup() widget below the Mine_fund() (Above the "Register")
+
+CLAUDE: Moved <Wallet_backup> from the top of Kv_add_screen's JSX to below <Mine_fund>, just above the Register button. Order is now: form fields → Fee_field → Mine_fund → Wallet_backup → Register button.
+---

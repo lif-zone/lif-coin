@@ -825,6 +825,91 @@ function Receive_screen({address, symbol, netconf}){
   );
 }
 
+// Mine Fund
+function Mine_fund({wallet, value, start}){
+  const {netconf} = wallet;
+  const {symbol} = netconf;
+  const [on, setOn] = useState(false);
+  const [stats, setStats] = useState({});
+  const [winV, setWinV] = useState(0);
+  const runningRef = useRef(false);
+  const winVRef = useRef(0);
+  useEffect(()=>{
+    if (start)
+      mine_start();
+    return ()=>{
+      runningRef.current = false;
+      runningRef.et?.return();
+      runningRef.et = null;
+    };
+  }, []);
+  const mine_start = ()=>{
+    if (runningRef.current)
+      return;
+    runningRef.current = true;
+    winVRef.current = 0;
+    setWinV(0);
+    setOn(true);
+    let cur_stats = {};
+    runningRef.et = etask(function*(){
+      const saddr = wallet.c.receiveAddress;
+      const target = target_get();
+      while (runningRef.current){
+        try {
+          const et = mine_instant({netconf, saddr, target});
+          et.on('update', up=>{
+            cur_stats = {...cur_stats, ...up, ...mine_stats_calc(up)};
+            setStats({...cur_stats});
+          });
+          const ret = yield et;
+          if (ret.tx){
+            winVRef.current += ret.reward_net;
+            setWinV(winVRef.current);
+          }
+        } catch(err){ CEA(err); }
+        yield esleep(1000);
+      }
+      setOn(false);
+    });
+  };
+  const mine_stop = ()=>{
+    runningRef.current = false;
+    runningRef.et?.return();
+    runningRef.et = null;
+    setOn(false);
+  };
+  const bal = wallet_bal(wallet);
+  const effectiveBal = bal + winV;
+  if (effectiveBal >= value)
+    return null;
+  const progress = Math.min(effectiveBal / value * 100, 100);
+  return (
+    <div style={{marginTop: 16, border: '1px solid #aaa', borderRadius: 6, padding: 12}}>
+      <div style={{fontSize: 13, marginBottom: 6}}>
+        <span style={{color: '#666'}}>Available </span>
+        <Amount sat={effectiveBal} symbol={symbol} signed />
+        <span style={{color: '#666'}}>{' / Cost '}</span>
+        <Amount sat={value} symbol={symbol} signed />
+      </div>
+      <div style={{background: '#ddd', borderRadius: 4, height: 10, overflow: 'hidden'}}>
+        <div style={{background: '#4a4', height: '100%', width: progress+'%',
+          transition: 'width 0.5s'}} />
+      </div>
+      {on && (
+        <div style={{fontSize: 12, color: '#666', marginTop: 6}}>
+          Mining… {(stats.hps||0).toLocaleString()} H/s
+        </div>
+      )}
+      <div style={{marginTop: 8}}>
+        {!on
+          ? <button onClick={mine_start}>Start mining</button>
+          : <button onClick={mine_stop}>Stop mining</button>
+        }
+      </div>
+    </div>
+  );
+}
+
 // Mine Screen
 function target_get(){
   if (settings.ls.devtools && settings.ls.dev_target)
@@ -1538,7 +1623,7 @@ function mnemonic_norm(mn){
 }
 
 // Wallet Backup Validate
-function Wallet_backup_validate({wallet, onUpdate}){
+function Wallet_backup({wallet, onUpdate}){
   const [phase, setPhase] = useState('show');
   const [input, setInput] = useState('');
   const [done, setDone] = useState(false);
@@ -1646,7 +1731,6 @@ function Kv_add_screen({wallet, onSent, onUpdate}){
   };
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
-      <Wallet_backup_validate wallet={wallet} onUpdate={onUpdate} />
       <h3>Register Domain</h3>
       <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
       {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
@@ -1674,6 +1758,8 @@ function Kv_add_screen({wallet, onSent, onUpdate}){
         />
       </div>
       <Fee_field value={fee} onChange={setFee} netconf={netconf} />
+      <Mine_fund wallet={wallet} value={fee} start={!balOk} />
+      <Wallet_backup wallet={wallet} onUpdate={onUpdate} />
       <button onClick={handle_add} disabled={sending||!isValid||nameStatus=='taken'} style={{marginTop: 12}}>
         {sending ? 'Registering…' : 'Register'}
       </button>
