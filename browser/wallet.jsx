@@ -1533,6 +1533,10 @@ function Send_screen({wallet, onSent}){
   );
 }
 
+function mnemonic_norm(mn){
+  return split_ws(mn.toLowerCase()).join(' ');
+}
+
 // Wallet Backup Validate
 function Wallet_backup_validate({wallet, onUpdate}){
   const [phase, setPhase] = useState('show');
@@ -1541,8 +1545,7 @@ function Wallet_backup_validate({wallet, onUpdate}){
     return null;
   const mnemonic = wallet.ls.mnemonic;
   const hidden = mnemonic.replace(/[^\s]/g, '*');
-  const words_match = split_ws(input.trim().toLowerCase())==
-    split_ws(mnemonic.trim().toLowerCase());
+  const words_match = mnemonic_norm(input)==mnemonic_norm(mnemonic);
   const handle_continue = ()=>onUpdate({backup_date: Date.now()});
   const handle_forgot = ()=>{ setPhase('show'); setInput(''); };
   return (
