@@ -97,12 +97,12 @@ async function get_btc_usd() {
     fetch('https://api.exchange.coinbase.com/products/BTC-USD/ticker').then(r => r.json())
   ]);
   const prices = {
-    coingecko: cg.bitcoin.usd,
-    binance: parseFloat(binance.price),
-    coinbase: parseFloat(cb.price),
+    coingecko: cg?.bitcoin?.usd,
+    binance: +binance?.price,
+    coinbase: +cb?.price,
   };
   // find median
-  let p = prices.values().filter(v=>v).sort();
+  let p = OV(prices).filter(v=>v).sort();
   p = p.filter(v=>v>=10000); // sanity check BTC > 10,000 USD
   if (!p.length)
     return;
@@ -114,8 +114,40 @@ async function get_btc_usd() {
   return p[i];
 }
 
+async function settings_cs_load(){
+  let s = g_settings;
+  let cs = await db_get('settings_cache');
+  if (cs && cs.cache_ver!=cache_ver){
+    console.log(`cache_ver changed ${cs.cache_ver} -> ${cache_ver}`);
+    cs = null;
+  }
+  if (!cs)
+    cs = {cache_ver};
+  s.cs ||= cs;
+  cs.coin ||= {};
+  for (const [k, nc] of OE(s.netconf)){
+    let coin = cs.coin[k] ||= {};
+    if (coin.usd)
+      nc.usd = coin.usd;
+  }
+}
+
+async function settings_cs_save(){
+  let s = g_settings;
+  await db_put('settings_cache', s.cs);
+}
+
+export async function settings_cs_fetch(){
+  let s = g_settings;
+  let price_usd = await get_btc_usd();
+  if (price_usd)
+    s.cs.coin.btc.usd = price_usd;
+  await settings_cs_save();
+  await settings_cs_load();
+}
+
 const g_settings = {};
-function settings_load(){
+async function settings_load(){
   g_settings.ls = T(()=>JSON.parse(localStorage.getItem('settings'))) || {};
   const s = g_settings;
   const {ls} = g_settings;
@@ -140,11 +172,8 @@ function settings_load(){
       keyPair: addrInfo.keyPair,
     };
   }
+  await settings_cs_load();
   return g_settings;
-}
-
-export function netconfs_get(){
-  return g_settings.netconf;
 }
 
 export function settings_save(){
@@ -434,7 +463,7 @@ async function wallet_cs_load(wallet){
 // Preload all wallets from IndexedDB into memory at module startup
 export async function wallet_db_init(){
   await db_init();
-  settings_load();
+  await settings_load();
   wallets_load();
   for (const w of OV(g_wallets))
     await wallet_cs_load(w);

@@ -7,7 +7,8 @@ import * as bip39 from 'bip39';
 import etask from 'lif-kernel/etask.js';
 import {OE, OV, OA, ewait, esleep, ipc_postmessage, CE, CEA, json, assert,
 } from 'lif-kernel/util.js';
-import {settings_get, settings_save, wallet_db_init, wallet_fetch,
+import {settings_get, settings_save, settings_cs_fetch,
+  wallet_db_init, wallet_fetch,
   wallet_add, wallet_del, wallet_update, wallets_get, wallet_get,
   hd_wallet, hd_path_def, addr_valid,
   _el, tx_send, kv_tx_send, kv_tx_edit, kv_tx_add, tx_broadcast,
@@ -17,6 +18,7 @@ import {settings_get, settings_save, wallet_db_init, wallet_fetch,
 
 await wallet_db_init();
 const settings = settings_get();
+settings_cs_fetch(); // async in background
 
 // Amount display mode
 const Amount_context = createContext(null);
@@ -1263,7 +1265,7 @@ function Amount({sat, symbol, signed, cost}){
     const [int, dec] = (Math.abs(sat)/1e8).toFixed(8).split('.');
     const sig = dec.replace(/0+$/, '');
     const zeros = dec.slice(sig.length);
-    content = <>{sign}{int}{sig.length===0
+    content = <>{sign}{int}{!sig.length
       ? <span style={{color: '#aaa'}}>.{zeros}</span>
       : <>.{sig}{zeros && <span style={{color: '#aaa'}}>{zeros}</span>}</>
     }{sym}</>;

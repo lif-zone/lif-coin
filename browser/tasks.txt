@@ -84,7 +84,7 @@ make wallet.jsx support multiple wallets
   'owner' and when arriving to that domain, put it as "this domain is owned
   by xxx@gmail.com. If you would like to purchase this domain - contact
   xxx@gmail.com.
-- add $ value: 1LIF==1USD. BTC - get dynamic. a click on the value changes
++ add $ value: 1LIF==1USD. BTC - get dynamic. a click on the value changes
   the display. in USD - show up to the cent $40.41 LIF, $1500.00 BTC
   anything under a cent, show as a cent.
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to
