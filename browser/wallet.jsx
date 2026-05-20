@@ -907,7 +907,6 @@ function Mine_screen({wallet}){
   }, [on]);
   useEffect(()=>()=>{ runningRef.current = false; }, []);
   const st = stats.hps ? mine_stats_calc(stats) : {};
-  if (stats.hps) debugger;
   const mode_shares_blocks = mode=='instant' ? 'Shares' : 'Blocks';
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
@@ -968,13 +967,13 @@ function Mine_screen({wallet}){
             <td style={{color: '#666', paddingRight: 16}}>Expected earnings</td>
             <td><strong>
               <div>
-                Hour: <Amount sat={st.eran_hour||0} signed symbol={symbol}/>
+                Hour: <Amount sat={st.earn_hour||0} signed symbol={symbol}/>
               </div>
               <div>
-                Day: <Amount sat={st.eran_hour*24||0} signed symbol={symbol}/>
+                Day: <Amount sat={st.earn_hour*24||0} signed symbol={symbol}/>
               </div>
               <div>
-                Month: <Amount sat={st.eran_hour*30*24||0} signed symbol={symbol}/>
+                Month: <Amount sat={st.earn_hour*30*24||0} signed symbol={symbol}/>
               </div>
             </strong></td>
           </tr>
@@ -1041,8 +1040,7 @@ function Mine_pool_screen({wallet}){
   }, [on]);
   useEffect(()=>()=>{ runningRef.current = false; }, []);
   const st = stats.hps ? mine_stats_calc(stats) : {};
-  if (st.earn_hour)
-    st.earn_hour = Math.floor(st.earn_hour*(1-reward_share));
+  st.earn_hour = Math.floor((st.earn_hour||0)*(1-reward_share));
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Mining pool server</h3>
@@ -1106,13 +1104,13 @@ function Mine_pool_screen({wallet}){
             <td style={{color: '#666', paddingRight: 16}}>Expected earnings</td>
             <td><strong>
               <div>
-                Hour: <Amount sat={st.eran_hour||0} signed symbol={symbol}/>
+                Hour: <Amount sat={st.earn_hour||0} signed symbol={symbol}/>
               </div>
               <div>
-                Day: <Amount sat={st.eran_hour*24||0} signed symbol={symbol}/>
+                Day: <Amount sat={st.earn_hour*24||0} signed symbol={symbol}/>
               </div>
               <div>
-                Month: <Amount sat={st.eran_hour*30*24||0} signed symbol={symbol}/>
+                Month: <Amount sat={st.earn_hour*30*24||0} signed symbol={symbol}/>
               </div>
             </strong></td>
           </tr>

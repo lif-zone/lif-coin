@@ -137,7 +137,7 @@ let mine_ipc;
 export function mine_worker_init(){ return etask(function*(){
   if (mine_worker_wait)
     return yield mine_worker_wait;
-  mine_worker_wait = ewait();
+  mine_worker_wait = ewait('mine_worker');
   console.log('mine_worker_init.js');
   mine_worker = new Worker(import.meta.resolve('./mine_worker_init.js'),
     {type: 'module'});
@@ -182,8 +182,8 @@ export function mine_steps({pow, header, time_local,
   let _header = Buffer.from(header);
   target ||= header_get_target(header);
   for (;;){
-    let slice_h = Math.max(Math.floor(hps*slice_ms/1000), 1000);
-    this.emit('update', {hps, slice_h, total_h, target, mine_h});
+    let step_h = Math.max(Math.floor(hps*slice_ms/1000), 1000);
+    this.emit('update', {hps, total_h, target, mine_h});
     mine_h = 0;
     let time = date_time();
     if (time!=time_last){
@@ -193,18 +193,18 @@ export function mine_steps({pow, header, time_local,
     }
     let tstart = Date.now();
     let ret = yield mine_worker_call({pow, header: _header, target,
-      min: at, max: Math.min(at+slice_h, 0x100000000)});
+      min: at, max: Math.min(at+step_h, 0x100000000)});
     if (ret.found){
       mine_h += ret.nonce-at;
       total_h += ret.nonce-at;
       return {...ret, total_h};
     }
-    mine_h += slice_h;
-    total_h += slice_h;
+    mine_h += step_h;
+    total_h += step_h;
     let tend = Date.now();
     let ms = Math.max(tend-tstart, 1);
-    hps = Math.round(slice_h*1000/ms);
-    at += slice_h;
+    hps = Math.round(step_h*1000/ms);
+    at += step_h;
     if (at>=max){
       console.warn('mine reached nonce end of slice');
       yield esleep(slice_ms);

@@ -934,7 +934,7 @@ export function mine_solo({netconf, saddr, min, max, target, steps=true}){
   let reward = template.reward;
   let opt = {pow: netconf.pow, header, min, max, target};
   let mine_et = steps ? mine_steps(opt) : mine_worker_call(opt);
-  mine_et.on('update', up=>this.emit('update', up));
+  mine_et.on('update', up=>this.emit('update', {...up, reward}));
   let mine_ret = yield mine_et;
   console.log('mine_res', mine_ret);
   if (!mine_ret.found)
@@ -979,7 +979,8 @@ export function mine_instant({netconf, saddr, target}){
   let {reward, fee} = template;
   if (!reward || !fee)
     return {err: 'pool: no reward/fee'};
-  if (reward<=fee)
+  let reward_net = reward-fee;
+  if (reward_net<0)
     return {err: 'pool: reward lees than fee'};
   rg.template++;
   const header = buf_from_hex(template.header);
@@ -993,7 +994,7 @@ export function mine_instant({netconf, saddr, target}){
   let opt = {pow: netconf.pow, header, target: pay_target};
   let mine_et = mine_steps(opt);
   mine_et.on('update', up=>{
-    this.emit('update', up);
+    this.emit('update', {...up, reward: reward_net});
     rg_c.rcall(rg_id, 'mine_instant_update', {mine_h: up.mine_h});
   });
   let mine_ret = yield mine_et;
@@ -1020,7 +1021,7 @@ export function mine_instant({netconf, saddr, target}){
     return {err: 'pool cheat: didnt pay out to addr', cheat: 1};
   }
   let warn = {};
-  const reward_net = Number(out.value);
+  reward_net = Number(out.value);
   if (reward_net<reward-fee){
     rg.cheat++;
     warn = {warn: 'pool cheat: paid only '+out.value+' - less than '
