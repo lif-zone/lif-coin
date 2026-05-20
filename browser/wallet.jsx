@@ -5,8 +5,9 @@ import React, {useState, useEffect, useMemo, useRef, createContext,
 import * as bitcoin from 'bitcoinjs-lib';
 import * as bip39 from 'bip39';
 import etask from 'lif-kernel/etask.js';
-import {OE, OV, OA, ewait, esleep, ipc_postmessage, CE, CEA, json, assert,
+import {OE, OV, OA, ewait, esleep, ipc_postmessage, CE, CEA, json, assert, str,
 } from 'lif-kernel/util.js';
+const {split_ws} = str;
 import {settings_get, settings_save, settings_cs_fetch,
   wallet_db_init, wallet_fetch,
   wallet_add, wallet_del, wallet_update, wallets_get, wallet_get,
@@ -1540,7 +1541,8 @@ function Wallet_backup_validate({wallet, onUpdate}){
     return null;
   const mnemonic = wallet.ls.mnemonic;
   const hidden = mnemonic.replace(/[^\s]/g, '*');
-  const words_match = input.trim().toLowerCase()==mnemonic.trim().toLowerCase();
+  const words_match = split_ws(input.trim().toLowerCase())==
+    split_ws(mnemonic.trim().toLowerCase());
   const handle_continue = ()=>onUpdate({backup_date: Date.now()});
   const handle_forgot = ()=>{ setPhase('show'); setInput(''); };
   return (
