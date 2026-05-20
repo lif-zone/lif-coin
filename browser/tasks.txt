@@ -61,6 +61,9 @@ make wallet.jsx support multiple wallets
 + sync VPS lif_node with local lif_node (GETBLOCKS fail/timeout response)
 + add rpc.on(), and do rpc.emit('close')
 + load qrcode dynamically, only when needed
++ add $ value: 1LIF==1USD. BTC - get dynamic. a click on the value changes
+  the display. in USD - show up to the cent $40.41 LIF, $1500.00 BTC
+  anything under a cent, show as a cent.
 * instant P2P mining: add to wallet ability offer instant mining.
   use lif-kernel server do websocket connection between peers on same
   subject ('mine_instant'). Some register as mine_instant servers, and others
@@ -84,9 +87,6 @@ make wallet.jsx support multiple wallets
   'owner' and when arriving to that domain, put it as "this domain is owned
   by xxx@gmail.com. If you would like to purchase this domain - contact
   xxx@gmail.com.
-+ add $ value: 1LIF==1USD. BTC - get dynamic. a click on the value changes
-  the display. in USD - show up to the cent $40.41 LIF, $1500.00 BTC
-  anything under a cent, show as a cent.
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to
   and rpc(), but with remove connection.
 - lif-net
