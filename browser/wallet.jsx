@@ -625,7 +625,7 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
       <div style={{display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', alignItems: 'center'}}>
         <button onClick={onReceive}>Receive</button>
         <button onClick={onSend} disabled={!allAddrs.length}>Send</button>
-        {netconf.lif_kv && <button onClick={onKvAdd} disabled={!allAddrs.length}>Get Domain Name</button>}
+        {netconf.lif_kv && <button onClick={onKvAdd}>Get Domain Name</button>}
         {netconf.lif_kv && settings.ls.devtools && <button onClick={onKvAddRaw} disabled={!allAddrs.length}>Get Key/Val</button>}
         {settings.ls.devtools && transactions.some(tx=>!tx.timestamp) && (
           <button onClick={async()=>{
