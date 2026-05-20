@@ -13,8 +13,10 @@ import {settings_get, settings_save, settings_cs_fetch,
   hd_wallet, hd_path_def, addr_valid,
   _el, tx_send, kv_tx_send, kv_tx_edit, kv_tx_add, tx_broadcast,
   cache_clear, wallet_bal, kv_is_dns, LIF_DOMAINS,
-  LIF_SERVER_DEF, lif_server_get, lif_server_set, mine_solo, mine_instant, mine_instant_pool,
+  LIF_SERVER_DEF, lif_server_get, lif_server_set,
+  mine_solo, mine_instant, mine_instant_pool,
 } from './wallet_db.js';
+import {mine_stats_calc} from './mine.js';
 
 await wallet_db_init();
 const settings = settings_get();
@@ -904,8 +906,8 @@ function Mine_screen({wallet}){
     return ()=>clearInterval(id);
   }, [on]);
   useEffect(()=>()=>{ runningRef.current = false; }, []);
-  const estimated = stats?.hps ? stats.nhash_win/stats.hps : null;
-  const remaining = estimated!=null ? estimated-elapsed : null;
+  const st = stats.hps ? mine_stats_calc(stats) : {};
+  if (stats.hps) debugger;
   const mode_shares_blocks = mode=='instant' ? 'Shares' : 'Blocks';
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
@@ -933,34 +935,48 @@ function Mine_screen({wallet}){
             <td style={{color: '#666', paddingRight: 16}}>
               {mode_shares_blocks}{' '}mined
             </td>
-            <td><strong>{!stats.win_n ? '0' : (<>
-              {''+stats.win_n}{' '}{mode_shares_blocks},{' '}
-              <Amount sat={stats.win_v} signed symbol={symbol}/>
-            </>)}</strong></td>
+            <td><strong>
+              {!stats.win_n ? '0' :
+                (<>
+                  {''+stats.win_n}{' '}{mode_shares_blocks},{' '}
+                  <Amount sat={stats.win_v} signed symbol={symbol}/>
+                </>)
+              }
+            </strong></td>
           </tr>
           <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Speed H/s</td>
-            <td><strong>{stats.hps ? stats.hps.toLocaleString()+' H/s' : '…'}</strong></td>
+            <td style={{color: '#666', paddingRight: 16}}>Speed Hash/second</td>
+            <td><strong>{(stats.hps||0).toLocaleString()+' H/s'}</strong></td>
           </tr>
           <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Total hashes</td>
-            <td><strong>{stats.total_h ? stats.total_h.toLocaleString() : '…'}</strong></td>
-          </tr>
-          <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Hashes to win</td>
-            <td><strong>{stats.nhash_win ? stats.nhash_win.toLocaleString() : '…'}</strong></td>
+            <td style={{color: '#666', paddingRight: 16}}>Mined hashes</td>
+            <td><strong>
+              {(stats.total_h||0).toLocaleString()}
+              {' / '}
+              {(st.win_h||0).toLocaleString()}
+            </strong></td>
           </tr>
           <tr>
             <td style={{color: '#666', paddingRight: 16}}>Elapsed</td>
-            <td><strong>{fmt_duration(elapsed)}</strong></td>
+            <td><strong>
+              {fmt_duration(elapsed)}
+              {' / '}
+              {fmt_duration(st.win_time)}
+            </strong></td>
           </tr>
           <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Estimated total</td>
-            <td><strong>{fmt_duration(estimated)}</strong></td>
-          </tr>
-          <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Estimated remaining</td>
-            <td><strong>{fmt_duration(remaining)}</strong></td>
+            <td style={{color: '#666', paddingRight: 16}}>Expected earnings</td>
+            <td><strong>
+              <div>
+                Hour: <Amount sat={st.eran_hour||0} signed symbol={symbol}/>
+              </div>
+              <div>
+                Day: <Amount sat={st.eran_hour*24||0} signed symbol={symbol}/>
+              </div>
+              <div>
+                Month: <Amount sat={st.eran_hour*30*24||0} signed symbol={symbol}/>
+              </div>
+            </strong></td>
           </tr>
         </tbody>
       </table>
@@ -977,6 +993,7 @@ function Mine_pool_screen({wallet}){
   const [lastStatus, setLastStatus] = useState(null);
   const runningRef = useRef(false);
   const blockStartRef = useRef(null);
+  const reward_share = 0.5;
   const toggle = ()=>{
     if (on){
       runningRef.current = false;
@@ -995,7 +1012,7 @@ function Mine_pool_screen({wallet}){
       let ret, target = target_get();
       let et;
       try {
-        et = mine_instant_pool({wallet, reward_share: 0.5, target});
+        et = mine_instant_pool({wallet, reward_share, target});
         et.on('update', up=>setStats(up));
         et.on('pay', pay=>{
           console.log('payout', pay);
@@ -1023,8 +1040,9 @@ function Mine_pool_screen({wallet}){
     return ()=>clearInterval(id);
   }, [on]);
   useEffect(()=>()=>{ runningRef.current = false; }, []);
-  const estimated = stats.hps ? stats.nhash_win/stats.hps : null;
-  const remaining = estimated!=null ? estimated-elapsed : null;
+  const st = stats.hps ? mine_stats_calc(stats) : {};
+  if (st.earn_hour)
+    st.earn_hour = Math.floor(st.earn_hour*(1-reward_share));
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Mining pool server</h3>
@@ -1047,42 +1065,56 @@ function Mine_pool_screen({wallet}){
           </tr>
           <tr>
             <td style={{color: '#666', paddingRight: 16}}>Payouts</td>
-            <td><strong>{!stats.pay_n ? '0' : (<>
-              {''+stats.pay_n} TXs,{' '}
-              <Amount sat={-stats.pay_v} signed symbol={symbol}/>
-            </>)}</strong></td>
-          </tr>
-          <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Errors</td>
-            <td><strong>{!stats.submit_err_n ? '0' :
-              (<span style={{color: '#c00'}}>
-                {''+stats.submit_err_n} Errors:{' '}{stats.submit_err}
-              </span>)}
+            <td><strong>
+              {!stats.pay_n ? '0' : (<>
+                {''+stats.pay_n} TXs,{' '}
+                <Amount sat={-stats.pay_v} signed symbol={symbol}/>
+              </>)}
             </strong></td>
           </tr>
           <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Speed H/s</td>
-            <td><strong>{stats.hps ? stats.hps.toLocaleString()+' H/s' : '…'}</strong></td>
+            <td style={{color: '#666', paddingRight: 16}}>Errors</td>
+            <td><strong>
+              {!stats.submit_err_n ? '0' :
+                (<span style={{color: '#c00'}}>
+                  {''+stats.submit_err_n} Errors:{' '}{stats.submit_err}
+                </span>)
+              }
+            </strong></td>
           </tr>
           <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Total hashes</td>
-            <td><strong>{stats.total_h ? stats.total_h.toLocaleString() : '…'}</strong></td>
+            <td style={{color: '#666', paddingRight: 16}}>Speed Hash/second</td>
+            <td><strong>{(stats.hps||0).toLocaleString()+' H/s'}</strong></td>
           </tr>
           <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Hashes to win</td>
-            <td><strong>{stats.nhash_win ? stats.nhash_win.toLocaleString() : '…'}</strong></td>
+            <td style={{color: '#666', paddingRight: 16}}>Mined hashes</td>
+            <td><strong>
+              {(stats.total_h||0).toLocaleString()}
+              {' / '}
+              {(st.win_h||0).toLocaleString()}
+            </strong></td>
           </tr>
           <tr>
             <td style={{color: '#666', paddingRight: 16}}>Elapsed</td>
-            <td><strong>{fmt_duration(elapsed)}</strong></td>
+            <td><strong>
+              {fmt_duration(elapsed)}
+              {' / '}
+              {fmt_duration(st.win_time)}
+            </strong></td>
           </tr>
           <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Estimated total</td>
-            <td><strong>{fmt_duration(estimated)}</strong></td>
-          </tr>
-          <tr>
-            <td style={{color: '#666', paddingRight: 16}}>Estimated remaining</td>
-            <td><strong>{fmt_duration(remaining)}</strong></td>
+            <td style={{color: '#666', paddingRight: 16}}>Expected earnings</td>
+            <td><strong>
+              <div>
+                Hour: <Amount sat={st.eran_hour||0} signed symbol={symbol}/>
+              </div>
+              <div>
+                Day: <Amount sat={st.eran_hour*24||0} signed symbol={symbol}/>
+              </div>
+              <div>
+                Month: <Amount sat={st.eran_hour*30*24||0} signed symbol={symbol}/>
+              </div>
+            </strong></td>
           </tr>
         </tbody>
       </table>

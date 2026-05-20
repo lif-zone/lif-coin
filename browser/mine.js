@@ -70,11 +70,11 @@ export function target_to_compact(num){
   return compact;
 }
 
-export function target_to_nhash_win(target){
+export function target_to_nhash(target){
   return (2n ** 256n)/target;
 }
 
-export function target_from_nhash_win(nhash){
+export function target_from_nhash(nhash){
   return (2n ** 256n)/BigInt(nhash);
 }
 
@@ -159,11 +159,19 @@ export function mine_worker_call(mine_cmd){ return etask(function*(){
   return ret;
 }); }
 
+export function mine_stats_calc({hps, target, reward}){
+  hps ||= 50000;
+  let win_h = Number(target_to_nhash(target_from_compact(target)));
+  let win_time = Math.floor(win_h/hps);
+  let earn_hour = Math.floor(hps*60*60/win_h*reward);
+  return {win_h, win_time, earn_hour};
+}
+
 export function mine_steps({pow, header, time_local,
   min=0, max=0x100000000, target}){ return etask(function*()
 {
   this.on('cancel', ()=>console.log('mine_steps canceled'));
-  let hps = 10; // initial hashs per second. in reality is around 1M hps
+  let hps = 10000; // initial hashs per second. Android ~60,000, PC ~100,000
   let slice_ms = 1000;
   let total_h = 0;
   let mine_h = 0;
@@ -173,10 +181,9 @@ export function mine_steps({pow, header, time_local,
   let time_last = time_local;
   let _header = Buffer.from(header);
   target ||= header_get_target(header);
-  let nhash_win = Number(target_to_nhash_win(target_from_compact(target)));
   for (;;){
     let slice_h = Math.max(Math.floor(hps*slice_ms/1000), 1000);
-    this.emit('update', {hps, slice_h, total_h, nhash_win, mine_h});
+    this.emit('update', {hps, slice_h, total_h, target, mine_h});
     mine_h = 0;
     let time = date_time();
     if (time!=time_last){
@@ -213,7 +220,7 @@ function test(){
     assert.eq(target_to_compact(target), compact);
     assert.eq(bigint_to_buf_le(target, 32).toString('hex'), buf);
     assert.eq(target_buf(compact).toString('hex'), buf);
-    assert.eq(target_to_nhash_win(target), nhash);
+    assert.eq(target_to_nhash(target), nhash);
   };
   t(0x1d00ffff, 
     0x00000000ffff0000000000000000000000000000000000000000000000000000n,

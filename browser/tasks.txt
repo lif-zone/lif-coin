@@ -77,8 +77,7 @@ make wallet.jsx support multiple wallets
     get resulting TX to his address. Must take no more than 10 seconds.
   + rpc no result/error
   + instant_pool_server update total_h to count hashs so far
-  c bug: mining reward stays in mempool
-  - add simple reward UI of estimations how much will be earned,
+  * add simple reward UI of estimations how much will be earned,
     and how much expected per day
     of mining, and how much expected per month of mining.
     move existing UI to 'advanced'

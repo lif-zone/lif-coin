@@ -14,7 +14,7 @@ let lif = globalThis.$lif ||= {};
 lif.assert = assert;
 const sha256 = bitcoin.crypto.sha256;
 import {mine, mine_worker_call, mine_steps,
-  target_from_nhash_win, target_to_nhash_win, target_to_compact,
+  target_from_nhash, target_to_nhash, target_to_compact,
   header_get_target, header_get_time, header_set_time,
   header_get_nonce, header_set_nonce, target_from_compact,
 } from './mine.js';
@@ -55,6 +55,7 @@ const netconf_def = {
     fee_def: 5000000, // 1MB = 50LIF
     lif_kv: true,
     pow: 'sha256lif',
+    pow_hps: 50000, // Hash/Sec: android ~60,000 hps, Desktop ~100,000 hps
     usd: 1,
   },
   btc: {
@@ -982,15 +983,14 @@ export function mine_instant({netconf, saddr, target}){
     return {err: 'pool: reward lees than fee'};
   rg.template++;
   const header = buf_from_hex(template.header);
-  let slice_target;
+  let pay_target;
   if (target){
     // simulate real target
-    const nhash_win = Number(target_to_nhash_win(target_from_compact(target)));
-    const nhash_win_slice = Math.floor(nhash_win/template.nslice);
-    slice_target = target_to_compact(target_from_nhash_win(
-      nhash_win_slice));
+    const win_h = Number(target_to_nhash(target_from_compact(target)));
+    const pay_h = Math.floor(win_h/template.nslice);
+    pay_target = target_to_compact(target_from_nhash(pay_h));
   }
-  let opt = {pow: netconf.pow, header, target: slice_target};
+  let opt = {pow: netconf.pow, header, target: pay_target};
   let mine_et = mine_steps(opt);
   mine_et.on('update', up=>{
     this.emit('update', up);
@@ -1072,16 +1072,15 @@ export function mine_instant_pool({wallet, reward_share, target}){
     const time_base = header_get_time(header);
     const time_base_local = date_time();
     const time_diff = time_base_local-time_base;
-    const nhash_win = Number(target_to_nhash_win(target_from_compact(target)));
-    const nhash_win_slice = Math.floor(nhash_win/nslice);
-    const slice_target = target_to_compact(target_from_nhash_win(
-      nhash_win_slice));
-    const slice_reward = Math.floor(reward/nslice*reward_share);
+    const win_h = Number(target_to_nhash(target_from_compact(target)));
+    const pay_h = Math.floor(win_h/nslice);
+    const pay_target = target_to_compact(target_from_nhash(pay_h));
+    const pay_reward = Math.floor(reward/nslice*reward_share);
     const fee = tx_send({wallet, saddr_to: wallet.c.changeAddrInfo.address,
       value: 1}).fee;
     let nwin = 0;
     let last_up = {now: Date.now(), total_h: 0};
-    if (slice_reward<=fee)
+    if (pay_reward<=fee)
       return {error: 'reward smaller than fees'};
     console.log('starting mining pool', template.header);
     // do here the pool mining
@@ -1109,16 +1108,16 @@ export function mine_instant_pool({wallet, reward_share, target}){
       header_set_time(h, time_now);
       offer = offers[i] = {min: i*slice_sz, max: (i+1)*slice_sz, addr,
         time_local: now, last_update: now, win: []};
-      return {reward: slice_reward, nslice, fee,
-        header: buf_to_hex(h), target: slice_target,
+      return {reward: pay_reward, fee, nslice,
+        header: buf_to_hex(h), target: pay_target,
         min: offer.min, max: offer.max};
     });
     let do_update = ()=>{
       let now = Date.now();
       let hps = Math.floor((total_h-last_up.total_h)/
         Math.max(now-last_up.now, 1)*1000);
-      this.emit('update', {hps, slice_h: nhash_win_slice,
-        total_h, nhash_win, submit_err_n, submit_err,
+      this.emit('update', {hps, total_h, pay_h, target,
+        pay_target, win_h, submit_err_n, submit_err,
         win_n, pay_n, win_v, pay_v});
       last_up = {now, total_h};
     };
@@ -1148,7 +1147,7 @@ export function mine_instant_pool({wallet, reward_share, target}){
       }
       // check target in range for reward - if so - give reward
       ret = mine({pow, header: _h, min: nonce, max: nonce+1,
-        target: slice_target});
+        target: pay_target});
       if (!ret)
         return {error: 'pool cheat: not in target'};
       // locate offer, validate it matches nonce range and time range
@@ -1170,18 +1169,18 @@ export function mine_instant_pool({wallet, reward_share, target}){
       console.log('valid offer - do share payout!');
       offer.win.push(win);
       nwin++;
-      let tx = tx_send({wallet, saddr_to: addr, value: slice_reward-fee, fee});
+      let tx = tx_send({wallet, saddr_to: addr, value: pay_reward-fee, fee});
       if (tx.err)
         return {error: 'failed payout to valid offer! serious bug!'};
       pay_n++;
-      pay_v += slice_reward;
+      pay_v += pay_reward;
       _this.emit('pay', tx);
       do_update();
       ret = yield tx_broadcast(netconf, tx.tx);
       if (!ret)
         return {error: 'failed broadcast TX of payout to valid offer!'};
       return {result: {tx: tx.tx.toHex(), txid: tx.tx.getId(),
-        reward: slice_reward-fee, fee, addr: addr}};
+        reward: pay_reward-fee, fee, addr: addr}};
     }); }
     rpc._method('mine_instant_submit', async params=>{
       let ret = await mine_instant_submit(params);
@@ -1197,7 +1196,7 @@ export function mine_instant_pool({wallet, reward_share, target}){
       return ret;
     });
     let ret = yield rg_c.topic_pub('mine_instant',
-      {reward: slice_reward, fee, target});
+      {reward: pay_reward, fee, target});
     while (1){
       yield esleep(1000);
       do_update();
