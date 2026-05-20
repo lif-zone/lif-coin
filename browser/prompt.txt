@@ -1192,3 +1192,14 @@ USER: Amount_field should show a clickable unit label ($ LIF, LIF, sat LIF) to t
 CLAUDE: Rewrote Amount_field: consumes Amount_context for mode/set_mode. Added sat_to_str/str_to_sat helpers. useEffect with prev_mode ref converts str when mode changes. handle_blur normalizes on exit. Unit label is clickable (stopPropagation), cycles AMOUNT_MODES. Placeholder adapts per mode.
 
 ---
+
+---
+USER: add to Kv_add_screen() a widget <Wallet_backup_validate>. This widget checks if in the wallet storage there is a backup date (a new field this widget will add). If there is a backup date, then this widget is "empty". But if there is no backup date, it tells "Write down your wallet seed words", shows the words in a box (like in the Wallet_add_screen), and below it a click <I wrote it down>. Once you click on it, the words in the top box turn into hidden '*' (like in Kv_add_screen), the <I wrote it down> button changes to <I forgot the seed words>, and below it is an empty box - requesting you to write down these words again (from your backup), and below it a disabled button <Continue>. the button becomes enabled once the words are written in correctly in the new box. If <I forgot the words> is clicked - the widget returns to the initial state: showing the words, and waiting for you to click <I wrote it down>. Once you clicked <Continue> and everything is successfull, in the wallet local storage (ls) you keep the date of the backup_test, and the whole widget turns "empty" (disappears).
+
+CLAUDE: Added Wallet_backup_validate component before Kv_add_screen in wallet.jsx. The widget:
+- Returns null if wallet.ls.backup_date is already set
+- phase='show': displays mnemonic in a readonly textarea with an orange border, "I wrote it down" button
+- phase='verify': textarea shows mnemonic replaced with '*' (non-space chars), "I forgot the seed words" button resets to show phase, a new textarea for re-entry, and a "Continue" button disabled until input matches mnemonic
+- On Continue: calls onUpdate({backup_date: Date.now()}) which persists via existing updateWallet mechanism
+- Added onUpdate prop to Kv_add_screen signature and its call site in BrightWallet
+---

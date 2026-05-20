@@ -251,6 +251,7 @@ function BrightWallet(){
         <Kv_add_screen
           wallet={wallet}
           onSent={()=>setScreen('wallet_info')}
+          onUpdate={(changes)=>updateWallet(wallet.ls.id, changes)}
         />
       )}
       {screen=='wallet_kv_add_raw' && wallet && (
@@ -1531,8 +1532,59 @@ function Send_screen({wallet, onSent}){
   );
 }
 
+// Wallet Backup Validate
+function Wallet_backup_validate({wallet, onUpdate}){
+  const [phase, setPhase] = useState('show');
+  const [input, setInput] = useState('');
+  if (wallet.ls.backup_date)
+    return null;
+  const mnemonic = wallet.ls.mnemonic;
+  const hidden = mnemonic.replace(/[^\s]/g, '*');
+  const words_match = input.trim().toLowerCase()==mnemonic.trim().toLowerCase();
+  const handle_continue = ()=>onUpdate({backup_date: Date.now()});
+  const handle_forgot = ()=>{ setPhase('show'); setInput(''); };
+  return (
+    <div style={{marginTop: 16, border: '1px solid #f90', borderRadius: 6, padding: 12}}>
+      <div style={{fontWeight: 'bold', marginBottom: 8}}>Write down your wallet seed words</div>
+      <textarea
+        rows={4}
+        readOnly
+        value={phase=='show' ? mnemonic : hidden}
+        style={{display: 'block', width: '100%', boxSizing: 'border-box',
+          fontFamily: 'monospace', fontSize: 13, background: '#fafafa'}}
+      />
+      {phase=='show' && (
+        <button style={{marginTop: 8}} onClick={()=>setPhase('verify')}>
+          I wrote it down
+        </button>
+      )}
+      {phase=='verify' && (
+        <>
+          <button style={{marginTop: 8}} onClick={handle_forgot}>
+            I forgot the seed words
+          </button>
+          <div style={{marginTop: 12}}>
+            <label>Re-enter your seed words from your backup:</label>
+            <textarea
+              rows={4}
+              value={input}
+              onChange={e=>setInput(e.target.value)}
+              placeholder="Type your seed words here"
+              style={{display: 'block', width: '100%', marginTop: 4, boxSizing: 'border-box',
+                fontFamily: 'monospace', fontSize: 13}}
+            />
+          </div>
+          <button style={{marginTop: 8}} disabled={!words_match} onClick={handle_continue}>
+            Continue
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 // DNS Domain registration screen (simplified: key=dns/<name>, val={site:...})
-function Kv_add_screen({wallet, onSent}){
+function Kv_add_screen({wallet, onSent, onUpdate}){
   const modal = useModal();
   const {netconf} = wallet;
   const {setValid, isValid} = useFormValid();
@@ -1588,6 +1640,7 @@ function Kv_add_screen({wallet, onSent}){
   };
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
+      <Wallet_backup_validate wallet={wallet} onUpdate={onUpdate} />
       <h3>Register Domain</h3>
       <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
       {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}

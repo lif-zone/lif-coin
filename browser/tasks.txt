@@ -77,7 +77,7 @@ make wallet.jsx support multiple wallets
     get resulting TX to his address. Must take no more than 10 seconds.
   + rpc no result/error
   + instant_pool_server update total_h to count hashs so far
-  * add simple reward UI of estimations how much will be earned,
+  + add simple reward UI of estimations how much will be earned,
     and how much expected per day
     of mining, and how much expected per month of mining.
     move existing UI to 'advanced'
@@ -86,6 +86,11 @@ make wallet.jsx support multiple wallets
   'owner' and when arriving to that domain, put it as "this domain is owned
   by xxx@gmail.com. If you would like to purchase this domain - contact
   xxx@gmail.com.
+  - if wallet does not have sufficient funds:
+    instant mining progress bar % widget
+  - backup wallet widget: if wallet was not backed up: display words,
+    and click <I wrote it down>. Then the words turn to ***, and another box
+    appears: write the words. below it <I forgot the words> or <OK>
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to
   and rpc(), but with remove connection.
 - lif-net
