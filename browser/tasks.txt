@@ -95,7 +95,13 @@ make wallet.jsx support multiple wallets
     if you click Register domain without correct words - it will
   + if wallet does not have sufficient funds:
     instant mining progress bar % widget
-- UI bugs:
++ UI bugs: instant mine progress: need to make first 50% - 50% of speed, then
+  slow down from there (25%
+- instant mine: when success: should fill up progress bar, and show how much
+  $ you won.
+- instant mine bug: not stopping mining after winning.
+- UI bugs: when creating new wallet - need to go into wallet after creation
+- create 'My first LIF wallet' when starting the app with no wallets
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to
   and rpc(), but with remove connection.
 - lif-net
