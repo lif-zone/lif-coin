@@ -842,6 +842,10 @@ function Receive_screen({address, symbol, netconf}){
   );
 }
 
+function mine_percent({win_h, total_h}){
+  return Math.min(total_h/(win_h*3), 1);
+}
+
 // Mine Fund
 function Mine_fund({wallet, value, start}){
   const {netconf} = wallet;
