@@ -886,10 +886,11 @@ function Mine_fund({wallet, value, start}){
   return (
     <div style={{marginTop: 16, border: '1px solid #aaa', borderRadius: 6, padding: 12}}>
       <div style={{fontSize: 13, marginBottom: 6}}>
-        <span style={{color: '#666'}}>Available </span>
-        <Amount sat={effectiveBal} symbol={symbol} signed />
-        <span style={{color: '#666'}}>{' / Cost '}</span>
+        <span style={{color: '#666'}}>{'Cost: '}</span>
         <Amount sat={value} symbol={symbol} cost />
+      </div>
+      <div style={{fontSize: 13, marginBottom: 6}}>
+        <Balance_available sat={bal} symbol={symbol} cost={value} />
       </div>
       <div style={{background: '#ddd', borderRadius: 4, height: 10, overflow: 'hidden'}}>
         <div style={{background: '#4a4', height: '100%', width: progress+'%',
