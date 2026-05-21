@@ -1246,3 +1246,9 @@ USER: "Get domain name" button is also disabled when there is 0 balance. It shou
 
 CLAUDE: Removed disabled={!allAddrs.length} from the "Get Domain Name" button. Left the raw KV devtools button unchanged. The Mine_fund widget inside Kv_add_screen handles the case of insufficient balance.
 ---
+
+---
+USER: move lines 1759-1760 of Balance to a new <Balance_available> widget that shows the balance, and optionally gets a cost parameter of how much balance is needed, and if there is less than needed - it tells "insufficient balance". Also find other places with this pattern and use this new widget to simplify the code.
+
+CLAUDE: Created Balance_available({sat, symbol, cost}) component before Fee_field. Shows "Balance: {sat}" and optionally "Insufficient balance" in red if sat<cost. Replaced the two-line pattern in 5 places: Send_screen (cost=amountSat+fee), Kv_add_screen (cost=fee), Kv_transfer_screen (cost=fee), Kv_edit_screen (cost=fee), Get_domain_screen (cost=fee).
+---

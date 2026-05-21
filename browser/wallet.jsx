@@ -1399,6 +1399,16 @@ function Amount({sat, symbol, signed, cost}){
   );
 }
 
+function Balance_available({sat, symbol, cost}){
+  const insufficient = cost!=null && sat<cost;
+  return (
+    <div style={{fontSize: 13, color: '#666', marginTop: 4}}>
+      Balance: <Amount sat={sat} symbol={symbol} signed />
+      {insufficient && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
+    </div>
+  );
+}
+
 function Fee_field({value, onChange, netconf}){
   const symbol = netconf.symbol;
   const [editing, setEditing] = useState(false);
@@ -1606,8 +1616,7 @@ function Send_screen({wallet, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Send {symbol}</h3>
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={symbol} signed /></div>
-      {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
+      <Balance_available sat={bal} symbol={symbol} cost={amountSat+fee} />
       <Addr_field value={toAddress} onChange={setToAddress} netconf={netconf} onValid={v=>setValid('addr',v)} />
       <Amount_field value={amountSat} onChange={setAmountSat} symbol={symbol} onValid={v=>setValid('amount',v)} min={1} />
       <Fee_field value={fee} onChange={setFee} netconf={netconf} />
@@ -1756,8 +1765,7 @@ function Kv_add_screen({wallet, onSent, onUpdate}){
         />
       </div>
       <Fee_field value={fee} onChange={setFee} netconf={netconf} />
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
-      {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
+      <Balance_available sat={bal} symbol={netconf.symbol} cost={fee} />
       <Mine_fund wallet={wallet} value={fee} start={!balOk} />
       <Wallet_backup wallet={wallet} onUpdate={onUpdate} />
       <button onClick={handle_add} disabled={sending||!isValid||nameStatus=='taken'} style={{marginTop: 12}}>
@@ -1900,8 +1908,7 @@ function Kv_send_screen({wallet, kv_d, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Transfer Name</h3>
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
-      {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
+      <Balance_available sat={bal} symbol={netconf.symbol} cost={fee} />
       <div style={{marginTop: 8, color: '#666', fontSize: 13}}>
         Transferring: <span style={{fontFamily: 'monospace'}}>{kv_d.key}</span>
       </div>
@@ -1949,8 +1956,7 @@ function Kv_edit_screen({wallet, kv_d, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Edit Domain Name</h3>
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
-      {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
+      <Balance_available sat={bal} symbol={netconf.symbol} cost={fee} />
       <div style={{marginTop: 8, color: '#666', fontSize: 13}}>
         Name: <span style={{fontFamily: 'monospace'}}>{kv_d.key}</span>
       </div>
@@ -2034,13 +2040,8 @@ function Get_domain_screen({wallet, onSent, domain=''}){
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Get Domain</h3>
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
+      <Balance_available sat={bal} symbol={netconf.symbol} cost={fee} />
       <div>Cost: <Amount value={fee} netconf={netconf} cost /></div>
-      {!balOk &&
-        <div style={{color: 'red', fontSize: 12, marginTop: 2}}>
-          Insufficient balance
-        </div>
-      }
       <div style={{marginTop: 12}}>
         <label>Domain name:</label>
         <input
