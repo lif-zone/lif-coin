@@ -775,10 +775,10 @@ function tx_fund({wallet, p, in_sign=[], fee}){
   const {c, netconf, network} = wallet;
   const _sum_out = Number(
     p.txOutputs.reduce((sum, output)=>sum+output.value, 0n));
-  if (fee==0){ // estimate fee: mock tx
+  if (fee==null){ // estimate fee: mock tx
     let {mock} = netconf;
     p.addInput({hash: mock.tx_hash, index: 0,
-      witnessUtxo: {value: BigInt(_sum_out+10),
+      witnessUtxo: {value: BigInt(_sum_out+1),
       script: bitcoin.address.toOutputScript(mock.address, network)}});
     let in_i = p.inputCount-1;
     p.addOutput({address: mock.address, value: 1n});
@@ -787,6 +787,7 @@ function tx_fund({wallet, p, in_sign=[], fee}){
     const tx = p.extractTransaction();
     return {tx, fee};
   }
+  fee ||= 1; // require minimal funding for estimation
   const needed = _sum_out+fee;
   let sum_in = 0;
   for (let i=0; i<p.inputCount; i++)
@@ -841,17 +842,25 @@ function tx_fund({wallet, p, in_sign=[], fee}){
   return {utxos: in_sign, tx, pstb: p, fee, _fee: sum_in-sum_out};
 }
 
+// fee==null mock estimate, fee=0 fund real TX auto set fee
+// in_calc - prevent loops
 function tx_fee_calc(tx_fn, arg){
   let {wallet, fee} = arg;
-  let tx = tx_fn({...arg, fee: 0});
-  if (tx.err)
+  if (fee==null){
+    let tx = tx_fn({...arg, fee, in_calc: true});
+    if (tx.err)
+      return tx;
+    tx.fee = fee_calc(wallet.c.feeRate, tx.tx);
     return tx;
+  }
+  // fee==0: real TX, auto set fee
+  let tx = tx_fn({...arg, fee: 1, in_calc: true});
   fee = fee_calc(wallet.c.feeRate, tx.tx);
-  return tx_fn({...arg, fee});
+  return tx_fn({...arg, fee, in_calc: true});
 }
 
-export function tx_send({wallet, saddr_to, value, fee}){
-  if (fee==null)
+export function tx_send({wallet, saddr_to, value, fee, in_calc}){
+  if (!fee && !in_calc)
     return tx_fee_calc(tx_send, arguments[0]);
   const {network} = wallet;
   const p = tx_psbt(network);
@@ -859,8 +868,8 @@ export function tx_send({wallet, saddr_to, value, fee}){
   return tx_fund({wallet, p, fee});
 }
 
-export function kv_tx_add({wallet, key, val, fee}){
-  if (fee==null)
+export function kv_tx_add({wallet, key, val, fee, in_calc}){
+  if (!fee && !in_calc)
     return tx_fee_calc(kv_tx_add, arguments[0]);
   const {c, network} = wallet;
   const p = tx_psbt(network);
@@ -870,8 +879,8 @@ export function kv_tx_add({wallet, key, val, fee}){
   return tx_fund({wallet, p, fee});
 }
 
-export function kv_tx_send({wallet, kv_d, saddr_to, fee}){
-  if (fee==null)
+export function kv_tx_send({wallet, kv_d, saddr_to, fee, in_calc}){
+  if (!fee && !in_calc)
     return tx_fee_calc(kv_tx_send, arguments[0]);
   const {c, network} = wallet;
   const p = tx_psbt(network);
@@ -891,8 +900,8 @@ export function kv_tx_send({wallet, kv_d, saddr_to, fee}){
   return tx_fund({wallet, p, in_sign, fee});
 }
 
-export function kv_tx_edit({wallet, kv_d, fee}){
-  if (fee==null)
+export function kv_tx_edit({wallet, kv_d, fee, in_calc}){
+  if (!fee && !in_calc)
     return tx_fee_calc(kv_tx_edit, arguments[0]);
   const {c, network} = wallet;
   const p = tx_psbt(network);

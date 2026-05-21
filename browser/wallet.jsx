@@ -889,7 +889,7 @@ function Mine_fund({wallet, value, start}){
         <span style={{color: '#666'}}>Available </span>
         <Amount sat={effectiveBal} symbol={symbol} signed />
         <span style={{color: '#666'}}>{' / Cost '}</span>
-        <Amount sat={value} symbol={symbol} signed />
+        <Amount sat={value} symbol={symbol} cost />
       </div>
       <div style={{background: '#ddd', borderRadius: 4, height: 10, overflow: 'hidden'}}>
         <div style={{background: '#4a4', height: '100%', width: progress+'%',
@@ -1732,8 +1732,6 @@ function Kv_add_screen({wallet, onSent, onUpdate}){
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Register Domain</h3>
-      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
-      {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
       <div style={{marginTop: 12}}>
         <label>Domain name:</label>
         <input
@@ -1758,6 +1756,8 @@ function Kv_add_screen({wallet, onSent, onUpdate}){
         />
       </div>
       <Fee_field value={fee} onChange={setFee} netconf={netconf} />
+      <div style={{fontSize: 13, color: '#666'}}>Balance: <Amount sat={bal} symbol={netconf.symbol} signed /></div>
+      {!balOk && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
       <Mine_fund wallet={wallet} value={fee} start={!balOk} />
       <Wallet_backup wallet={wallet} onUpdate={onUpdate} />
       <button onClick={handle_add} disabled={sending||!isValid||nameStatus=='taken'} style={{marginTop: 12}}>
