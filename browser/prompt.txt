@@ -1252,3 +1252,9 @@ USER: move lines 1759-1760 of Balance to a new <Balance_available> widget that s
 
 CLAUDE: Created Balance_available({sat, symbol, cost}) component before Fee_field. Shows "Balance: {sat}" and optionally "Insufficient balance" in red if sat<cost. Replaced the two-line pattern in 5 places: Send_screen (cost=amountSat+fee), Kv_add_screen (cost=fee), Kv_transfer_screen (cost=fee), Kv_edit_screen (cost=fee), Get_domain_screen (cost=fee).
 ---
+
+---
+USER: In Wallet_settings_subscreen, there is a bug - the mnemonic field is single line, not multi-line. Instead of fixing it, use the Wallet_backup() widget. When clicking 'Backup Wallet' it opens the widget. the widget should have also a <Cancel> button. The widget should update local storage as 'backed up' only if successfully backed up.
+
+CLAUDE: Added onCancel and force props to Wallet_backup. Cancel button appears in both phases (show and verify) when onCancel is provided. force bypasses the backup_date early-return check. handle_continue calls onCancel?.() after success so the parent closes it too. Reworked Wallet_settings_subscreen: removed revealed state, mnemonic input, passphrase display, and toggle button. Added showBackup state. "Backup Wallet" button sets showBackup=true; widget renders with force and onCancel=()=>setShowBackup(false). Button hides while widget is open.
+---

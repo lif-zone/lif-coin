@@ -709,8 +709,8 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
 // Wallet Settings Subscreen
 function Wallet_settings_subscreen({wallet, onUpdate, onDelete}){
   const {netconf} = wallet;
-  const [revealed, setRevealed] = useState(false);
   const [name, setName] = useState(wallet.ls.name);
+  const [showBackup, setShowBackup] = useState(false);
   const hasPassphrase = !!wallet.ls.passphrase;
   const derivPath = wallet.ls.derivPath || hd_path_def(netconf);
   return (
@@ -741,38 +741,22 @@ function Wallet_settings_subscreen({wallet, onUpdate, onDelete}){
           </tr>
         </tbody>
       </table>
-      <div style={{marginTop: 16}}>
-        <label style={{fontWeight: 'bold', fontSize: 13}}>Mnemonic</label>
-        <input
-          type={revealed ? 'text' : 'password'}
-          readOnly
-          value={wallet.ls.mnemonic}
-          style={{display: 'block', width: '100%', marginTop: 4, fontFamily: 'monospace',
-            fontSize: 13, boxSizing: 'border-box', background: '#f4f4f4', border: '1px solid #ccc',
-            borderRadius: 4, padding: 8}}
+      {showBackup && (
+        <Wallet_backup
+          wallet={wallet}
+          onUpdate={onUpdate}
+          onCancel={()=>setShowBackup(false)}
+          force
         />
-      </div>
-      {hasPassphrase && (
-        <div style={{marginTop: 10}}>
-          <label style={{fontWeight: 'bold', fontSize: 13}}>Passphrase</label>
-          <input
-            type={revealed ? 'text' : 'password'}
-            readOnly
-            value={wallet.ls.passphrase}
-            style={{display: 'block', width: '100%', marginTop: 4, fontFamily: 'monospace',
-              fontSize: 13, boxSizing: 'border-box', background: '#f4f4f4', border: '1px solid #ccc',
-              borderRadius: 4, padding: 8}}
-          />
-        </div>
       )}
       <div style={{display: 'flex', justifyContent: 'space-between', marginTop: 20}}>
         <button
           onClick={onDelete}
           style={{color: '#c00', border: '1px solid #c00', background: 'transparent'}}
         >Delete Wallet</button>
-        <button onClick={()=>setRevealed(r=>!r)}>
-          {revealed ? 'Hide backup' : 'Backup Wallet'}
-        </button>
+        {!showBackup && (
+          <button onClick={()=>setShowBackup(true)}>Backup Wallet</button>
+        )}
       </div>
     </div>
   );
@@ -885,13 +869,6 @@ function Mine_fund({wallet, value, start}){
   const progress = Math.min(effectiveBal / value * 100, 100);
   return (
     <div style={{marginTop: 16, border: '1px solid #aaa', borderRadius: 6, padding: 12}}>
-      <div style={{fontSize: 13, marginBottom: 6}}>
-        <span style={{color: '#666'}}>{'Cost: '}</span>
-        <Amount sat={value} symbol={symbol} cost />
-      </div>
-      <div style={{fontSize: 13, marginBottom: 6}}>
-        <Balance_available sat={bal} symbol={symbol} cost={value} />
-      </div>
       <div style={{background: '#ddd', borderRadius: 4, height: 10, overflow: 'hidden'}}>
         <div style={{background: '#4a4', height: '100%', width: progress+'%',
           transition: 'width 0.5s'}} />
@@ -1400,12 +1377,32 @@ function Amount({sat, symbol, signed, cost}){
   );
 }
 
-function Balance_available({sat, symbol, cost}){
-  const insufficient = cost!=null && sat<cost;
+function Balance_available({bal, symbol, cost}){
+  const insufficient = cost!=null && bal<cost;
   return (
     <div style={{fontSize: 13, color: '#666', marginTop: 4}}>
-      Balance: <Amount sat={sat} symbol={symbol} signed />
-      {insufficient && <div style={{color: 'red', fontSize: 12, marginTop: 2}}>Insufficient balance</div>}
+      Balance: <Amount sat={bal} symbol={symbol} signed />
+      {insufficient &&
+        <div style={{color: 'red', fontSize: 12, marginTop: 2}}>
+          Insufficient balance
+        </div>
+      }
+    </div>
+  );
+}
+
+function Balance_and_mine({wallet, bal, cost}){
+  const symbol = wallet.netconf.symbol;
+  const insufficient = bal<cost;
+  return (
+    <div style={{fontSize: 13, color: '#666', marginTop: 4}}>
+      Balance: <Amount sat={bal} symbol={symbol} signed />
+      {insufficient &&
+        <div style={{color: 'red', fontSize: 12, marginTop: 2}}>
+          Insufficient balance
+        </div>
+      }
+      <Mine_fund wallet={wallet} value={cost} />
     </div>
   );
 }
@@ -1617,7 +1614,7 @@ function Send_screen({wallet, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Send {symbol}</h3>
-      <Balance_available sat={bal} symbol={symbol} cost={amountSat+fee} />
+      <Balance_available bal={bal} symbol={symbol} cost={amountSat+fee} />
       <Addr_field value={toAddress} onChange={setToAddress} netconf={netconf} onValid={v=>setValid('addr',v)} />
       <Amount_field value={amountSat} onChange={setAmountSat} symbol={symbol} onValid={v=>setValid('amount',v)} min={1} />
       <Fee_field value={fee} onChange={setFee} netconf={netconf} />
@@ -1633,16 +1630,16 @@ function mnemonic_norm(mn){
 }
 
 // Wallet Backup Validate
-function Wallet_backup({wallet, onUpdate}){
+function Wallet_backup({wallet, onUpdate, onCancel, force}){
   const [phase, setPhase] = useState('show');
   const [input, setInput] = useState('');
   const [done, setDone] = useState(false);
-  if (done || wallet.ls.backup_date)
+  if (done || (!force && wallet.ls.backup_date))
     return null;
   const mnemonic = wallet.ls.mnemonic;
   const hidden = mnemonic.replace(/[^\s]/g, '*');
   const words_match = mnemonic_norm(input)==mnemonic_norm(mnemonic);
-  const handle_continue = ()=>{ onUpdate({backup_date: Date.now()}); setDone(true); };
+  const handle_continue = ()=>{ onUpdate({backup_date: Date.now()}); setDone(true); onCancel?.(); };
   const handle_forgot = ()=>{ setPhase('show'); setInput(''); };
   return (
     <div style={{marginTop: 16, border: '1px solid #f90', borderRadius: 6, padding: 12}}>
@@ -1655,15 +1652,17 @@ function Wallet_backup({wallet, onUpdate}){
           fontFamily: 'monospace', fontSize: 13, background: '#fafafa'}}
       />
       {phase=='show' && (
-        <button style={{marginTop: 8}} onClick={()=>setPhase('verify')}>
-          I wrote it down on paper
-        </button>
+        <div style={{display: 'flex', gap: 8, marginTop: 8}}>
+          <button onClick={()=>setPhase('verify')}>I wrote it down on paper</button>
+          {onCancel && <button onClick={onCancel}>Cancel</button>}
+        </div>
       )}
       {phase=='verify' && (
         <>
-          <button style={{marginTop: 8}} onClick={handle_forgot}>
-            I forgot the seed words
-          </button>
+          <div style={{display: 'flex', gap: 8, marginTop: 8}}>
+            <button onClick={handle_forgot}>I forgot the seed words</button>
+            {onCancel && <button onClick={onCancel}>Cancel</button>}
+          </div>
           <div style={{marginTop: 12}}>
             <label>Re-enter your seed words from your backup:</label>
             <textarea
@@ -1766,8 +1765,7 @@ function Kv_add_screen({wallet, onSent, onUpdate}){
         />
       </div>
       <Fee_field value={fee} onChange={setFee} netconf={netconf} />
-      <Balance_available sat={bal} symbol={netconf.symbol} cost={fee} />
-      <Mine_fund wallet={wallet} value={fee} start={!balOk} />
+      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} />
       <Wallet_backup wallet={wallet} onUpdate={onUpdate} />
       <button onClick={handle_add} disabled={sending||!isValid||nameStatus=='taken'} style={{marginTop: 12}}>
         {sending ? 'Registering…' : 'Register'}
@@ -1909,7 +1907,7 @@ function Kv_send_screen({wallet, kv_d, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Transfer Name</h3>
-      <Balance_available sat={bal} symbol={netconf.symbol} cost={fee} />
+      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} />
       <div style={{marginTop: 8, color: '#666', fontSize: 13}}>
         Transferring: <span style={{fontFamily: 'monospace'}}>{kv_d.key}</span>
       </div>
@@ -1957,7 +1955,7 @@ function Kv_edit_screen({wallet, kv_d, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Edit Domain Name</h3>
-      <Balance_available sat={bal} symbol={netconf.symbol} cost={fee} />
+      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} />
       <div style={{marginTop: 8, color: '#666', fontSize: 13}}>
         Name: <span style={{fontFamily: 'monospace'}}>{kv_d.key}</span>
       </div>
@@ -2041,8 +2039,8 @@ function Get_domain_screen({wallet, onSent, domain=''}){
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Get Domain</h3>
-      <Balance_available sat={bal} symbol={netconf.symbol} cost={fee} />
       <div>Cost: <Amount value={fee} netconf={netconf} cost /></div>
+      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} />
       <div style={{marginTop: 12}}>
         <label>Domain name:</label>
         <input
