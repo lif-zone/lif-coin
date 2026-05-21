@@ -81,7 +81,7 @@ make wallet.jsx support multiple wallets
     and how much expected per day
     of mining, and how much expected per month of mining.
     move existing UI to 'advanced'
-* UI for 404 domain not found: to create wallet, and mine, and put content
++ UI for 404 domain not found: to create wallet, and mine, and put content
   on wallet. Ask for email, and when purchasing domain, register it as
   'owner' and when arriving to that domain, put it as "this domain is owned
   by xxx@gmail.com. If you would like to purchase this domain - contact
@@ -93,8 +93,9 @@ make wallet.jsx support multiple wallets
     continue until you backup your wallet words.
     And tell "If forgot" if you for
     if you click Register domain without correct words - it will
-  * if wallet does not have sufficient funds:
+  + if wallet does not have sufficient funds:
     instant mining progress bar % widget
+- UI bugs:
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to
   and rpc(), but with remove connection.
 - lif-net

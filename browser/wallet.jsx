@@ -843,7 +843,8 @@ function Receive_screen({address, symbol, netconf}){
 }
 
 function mine_percent({win_h, total_h}){
-  return Math.min(total_h/(win_h*3), 1);
+  let percent = Math.min(total_h/win_h, 1); // can be >100%
+  return 1 - Math.pow(0.5, percent); // limits it to be <100%
 }
 
 // Mine Fund
@@ -903,7 +904,7 @@ function Mine_fund({wallet, value, start}){
   const effectiveBal = bal + winV;
   if (effectiveBal >= value)
     return null;
-  const progress = Math.min(effectiveBal / value * 100, 100);
+  const progress = on ? mine_percent(stats) * 100 : 0;
   return (
     <div style={{marginTop: 16, border: '1px solid #aaa', borderRadius: 6, padding: 12}}>
       <div style={{background: '#ddd', borderRadius: 4, height: 10, overflow: 'hidden'}}>

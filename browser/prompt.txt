@@ -1270,3 +1270,9 @@ USER: the <Delete> button is not disabled (visibly) when 'yes delete' is not wri
 
 CLAUDE: The custom inline styles (color:#c00, border, background) were overriding the browser's default disabled appearance. Fixed by conditionally applying grey styles (color:#aaa, border:#aaa, cursor:default) when !confirmed, and red styles only when confirmed.
 ---
+
+---
+USER: the progress bar - needs to progress according to mine_percent() (returns a number from 0 to 1). its arguments win_h total_h are received by the mine_instant on('update')
+
+CLAUDE: Changed progress calculation in Mine_fund from balance-based (effectiveBal/value) to mine_percent(stats)*100, where stats already contains win_h and total_h from the on('update') handler. Progress resets to 0 when not mining.
+---
