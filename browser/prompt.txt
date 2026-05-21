@@ -1258,3 +1258,15 @@ USER: In Wallet_settings_subscreen, there is a bug - the mnemonic field is singl
 
 CLAUDE: Added onCancel and force props to Wallet_backup. Cancel button appears in both phases (show and verify) when onCancel is provided. force bypasses the backup_date early-return check. handle_continue calls onCancel?.() after success so the parent closes it too. Reworked Wallet_settings_subscreen: removed revealed state, mnemonic input, passphrase display, and toggle button. Added showBackup state. "Backup Wallet" button sets showBackup=true; widget renders with force and onCancel=()=>setShowBackup(false). Button hides while widget is open.
 ---
+
+---
+USER: The 'Delete wallet' needs protection. It should ask you - Are you sure you want to delete wallet? Write "yes delete" in the box, and <Delete> <Cancel> buttons. The <Delete> button is disabled until 'yes delete' is written (case insensitive). Put it in a <Wallet_delete> component.
+
+CLAUDE: Created Wallet_delete({onDelete, onCancel}) component before Wallet_settings_subscreen. Shows a red-bordered box with instruction text, an input, and Delete (disabled until input.trim().toLowerCase()=='yes delete') + Cancel buttons. Added showDelete state to Wallet_settings_subscreen; when true renders Wallet_delete replacing the bottom button row.
+---
+
+---
+USER: the <Delete> button is not disabled (visibly) when 'yes delete' is not written. It is disabled technically, but visually not.
+
+CLAUDE: The custom inline styles (color:#c00, border, background) were overriding the browser's default disabled appearance. Fixed by conditionally applying grey styles (color:#aaa, border:#aaa, cursor:default) when !confirmed, and red styles only when confirmed.
+---

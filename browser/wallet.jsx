@@ -706,11 +706,41 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
   );
 }
 
+// Wallet Delete
+function Wallet_delete({onDelete, onCancel}){
+  const [input, setInput] = useState('');
+  const confirmed = input.trim().toLowerCase()=='yes delete';
+  return (
+    <div style={{marginTop: 16, border: '1px solid #c00', borderRadius: 6, padding: 12}}>
+      <div style={{marginBottom: 8}}>Are you sure you want to delete this wallet?
+        Write <strong>yes delete</strong> to confirm:</div>
+      <input
+        value={input}
+        onChange={e=>setInput(e.target.value)}
+        placeholder="yes delete"
+        style={{display: 'block', width: '100%', boxSizing: 'border-box'}}
+        autoFocus
+      />
+      <div style={{display: 'flex', gap: 8, marginTop: 8}}>
+        <button
+          onClick={onDelete}
+          disabled={!confirmed}
+          style={confirmed
+            ? {color: '#c00', border: '1px solid #c00', background: 'transparent'}
+            : {color: '#aaa', border: '1px solid #aaa', background: 'transparent', cursor: 'default'}}
+        >Delete</button>
+        <button onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
 // Wallet Settings Subscreen
 function Wallet_settings_subscreen({wallet, onUpdate, onDelete}){
   const {netconf} = wallet;
   const [name, setName] = useState(wallet.ls.name);
   const [showBackup, setShowBackup] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const hasPassphrase = !!wallet.ls.passphrase;
   const derivPath = wallet.ls.derivPath || hd_path_def(netconf);
   return (
@@ -749,15 +779,18 @@ function Wallet_settings_subscreen({wallet, onUpdate, onDelete}){
           force
         />
       )}
-      <div style={{display: 'flex', justifyContent: 'space-between', marginTop: 20}}>
-        <button
-          onClick={onDelete}
-          style={{color: '#c00', border: '1px solid #c00', background: 'transparent'}}
-        >Delete Wallet</button>
-        {!showBackup && (
-          <button onClick={()=>setShowBackup(true)}>Backup Wallet</button>
-        )}
-      </div>
+      {showDelete
+        ? <Wallet_delete onDelete={onDelete} onCancel={()=>setShowDelete(false)} />
+        : <div style={{display: 'flex', justifyContent: 'space-between', marginTop: 20}}>
+            <button
+              onClick={()=>setShowDelete(true)}
+              style={{color: '#c00', border: '1px solid #c00', background: 'transparent'}}
+            >Delete Wallet</button>
+            {!showBackup && (
+              <button onClick={()=>setShowBackup(true)}>Backup Wallet</button>
+            )}
+          </div>
+      }
     </div>
   );
 }
