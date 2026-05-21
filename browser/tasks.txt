@@ -110,8 +110,6 @@ make wallet.jsx support multiple wallets
   - add lif-net outgoing connections to github
   - make lif/git source to bring most up-to-date versions
 - locate github latest releases, and releases by tags
-- UI solution to update version: instead of
-  Devtools->Application->Service Worker->Update->Unregister
 
 For release
 -----------
@@ -123,9 +121,16 @@ For release
     Hamavdil ben kodesh le hol. Separating the 7 from 6.
   - add marking in genesis block of bitcoin block hash.
   - 5 book names: beginning, names, calling, talking, things.
+  - the GUIDE, the BIBLE, the TORAH. HHUMS HTORA MDRIH
+  - creating basecoin TX: adding 'kv' bitcoin/block/2323' val
+    {"hash": "112233..."}. info will be collected via electrum, and checked it
+    does not yet appear in the KV DB. coinbase KVs will be stored in a
+    separate prefix than rest of KVs.
 
 Low priority:
 -------------
+- UI solution to update version: instead of
+  Devtools->Application->Service Worker->Update->Unregister
 - instant mine: funding payouts for multiple wins
 - register 1842 coin with SLIP
 - add support for websocket subscription on new transactions, and updating

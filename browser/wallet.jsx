@@ -854,6 +854,7 @@ function Mine_fund({wallet, value, start}){
   const [on, setOn] = useState(false);
   const [stats, setStats] = useState({});
   const [winV, setWinV] = useState(0);
+  const [successV, setSuccessV] = useState(null);
   const runningRef = useRef(false);
   const winVRef = useRef(0);
   useEffect(()=>{
@@ -871,6 +872,7 @@ function Mine_fund({wallet, value, start}){
     runningRef.current = true;
     winVRef.current = 0;
     setWinV(0);
+    setSuccessV(null);
     setOn(true);
     let cur_stats = {};
     runningRef.et = etask(function*(){
@@ -887,6 +889,12 @@ function Mine_fund({wallet, value, start}){
           if (ret.tx){
             winVRef.current += ret.reward_net;
             setWinV(winVRef.current);
+            if (wallet_bal(wallet) + winVRef.current >= value){
+              runningRef.current = false;
+              setSuccessV(winVRef.current);
+              setOn(false);
+              return;
+            }
           }
         } catch(err){ CEA(err); }
         yield esleep(1000);
@@ -902,26 +910,33 @@ function Mine_fund({wallet, value, start}){
   };
   const bal = wallet_bal(wallet);
   const effectiveBal = bal + winV;
-  if (effectiveBal >= value)
+  if (!successV && effectiveBal >= value)
     return null;
-  const progress = on ? mine_percent(stats) * 100 : 0;
+  const progress = successV ? 100 : (on ? mine_percent(stats) * 100 : 0);
   return (
     <div style={{marginTop: 16, border: '1px solid #aaa', borderRadius: 6, padding: 12}}>
       <div style={{background: '#ddd', borderRadius: 4, height: 10, overflow: 'hidden'}}>
         <div style={{background: '#4a4', height: '100%', width: progress+'%',
           transition: 'width 0.5s'}} />
       </div>
-      {on && (
-        <div style={{fontSize: 12, color: '#666', marginTop: 6}}>
-          Mining… {(stats.hps||0).toLocaleString()} H/s
+      {successV
+        ? <div style={{fontSize: 13, color: '#4a4', marginTop: 6}}>
+            Successfully mined <Amount sat={successV} symbol={symbol} signed />!
+          </div>
+        : on && (
+          <div style={{fontSize: 12, color: '#666', marginTop: 6}}>
+            Mining… {(stats.hps||0).toLocaleString()} H/s
+          </div>
+        )
+      }
+      {!successV && (
+        <div style={{marginTop: 8}}>
+          {!on
+            ? <button onClick={mine_start}>Start mining</button>
+            : <button onClick={mine_stop}>Stop mining</button>
+          }
         </div>
       )}
-      <div style={{marginTop: 8}}>
-        {!on
-          ? <button onClick={mine_start}>Start mining</button>
-          : <button onClick={mine_stop}>Stop mining</button>
-        }
-      </div>
     </div>
   );
 }

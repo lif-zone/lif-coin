@@ -1276,3 +1276,9 @@ USER: the progress bar - needs to progress according to mine_percent() (returns 
 
 CLAUDE: Changed progress calculation in Mine_fund from balance-based (effectiveBal/value) to mine_percent(stats)*100, where stats already contains win_h and total_h from the on('update') handler. Progress resets to 0 when not mining.
 ---
+
+---
+USER: the Mine_fund widget, when completing successfully mining should NOT close. It should stay open, the progress bar should move to the end, and it should tell 'Successfully mined $1.23 LIF!'
+
+CLAUDE: Added successV state. When a win brings effectiveBal>=value, stops mining and sets successV=winVRef.current. Early return null now only fires when !successV && effectiveBal>=value (already funded before mining). progress=100 when successV set. Shows green "Successfully mined <Amount>!" message; hides Start/Stop buttons on success.
+---
