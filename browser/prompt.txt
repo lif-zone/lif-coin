@@ -1282,3 +1282,15 @@ USER: the Mine_fund widget, when completing successfully mining should NOT close
 
 CLAUDE: Added successV state. When a win brings effectiveBal>=value, stops mining and sets successV=winVRef.current. Early return null now only fires when !successV && effectiveBal>=value (already funded before mining). progress=100 when successV set. Shows green "Successfully mined <Amount>!" message; hides Start/Stop buttons on success.
 ---
+
+---
+USER: After winning, balance is not updated in the page (it still tells above the Mine_fund widget 'insufficient balance'). what is the problem? how can it be fixed?
+
+CLAUDE: Problem: wallet_bal(wallet) reads wallet.c.utxos which only updates after network sync. Mine_fund tracked winV internally but Balance_and_mine and parent balOk never saw those earnings. Fix: added onEarned prop to Mine_fund (called each win), Balance_and_mine now owns earned state (shows effectiveBal=bal+earned, checks insufficient against it, bubbles up via onEarned prop), and each screen (Kv_add, Kv_transfer, Kv_edit, Get_domain) adds earned state + passes onEarned={setEarned} to Balance_and_mine, recomputing balOk = fee <= bal+earned so form validity and Register button also update.
+---
+
+---
+USER: I don't understand: why does it have to do modifications outside <Balance_and_mine>? isn't it all internal to it?
+
+CLAUDE: User was right. Reverted all parent earned state changes. Balance_and_mine now has onSufficient prop - it tracks earned internally, computes effectiveBal=bal+earned, and calls onSufficient(!insufficient) via useEffect when sufficiency changes. Parents just pass onSufficient={ok=>setValid('bal', ok)} - no earned state needed in parents. Mine_fund still calls onEarned={setEarned} internally within Balance_and_mine.
+---

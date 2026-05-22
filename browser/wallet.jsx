@@ -843,12 +843,12 @@ function Receive_screen({address, symbol, netconf}){
 }
 
 function mine_percent({win_h, total_h}){
-  let percent = Math.min(total_h/win_h, 1); // can be >100%
+  let percent = total_h/win_h; // can be >100%
   return 1 - Math.pow(0.5, percent); // limits it to be <100%
 }
 
 // Mine Fund
-function Mine_fund({wallet, value, start}){
+function Mine_fund({wallet, value, start, onEarned}){
   const {netconf} = wallet;
   const {symbol} = netconf;
   const [on, setOn] = useState(false);
@@ -889,6 +889,7 @@ function Mine_fund({wallet, value, start}){
           if (ret.tx){
             winVRef.current += ret.reward_net;
             setWinV(winVRef.current);
+            onEarned?.(winVRef.current);
             if (wallet_bal(wallet) + winVRef.current >= value){
               runningRef.current = false;
               setSuccessV(winVRef.current);
@@ -1444,18 +1445,21 @@ function Balance_available({bal, symbol, cost}){
   );
 }
 
-function Balance_and_mine({wallet, bal, cost}){
+function Balance_and_mine({wallet, bal, cost, onSufficient}){
   const symbol = wallet.netconf.symbol;
-  const insufficient = bal<cost;
+  const [earned, setEarned] = useState(0);
+  const effectiveBal = bal + earned;
+  const insufficient = effectiveBal < cost;
+  useEffect(()=>{ onSufficient?.(!insufficient); }, [insufficient]);
   return (
     <div style={{fontSize: 13, color: '#666', marginTop: 4}}>
-      Balance: <Amount sat={bal} symbol={symbol} signed />
+      Balance: <Amount sat={effectiveBal} symbol={symbol} signed />
       {insufficient &&
         <div style={{color: 'red', fontSize: 12, marginTop: 2}}>
           Insufficient balance
         </div>
       }
-      <Mine_fund wallet={wallet} value={cost} />
+      <Mine_fund wallet={wallet} value={cost} onEarned={setEarned} />
     </div>
   );
 }
@@ -1818,7 +1822,7 @@ function Kv_add_screen({wallet, onSent, onUpdate}){
         />
       </div>
       <Fee_field value={fee} onChange={setFee} netconf={netconf} />
-      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} />
+      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} onSufficient={ok=>setValid('bal', ok)} />
       <Wallet_backup wallet={wallet} onUpdate={onUpdate} />
       <button onClick={handle_add} disabled={sending||!isValid||nameStatus=='taken'} style={{marginTop: 12}}>
         {sending ? 'Registering…' : 'Register'}
@@ -1960,7 +1964,7 @@ function Kv_send_screen({wallet, kv_d, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Transfer Name</h3>
-      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} />
+      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} onSufficient={ok=>setValid('bal', ok)} />
       <div style={{marginTop: 8, color: '#666', fontSize: 13}}>
         Transferring: <span style={{fontFamily: 'monospace'}}>{kv_d.key}</span>
       </div>
@@ -2008,7 +2012,7 @@ function Kv_edit_screen({wallet, kv_d, onSent}){
   return (
     <div style={{marginTop: 16, maxWidth: 400}}>
       <h3>Edit Domain Name</h3>
-      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} />
+      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} onSufficient={ok=>setValid('bal', ok)} />
       <div style={{marginTop: 8, color: '#666', fontSize: 13}}>
         Name: <span style={{fontFamily: 'monospace'}}>{kv_d.key}</span>
       </div>
@@ -2093,7 +2097,7 @@ function Get_domain_screen({wallet, onSent, domain=''}){
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Get Domain</h3>
       <div>Cost: <Amount value={fee} netconf={netconf} cost /></div>
-      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} />
+      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} onSufficient={ok=>setValid('bal', ok)} />
       <div style={{marginTop: 12}}>
         <label>Domain name:</label>
         <input
