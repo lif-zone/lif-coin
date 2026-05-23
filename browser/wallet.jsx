@@ -129,6 +129,7 @@ function BrightWallet(){
   const [refreshTick, setRefreshTick] = useState(0);
   const [walletLoading, setWalletLoading] = useState(false);
   const [homeRefreshTick, setHomeRefreshTick] = useState(0);
+  const [mineStart, setMineStart] = useState(false);
   useEffect(()=>{
     let raw = new URL(location.href).searchParams.get('get_domain');
     if (!raw)
@@ -224,7 +225,7 @@ function BrightWallet(){
           onKvAdd={()=>setScreen('wallet_kv_add')}
           onKvAddRaw={()=>setScreen('wallet_kv_add_raw')}
           onSettings={()=>setScreen('wallet_settings')}
-          onMine={()=>setScreen('wallet_mine')}
+          onMine={(autoStart)=>{ setMineStart(!!autoStart); setScreen('wallet_mine'); }}
           onMinePool={()=>setScreen('wallet_mine_pool')}
           refreshTick={refreshTick}
           setWalletLoading={setWalletLoading}
@@ -273,6 +274,7 @@ function BrightWallet(){
       {screen=='wallet_mine' && wallet && (
         <Mine_screen
           wallet={wallet}
+          start={mineStart}
         />
       )}
       {screen=='wallet_mine_pool' && wallet && (
@@ -661,7 +663,10 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
         {loading ? (
           <p style={{color: '#aaa'}}>Loading…</p>
         ) : !transactions.length ? (
-          <p>No transactions yet.</p>
+          <div>
+            <p>No transactions yet.</p>
+            <button onClick={()=>onMine(true)}>Mine and get $LIF into wallet</button>
+          </div>
         ) : (
           <ul style={{marginTop: 8, paddingLeft: 0, listStyle: 'none'}}>
             {transactions_sorted(transactions).map((tx, i)=>{
@@ -962,7 +967,7 @@ function fmt_duration(sec){
   return h>0 ? `${h}:${mm}:${ss}` : `${m}:${ss}`;
 }
 
-function Mine_screen({wallet}){
+function Mine_screen({wallet, start}){
   const {netconf} = wallet;
   const {symbol} = netconf;
   const [on, setOn] = useState(false);
@@ -1029,6 +1034,7 @@ function Mine_screen({wallet}){
     }, 1000);
     return ()=>clearInterval(id);
   }, [on]);
+  useEffect(()=>{ if (start) toggle(); }, []);
   useEffect(()=>()=>{ runningRef.current = false; }, []);
   const mode_shares_blocks = mode=='instant' ? 'Shares' : 'Blocks';
   if (stats){}
