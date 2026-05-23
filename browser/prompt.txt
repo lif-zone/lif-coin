@@ -1306,3 +1306,9 @@ USER: today there is logic in Get_domain() that checks if a LIF wallet already e
 
 CLAUDE: Extracted creation logic from select_lif_wallet() into ensure_lif_wallet(). select_lif_wallet() now only picks the best (highest balance) LIF wallet. ensure_lif_wallet() is called in BrightWallet's useState initializer for wallets, so it runs once on mount before any rendering.
 ---
+
+---
+USER: When I click to create a new wallet, at the end of the process - today - it goes back to the wallet cards screen. Instead it should go into the wallet screen that it created.
+
+CLAUDE: Changed onAdd in BrightWallet from addWallet(w_ls); goHome() to addWallet(w_ls); setActiveWalletId(w_ls.id); setScreen('wallet_info') so after creation it navigates directly into the new wallet's transaction screen.
+---

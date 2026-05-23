@@ -208,7 +208,7 @@ function BrightWallet(){
       {screen=='wallet_add' && (
         <Wallet_add_screen
           wallets={wallets}
-          onAdd={(w_ls)=>{ addWallet(w_ls); goHome(); }}
+          onAdd={(w_ls)=>{ addWallet(w_ls); setActiveWalletId(w_ls.id); setScreen('wallet_info'); }}
           onCancel={goHome}
         />
       )}
@@ -935,8 +935,8 @@ function Mine_fund({wallet, value, start, onEarned}){
       {!successV && (
         <div style={{marginTop: 8}}>
           {!on
-            ? <button onClick={mine_start}>Start mining</button>
-            : <button onClick={mine_stop}>Stop mining</button>
+            ? <button onClick={mine_start}>▶ Start mining</button>
+            : <button onClick={mine_stop}>⏹ Stop mining</button>
           }
         </div>
       )}
