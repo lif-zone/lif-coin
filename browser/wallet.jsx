@@ -675,20 +675,11 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
 
   const symbol = netconf.symbol;
   const label = wallet.ls.name;
-  const {state: miningState, toggle: miningToggle} = useContext(Mining_ctx);
-  const miningOn = !!miningState[wallet.ls.id]?.on;
   return (
     <div>
       <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
         <h2 style={{margin: 0}}>{label}</h2>
-        {netconf.lif_kv && (
-          <div style={{display: 'flex', gap: 8}}>
-            {balance>=50*1e8 && (
-              <button onClick={onMinePool}>Mining pool</button>
-            )}
-            <button onClick={onMine}>{miningOn?'🔴 ':' '}Mine </button>
-          </div>
-        )}
+        <Mine_on wallet={wallet} onMine={onMine} />
       </div>
       {connErr && (
         <p style={{color: '#c00', marginTop: 8}}>
@@ -706,6 +697,8 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
         <button onClick={onReceive}>Receive</button>
         <button onClick={onSend} disabled={!allAddrs.length}>Send</button>
         {netconf.lif_kv && <button onClick={onKvAdd}>Get Domain Name</button>}
+        {netconf.lif_kv && <button onClick={onMine}>Mine</button>}
+        {netconf.lif_kv && balance>=50*1e8 && <button onClick={onMinePool}>Mining pool</button>}
         {netconf.lif_kv && settings.ls.devtools && <button onClick={onKvAddRaw} disabled={!allAddrs.length}>Get Key/Val</button>}
         {settings.ls.devtools && transactions.some(tx=>!tx.timestamp) && (
           <button onClick={async()=>{

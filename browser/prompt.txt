@@ -1336,3 +1336,9 @@ USER: Create a new widget <Mine_on>. It is per-wallet. It will be empty if that 
 
 CLAUDE: Added Mine_on({wallet, onMine}) widget near Amount. Reads Mining_ctx, returns null if not mining, otherwise renders a clickable '🔴 Mining' span. Used in Wallet_card: replaced the button with a stopPropagation wrapper div containing <Mine_on wallet={wallet} onMine={onMine} />. Removed unused miningOn/miningState from Wallet_card.
 ---
+
+---
+USER: In Wallet_screen, Move the "Mine" and "Mining pool" from the top line to the line of "Send" "Receive" etc. In the top line put the <Mine_on> widget.
+
+CLAUDE: Removed the mining buttons from the top header div, replaced with <Mine_on wallet={wallet} onMine={onMine} />. Added Mine and Mining pool buttons to the Send/Receive button row (Mining pool only shown when balance>=50*1e8). Removed unused miningState/miningToggle/miningOn from Wallet_screen.
+---
