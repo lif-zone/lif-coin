@@ -1324,3 +1324,9 @@ USER: There is a bug - instant/solo mining can only be done once at a time per-w
 
 CLAUDE: Lifted all mining state/logic out of Mine_screen into a useMining() hook at BrightWallet level. Added Mining_ctx context provided by BrightWallet. useMining manages handles (etask+runningRef+intervalId per wallet) in a useRef and reactive state (on/mode/stats/elapsed/lastStatus per wallet) in useState. Mine_screen now reads state and calls toggle from context — no own state. Navigating away and back shows correct live state. Wallet_screen header toggles between "Get free LIF" and "⏹ Stop mining" button based on miningOn. Wallet_card shows "⏹ Stop mining" button (with stopPropagation) when miningOn. Mode radio buttons disabled while on.
 ---
+
+---
+USER: in Wallet cards - when "Mining" button appears on a card - clicking on it should not stop the mining, rather it should just open the wallet's mining page, where he can click to stop the mining.
+
+CLAUDE: Changed Wallet_card mining button to navigate to mine page instead of stopping. Added onMine prop to Wallet_card and Home_screen. BrightWallet passes onMine={(id)=>{ setActiveWalletId(id); setScreen('wallet_mine'); }} to Home_screen. Button label changed to "⛏ Mining…" and calls onMine() with stopPropagation.
+---

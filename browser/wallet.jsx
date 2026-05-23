@@ -273,6 +273,7 @@ function BrightWallet(){
           wallets={wallets}
           onSelect={(id)=>{ setActiveWalletId(id); setScreen('wallet_info'); }}
           onAddNew={()=>setScreen('wallet_add')}
+          onMine={(id)=>{ setActiveWalletId(id); setScreen('wallet_mine'); }}
         />
       )}
       {screen=='wallet_add' && (
@@ -398,7 +399,7 @@ function BrightWallet(){
 }
 
 // Home Screen
-function Home_screen({wallets, onSelect, onAddNew}){
+function Home_screen({wallets, onSelect, onAddNew, onMine}){
   return (
     <div>
       <div style={{display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16}}>
@@ -407,6 +408,7 @@ function Home_screen({wallets, onSelect, onAddNew}){
             key={wallet.ls.id}
             wallet={wallet}
             onClick={()=>onSelect(wallet.ls.id)}
+            onMine={()=>onMine(wallet.ls.id)}
           />
         ))}
         <div style={newCardStyle} onClick={onAddNew}>
@@ -421,7 +423,7 @@ function Home_screen({wallets, onSelect, onAddNew}){
 }
 
 // Wallet Card (summary box on home screen)
-function Wallet_card({wallet, onClick}){
+function Wallet_card({wallet, onClick, onMine}){
   const {netconf} = wallet;
   const [balance, setBalance] = useState(wallet.c.balance ?? null);
   const [txCount, setTxCount] = useState(wallet.c.transactions?.length ?? null);
@@ -460,7 +462,7 @@ function Wallet_card({wallet, onClick}){
 
   const symbol = netconf.symbol;
   const label = wallet.ls.name;
-  const {state: miningState, toggle: miningToggle} = useContext(Mining_ctx);
+  const {state: miningState} = useContext(Mining_ctx);
   const miningOn = !!miningState[wallet.ls.id]?.on;
   return (
     <div style={cardStyle} onClick={onClick}>
@@ -487,10 +489,9 @@ function Wallet_card({wallet, onClick}){
         )}
       </div>
       {miningOn && (
-        <button
-          style={{marginTop: 8, fontSize: 12}}
-          onClick={e=>{ e.stopPropagation(); miningToggle(wallet); }}
-        >⏹ Stop mining</button>
+        <button style={{marginTop: 8, fontSize: 12}}
+          onClick={e=>{ e.stopPropagation(); onMine(); }}
+        >🔴 Mining</button>
       )}
     </div>
   );
