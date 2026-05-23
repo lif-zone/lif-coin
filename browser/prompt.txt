@@ -1360,3 +1360,9 @@ USER: Add a button (before Backup Wallet) of "Advanced: Off". This will be a glo
 
 CLAUDE: Added advanced local state + toggle_advanced() in Wallet_settings_subscreen that mutates settings.ls.advanced and calls settings_save(). Added "Advanced: Off/On" button before "Backup Wallet". Changed Mining pool condition from balance>=50*1e8 to settings.ls.advanced && balance>=50*1e8. Changed Get Key/Val condition from settings.ls.devtools to settings.ls.advanced && settings.ls.devtools.
 ---
+
+---
+USER: 'Send' and 'Get Key/val' are today disabled if no balance. They should not be disabled. They Get Key/Val should have the mining click - just like the Get Domain screen has when not enough balance.
+
+CLAUDE: Removed disabled={!allAddrs.length} from Send and Get Key/Val buttons in Wallet_screen. Added useFormValid, bal, balOk, and Balance_and_mine widget to Kv_add_raw_screen (same pattern as other screens). Send button now gated on isValid instead of allAddrs.
+---

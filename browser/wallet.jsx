@@ -695,11 +695,11 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
       </div>
       <div style={{display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap', alignItems: 'center'}}>
         <button onClick={onReceive}>Receive</button>
-        <button onClick={onSend} disabled={!allAddrs.length}>Send</button>
+        <button onClick={onSend}>Send</button>
         {netconf.lif_kv && <button onClick={onKvAdd}>Get Domain Name</button>}
         {netconf.lif_kv && <button onClick={onMine}>Mine</button>}
         {netconf.lif_kv && settings.ls.advanced && balance>=50*1e8 && <button onClick={onMinePool}>Mining pool</button>}
-        {netconf.lif_kv && settings.ls.advanced && <button onClick={onKvAddRaw} disabled={!allAddrs.length}>Get Key/Val</button>}
+        {netconf.lif_kv && settings.ls.advanced && <button onClick={onKvAddRaw}>Get Key/Val</button>}
         {settings.ls.devtools && transactions.some(tx=>!tx.timestamp) && (
           <button onClick={async()=>{
             try {
@@ -1881,12 +1881,16 @@ function Kv_add_screen({wallet, onSent, onUpdate}){
 function Kv_add_raw_screen({wallet, onSent}){
   const modal = useModal();
   const {netconf} = wallet;
+  const {setValid, isValid} = useFormValid();
   const [kv_key, set_kv_key] = useState('');
   const [kv_val, set_kv_val] = useState('');
   const [sending, setSending] = useState(false);
   const [nameStatus, setNameStatus] = useState(null);
   const [valError, setValError] = useState(false);
   const [fee, setFee] = useState(0);
+  const bal = wallet_bal(wallet);
+  const balOk = fee <= bal;
+  useEffect(()=>{ setValid('bal', balOk); }, [balOk]);
   useEffect(()=>{
     setFee(kv_tx_add({wallet, key: kv_key.trim(), val: kv_val.trim()}).fee);
   }, [kv_key, kv_val]);
@@ -1964,7 +1968,8 @@ function Kv_add_raw_screen({wallet, onSent}){
         {valError && <div style={{fontSize: 12, color: '#c00', marginTop: 3}}>Invalid JSON</div>}
       </div>
       <Fee_field value={fee} onChange={setFee} netconf={netconf} />
-      <button onClick={handle_add} disabled={sending||nameStatus=='taken'||valError} style={{marginTop: 12}}>
+      <Balance_and_mine bal={bal} wallet={wallet} cost={fee} onSufficient={ok=>setValid('bal', ok)} />
+      <button onClick={handle_add} disabled={sending||!isValid||nameStatus=='taken'||valError} style={{marginTop: 12}}>
         {sending ? 'Sending…' : 'Send'}
       </button>
     </div>
