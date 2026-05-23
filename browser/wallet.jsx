@@ -462,8 +462,6 @@ function Wallet_card({wallet, onClick, onMine}){
 
   const symbol = netconf.symbol;
   const label = wallet.ls.name;
-  const {state: miningState} = useContext(Mining_ctx);
-  const miningOn = !!miningState[wallet.ls.id]?.on;
   return (
     <div style={cardStyle} onClick={onClick}>
       <div style={{fontWeight: 'bold', fontSize: 15}}>{label}</div>
@@ -488,11 +486,9 @@ function Wallet_card({wallet, onClick, onMine}){
           </>
         )}
       </div>
-      {miningOn && (
-        <button style={{marginTop: 8, fontSize: 12}}
-          onClick={e=>{ e.stopPropagation(); onMine(); }}
-        >🔴 Mining</button>
-      )}
+      <div style={{marginTop: 6}} onClick={e=>e.stopPropagation()}>
+        <Mine_on wallet={wallet} onMine={onMine} />
+      </div>
     </div>
   );
 }
@@ -1431,6 +1427,19 @@ function useFormValid(){
   };
   const isValid = OV(states).every(Boolean);
   return {setValid, isValid};
+}
+
+// Mine On indicator
+function Mine_on({wallet, onMine}){
+  const {state} = useContext(Mining_ctx);
+  if (!state[wallet.ls.id]?.on)
+    return null;
+  return (
+    <span
+      onClick={onMine}
+      style={{cursor: 'pointer', userSelect: 'none'}}
+    >🔴 Mining</span>
+  );
 }
 
 const AMOUNT_MODES = ['usd', 'coin'];

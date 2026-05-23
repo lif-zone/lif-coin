@@ -1330,3 +1330,9 @@ USER: in Wallet cards - when "Mining" button appears on a card - clicking on it 
 
 CLAUDE: Changed Wallet_card mining button to navigate to mine page instead of stopping. Added onMine prop to Wallet_card and Home_screen. BrightWallet passes onMine={(id)=>{ setActiveWalletId(id); setScreen('wallet_mine'); }} to Home_screen. Button label changed to "⛏ Mining…" and calls onMine() with stopPropagation.
 ---
+
+---
+USER: Create a new widget <Mine_on>. It is per-wallet. It will be empty if that wallet is not mining at the moment. If it is mining, it will be text '🔴 Mining', which is clickable. clicking it will move you into that wallet's mining page. Use it in the Wallet card.
+
+CLAUDE: Added Mine_on({wallet, onMine}) widget near Amount. Reads Mining_ctx, returns null if not mining, otherwise renders a clickable '🔴 Mining' span. Used in Wallet_card: replaced the button with a stopPropagation wrapper div containing <Mine_on wallet={wallet} onMine={onMine} />. Removed unused miningOn/miningState from Wallet_card.
+---
