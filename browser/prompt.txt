@@ -1318,3 +1318,9 @@ USER: In Wallets main page (where transactions are shown), when there are no tra
 
 CLAUDE: Added start prop to Mine_screen; useEffect calls toggle() on mount when start=true. Added mineStart state to BrightWallet; onMine now takes an optional autoStart param. Mine_screen receives start={mineStart}. In Wallet_screen, replaced "No transactions yet." plain text with a div containing the text plus a "Mine and get $LIF into wallet" button that calls onMine(true).
 ---
+
+---
+USER: There is a bug - instant/solo mining can only be done once at a time per-wallet - a global variable/global mining handle for each wallet. This should be a global per-wallet state, and when mining, then in all wallet page on top, should appear an on/off switch. And in wallet card that is mining should also show an on/off button. There is a bug today, that if I start mining, then click "Back", it "forgets" its mining - and continues mining in the background. And when I click again into the mining page, it tells its not mining, and if I start it - it will have two minings in parallel.
+
+CLAUDE: Lifted all mining state/logic out of Mine_screen into a useMining() hook at BrightWallet level. Added Mining_ctx context provided by BrightWallet. useMining manages handles (etask+runningRef+intervalId per wallet) in a useRef and reactive state (on/mode/stats/elapsed/lastStatus per wallet) in useState. Mine_screen now reads state and calls toggle from context — no own state. Navigating away and back shows correct live state. Wallet_screen header toggles between "Get free LIF" and "⏹ Stop mining" button based on miningOn. Wallet_card shows "⏹ Stop mining" button (with stopPropagation) when miningOn. Mode radio buttons disabled while on.
+---

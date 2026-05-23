@@ -117,6 +117,73 @@ function select_lif_wallet(){
   return best.ls.id;
 }
 
+// Mining Context
+const Mining_ctx = createContext(null);
+function useMining(){
+  const [state, setState] = useState({});
+  const handles = useRef({});
+  const toggle = (wallet, mode='instant')=>{
+    const id = wallet.ls.id;
+    const h = handles.current[id];
+    if (h?.runningRef.current){
+      h.runningRef.current = false;
+      h.et?.return();
+      clearInterval(h.intervalId);
+      delete handles.current[id];
+      setState(s=>({...s, [id]: {...s[id], on: false}}));
+      return;
+    }
+    const runningRef = {current: true};
+    const blockStart = Date.now();
+    const intervalId = setInterval(()=>{
+      setState(s=>s[id]?.on
+        ? {...s, [id]: {...s[id], elapsed: Math.floor((Date.now()-blockStart)/1000)}}
+        : s);
+    }, 1000);
+    handles.current[id] = {runningRef, blockStart, intervalId};
+    let cur_stats = {win_n: 0, win_v: 0};
+    setState(s=>({...s, [id]: {on: true, mode, stats: cur_stats, elapsed: 0, lastStatus: null}}));
+    const {netconf} = wallet;
+    const saddr = wallet.c.receiveAddress;
+    const target = target_get();
+    const et = etask(function*(){
+      while (runningRef.current){
+        try {
+          let block_et;
+          if (mode=='instant')
+            block_et = mine_instant({netconf, saddr, target});
+          else
+            block_et = mine_solo({netconf, saddr, target});
+          block_et.on('update', up=>{
+            cur_stats = {...cur_stats, ...up, ...mine_stats_calc(up)};
+            setState(s=>({...s, [id]: {...s[id], stats: {...cur_stats}}}));
+          });
+          const ret = yield block_et;
+          if (mode=='instant'){
+            if (ret.tx){ cur_stats.win_n++; cur_stats.win_v += ret.reward_net; }
+          } else {
+            if (ret?.height){ cur_stats.win_n++; cur_stats.win_v += ret.reward; }
+          }
+          setState(s=>({...s, [id]: {...s[id], stats: {...cur_stats}, lastStatus: ret.err||null}}));
+        } catch(err){ CEA(err); }
+        yield esleep(1000);
+      }
+      clearInterval(handles.current[id]?.intervalId);
+      delete handles.current[id];
+      setState(s=>({...s, [id]: {...s[id], on: false}}));
+    });
+    handles.current[id].et = et;
+  };
+  useEffect(()=>()=>{
+    for (const h of Object.values(handles.current)){
+      h.runningRef.current = false;
+      h.et?.return();
+      clearInterval(h.intervalId);
+    }
+  }, []);
+  return {state, toggle};
+}
+
 // Main App
 function BrightWallet(){
   const [wallets, setWallets] = useState(()=>{ ensure_lif_wallet(); return wallets_get(); });
@@ -130,6 +197,7 @@ function BrightWallet(){
   const [walletLoading, setWalletLoading] = useState(false);
   const [homeRefreshTick, setHomeRefreshTick] = useState(0);
   const [mineStart, setMineStart] = useState(false);
+  const mining = useMining();
   useEffect(()=>{
     let raw = new URL(location.href).searchParams.get('get_domain');
     if (!raw)
@@ -174,6 +242,7 @@ function BrightWallet(){
       goHome();
   };
   return (
+    <Mining_ctx.Provider value={mining}>
     <div style={{fontFamily: 'sans-serif', maxWidth: 960, margin: '0 auto', padding: 16}}>
       <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16}}>
         <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
@@ -324,6 +393,7 @@ function BrightWallet(){
         />
       )}
     </div>
+    </Mining_ctx.Provider>
   );
 }
 
@@ -390,10 +460,11 @@ function Wallet_card({wallet, onClick}){
 
   const symbol = netconf.symbol;
   const label = wallet.ls.name;
+  const {state: miningState, toggle: miningToggle} = useContext(Mining_ctx);
+  const miningOn = !!miningState[wallet.ls.id]?.on;
   return (
     <div style={cardStyle} onClick={onClick}>
       <div style={{fontWeight: 'bold', fontSize: 15}}>{label}</div>
-
       <div style={{marginTop: 10}}>
         {connErr ? (
           <span style={{color: '#c00', fontSize: 12}}>Connection error</span>
@@ -415,6 +486,12 @@ function Wallet_card({wallet, onClick}){
           </>
         )}
       </div>
+      {miningOn && (
+        <button
+          style={{marginTop: 8, fontSize: 12}}
+          onClick={e=>{ e.stopPropagation(); miningToggle(wallet); }}
+        >⏹ Stop mining</button>
+      )}
     </div>
   );
 }
@@ -601,6 +678,8 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
 
   const symbol = netconf.symbol;
   const label = wallet.ls.name;
+  const {state: miningState, toggle: miningToggle} = useContext(Mining_ctx);
+  const miningOn = !!miningState[wallet.ls.id]?.on;
   return (
     <div>
       <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
@@ -610,7 +689,10 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
             {balance>=50*1e8 && (
               <button onClick={onMinePool}>Mining pool</button>
             )}
-            <button onClick={onMine}>Get free LIF - click & mine!</button>
+            {miningOn
+              ? <button onClick={()=>miningToggle(wallet)}>⏹ Stop mining</button>
+              : <button onClick={onMine}>Get free LIF - click & mine!</button>
+            }
           </div>
         )}
       </div>
@@ -970,87 +1052,34 @@ function fmt_duration(sec){
 function Mine_screen({wallet, start}){
   const {netconf} = wallet;
   const {symbol} = netconf;
-  const [on, setOn] = useState(false);
-  const [mode, setMode] = useState('instant');
-  let [stats, setStats] = useState({});
-  const [elapsed, setElapsed] = useState(0);
-  const [lastStatus, setLastStatus] = useState(null);
-  const runningRef = useRef(false);
-  const blockStartRef = useRef(null);
-  const toggle = ()=>{
-    if (on){
-      runningRef.current = false;
-      runningRef.et?.return();
-      runningRef.et = null;
-      setOn(false);
-      return;
-    }
-    runningRef.current = true;
-    setOn(true);
-    setStats(stats = {win_n: 0, win_v: 0});
-    setElapsed(0);
-    blockStartRef.current = Date.now();
-    runningRef.et = etask(function*(){
-      const saddr = wallet.c.receiveAddress;
-      let ret, target = target_get();
-      while (1){
-        try {
-          let et;
-          if (mode=='instant')
-            et = mine_instant({netconf, saddr, target});
-          else
-            et = mine_solo({netconf, saddr, target});
-          et.on('update', up=>{
-            stats = {...stats, ...up, ...mine_stats_calc(up)};
-            setStats(stats);
-          });
-          ret = yield et;
-          if (mode=='instant'){
-            if (ret.tx){
-              stats.win_n++;
-              stats.win_v += ret.reward_net;
-            }
-          } else {
-            if (ret?.height){
-              stats.win_n++;
-              stats.win_v += ret.reward;
-            }
-          }
-          setStats(stats);
-        } catch(err){ CEA(err);
-          ret = {err: ''+err};
-        }
-        setLastStatus(ret.err);
-        yield esleep(1000);
-      }
-      setOn(false);
-    });
-  };
+  const {state, toggle} = useContext(Mining_ctx);
+  const id = wallet.ls.id;
+  const info = state[id];
+  const on = !!info?.on;
+  const stats = info?.stats || {};
+  const elapsed = info?.elapsed || 0;
+  const lastStatus = info?.lastStatus || null;
+  const [mode, setMode] = useState(info?.mode || 'instant');
   useEffect(()=>{
-    if (!on)
-      return;
-    const id = setInterval(()=>{
-      setElapsed(Math.floor((Date.now()-blockStartRef.current)/1000));
-    }, 1000);
-    return ()=>clearInterval(id);
-  }, [on]);
-  useEffect(()=>{ if (start) toggle(); }, []);
-  useEffect(()=>()=>{ runningRef.current = false; }, []);
-  const mode_shares_blocks = mode=='instant' ? 'Shares' : 'Blocks';
-  if (stats){}
+    if (start && !on)
+      toggle(wallet, mode);
+  }, []);
+  const mode_shares_blocks = (info?.mode||mode)=='instant' ? 'Shares' : 'Blocks';
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Mine for free</h3>
       <div style={{display: 'flex', gap: 16, marginTop: 10, fontSize: 14}}>
         {['instant', 'solo'].map(m=>(
-          <label key={m} style={{display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer'}}>
-            <input type="radio" name="mine_mode" value={m} checked={mode==m}
-              onChange={()=>setMode(m)} />
+          <label key={m} style={{display: 'flex', alignItems: 'center', gap: 6,
+            cursor: on ? 'default' : 'pointer', opacity: on ? 0.5 : 1}}>
+            <input type="radio" name="mine_mode" value={m}
+              checked={(on ? info?.mode : mode)==m}
+              onChange={()=>{ if (!on) setMode(m); }} disabled={on} />
             {m=='solo' ? 'Solo mining' : 'Instant mining'}
           </label>
         ))}
       </div>
-      <button onClick={toggle} style={{fontSize: 16, marginTop: 8}}>
+      <button onClick={()=>toggle(wallet, mode)} style={{fontSize: 16, marginTop: 8}}>
         {on ? '⏹ Stop mining' : '▶ Start mining'}
       </button>
       {lastStatus && (
