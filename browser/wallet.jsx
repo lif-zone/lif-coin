@@ -715,7 +715,7 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
         )}
       </div>
       <div style={{marginTop: 16}}>
-        {ownedKeys.length && (<>
+        {!!ownedKeys.length && (<>
           <h3>Domain Names</h3>
           <ul style={{marginTop: 8, paddingLeft: 0, listStyle: 'none'}}>
             {ownedKeys.map((k, i)=>(
