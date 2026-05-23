@@ -1342,3 +1342,9 @@ USER: In Wallet_screen, Move the "Mine" and "Mining pool" from the top line to t
 
 CLAUDE: Removed the mining buttons from the top header div, replaced with <Mine_on wallet={wallet} onMine={onMine} />. Added Mine and Mining pool buttons to the Send/Receive button row (Mining pool only shown when balance>=50*1e8). Removed unused miningState/miningToggle/miningOn from Wallet_screen.
 ---
+
+---
+USER: In the Wallet_settings screen, Move Backup Wallet to the top (Under "Wallet Settings", before "Name"). Move also "Delete Wallet" button to the left of that line.
+
+CLAUDE: Restructured Wallet_settings_subscreen: header row now has "Wallet Settings" h3 on the left and Delete Wallet + Backup Wallet buttons on the right. Wallet_delete and Wallet_backup widgets render below the header row (before the Name field). Removed the old bottom button row.
+---

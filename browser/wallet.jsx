@@ -821,7 +821,29 @@ function Wallet_settings_subscreen({wallet, onUpdate, onDelete}){
   const derivPath = wallet.ls.derivPath || hd_path_def(netconf);
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
-      <h3>Wallet Settings</h3>
+      <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+        <h3 style={{margin: 0}}>Wallet Settings</h3>
+        <div style={{display: 'flex', gap: 8}}>
+          <button
+            onClick={()=>setShowDelete(true)}
+            style={{color: '#c00', border: '1px solid #c00', background: 'transparent'}}
+          >Delete Wallet</button>
+          {!showBackup && (
+            <button onClick={()=>setShowBackup(true)}>Backup Wallet</button>
+          )}
+        </div>
+      </div>
+      {showDelete && (
+        <Wallet_delete onDelete={onDelete} onCancel={()=>setShowDelete(false)} />
+      )}
+      {showBackup && (
+        <Wallet_backup
+          wallet={wallet}
+          onUpdate={onUpdate}
+          onCancel={()=>setShowBackup(false)}
+          force
+        />
+      )}
       <div style={{marginTop: 12}}>
         <label style={{color: '#666'}}>Name</label>
         <input
@@ -847,26 +869,6 @@ function Wallet_settings_subscreen({wallet, onUpdate, onDelete}){
           </tr>
         </tbody>
       </table>
-      {showBackup && (
-        <Wallet_backup
-          wallet={wallet}
-          onUpdate={onUpdate}
-          onCancel={()=>setShowBackup(false)}
-          force
-        />
-      )}
-      {showDelete
-        ? <Wallet_delete onDelete={onDelete} onCancel={()=>setShowDelete(false)} />
-        : <div style={{display: 'flex', justifyContent: 'space-between', marginTop: 20}}>
-            <button
-              onClick={()=>setShowDelete(true)}
-              style={{color: '#c00', border: '1px solid #c00', background: 'transparent'}}
-            >Delete Wallet</button>
-            {!showBackup && (
-              <button onClick={()=>setShowBackup(true)}>Backup Wallet</button>
-            )}
-          </div>
-      }
     </div>
   );
 }
