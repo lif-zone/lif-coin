@@ -122,6 +122,59 @@ const Mining_ctx = createContext(null);
 function useMining(){
   const [state, setState] = useState({});
   const handles = useRef({});
+  const [pool_state, setPoolState] = useState({});
+  const pool_handles = useRef({});
+  const pool_toggle = (wallet)=>{
+    const id = wallet.ls.id;
+    const h = pool_handles.current[id];
+    if (h?.runningRef.current){
+      h.runningRef.current = false;
+      h.et?.return();
+      clearInterval(h.intervalId);
+      delete pool_handles.current[id];
+      setPoolState(s=>({...s, [id]: {...s[id], on: false}}));
+      return;
+    }
+    const runningRef = {current: true};
+    const blockStart = Date.now();
+    const intervalId = setInterval(()=>{
+      setPoolState(s=>s[id]?.on
+        ? {...s, [id]: {...s[id], elapsed: Math.floor((Date.now()-blockStart)/1000)}}
+        : s);
+    }, 1000);
+    pool_handles.current[id] = {runningRef, blockStart, intervalId};
+    const reward_share = 0.5;
+    let cur_stats = {};
+    setPoolState(s=>({...s, [id]: {on: true, stats: cur_stats, elapsed: 0, lastStatus: null}}));
+    const target = target_get();
+    const et = etask(function*(){
+      while (runningRef.current){
+        try {
+          const block_et = mine_instant_pool({wallet, reward_share, target});
+          block_et.on('update', up=>{
+            let st = {...cur_stats, ...up, ...mine_stats_calc(up)};
+            st.earn_hour = Math.floor((st.earn_hour||0)*(1-reward_share));
+            cur_stats = st;
+            setPoolState(s=>({...s, [id]: {...s[id], stats: {...cur_stats}}}));
+          });
+          block_et.on('pay', pay=>{ console.log('payout', pay); });
+          block_et.on('win', win=>{
+            console.log('win', win);
+            if (win.height)
+              cur_stats = {...cur_stats, win_n: (cur_stats.win_n||0)+1};
+            setPoolState(s=>({...s, [id]: {...s[id], stats: {...cur_stats}}}));
+          });
+          const ret = yield block_et;
+          setPoolState(s=>({...s, [id]: {...s[id], stats: {...cur_stats}, lastStatus: ret?.err||null}}));
+        } catch(err){ CEA(err); }
+        yield esleep(1000);
+      }
+      clearInterval(pool_handles.current[id]?.intervalId);
+      delete pool_handles.current[id];
+      setPoolState(s=>({...s, [id]: {...s[id], on: false}}));
+    });
+    pool_handles.current[id].et = et;
+  };
   const toggle = (wallet, mode='instant')=>{
     const id = wallet.ls.id;
     const h = handles.current[id];
@@ -180,8 +233,13 @@ function useMining(){
       h.et?.return();
       clearInterval(h.intervalId);
     }
+    for (const h of Object.values(pool_handles.current)){
+      h.runningRef.current = false;
+      h.et?.return();
+      clearInterval(h.intervalId);
+    }
   }, []);
-  return {state, toggle};
+  return {state, toggle, pool_state, pool_toggle};
 }
 
 // Main App
@@ -274,6 +332,7 @@ function BrightWallet(){
           onSelect={(id)=>{ setActiveWalletId(id); setScreen('wallet_info'); }}
           onAddNew={()=>setScreen('wallet_add')}
           onMine={(id)=>{ setActiveWalletId(id); setScreen('wallet_mine'); }}
+          onMinePool={(id)=>{ setActiveWalletId(id); setScreen('wallet_mine_pool'); }}
         />
       )}
       {screen=='wallet_add' && (
@@ -399,7 +458,7 @@ function BrightWallet(){
 }
 
 // Home Screen
-function Home_screen({wallets, onSelect, onAddNew, onMine}){
+function Home_screen({wallets, onSelect, onAddNew, onMine, onMinePool}){
   return (
     <div>
       <div style={{display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16}}>
@@ -409,6 +468,7 @@ function Home_screen({wallets, onSelect, onAddNew, onMine}){
             wallet={wallet}
             onClick={()=>onSelect(wallet.ls.id)}
             onMine={()=>onMine(wallet.ls.id)}
+            onMinePool={()=>onMinePool(wallet.ls.id)}
           />
         ))}
         <div style={newCardStyle} onClick={onAddNew}>
@@ -423,7 +483,7 @@ function Home_screen({wallets, onSelect, onAddNew, onMine}){
 }
 
 // Wallet Card (summary box on home screen)
-function Wallet_card({wallet, onClick, onMine}){
+function Wallet_card({wallet, onClick, onMine, onMinePool}){
   const {netconf} = wallet;
   const [balance, setBalance] = useState(wallet.c.balance ?? null);
   const [txCount, setTxCount] = useState(wallet.c.transactions?.length ?? null);
@@ -486,8 +546,9 @@ function Wallet_card({wallet, onClick, onMine}){
           </>
         )}
       </div>
-      <div style={{marginTop: 6}} onClick={e=>e.stopPropagation()}>
+      <div style={{marginTop: 6, display: 'flex', gap: 8}} onClick={e=>e.stopPropagation()}>
         <Mine_on wallet={wallet} onMine={onMine} />
+        <Mine_pool_on wallet={wallet} onMinePool={onMinePool} />
       </div>
     </div>
   );
@@ -679,7 +740,10 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
     <div>
       <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
         <h2 style={{margin: 0}}>{label}</h2>
-        <Mine_on wallet={wallet} onMine={onMine} />
+        <div style={{display: 'flex', gap: 8}}>
+          <Mine_on wallet={wallet} onMine={onMine} />
+          <Mine_pool_on wallet={wallet} onMinePool={onMinePool} />
+        </div>
       </div>
       {connErr && (
         <p style={{color: '#c00', marginTop: 8}}>
@@ -1141,62 +1205,14 @@ function Mine_screen({wallet, start}){
 function Mine_pool_screen({wallet}){
   const {netconf} = wallet;
   const {symbol} = netconf;
-  const [on, setOn] = useState(false);
-  const [stats, setStats] = useState({});
-  const [elapsed, setElapsed] = useState(0);
-  const [lastStatus, setLastStatus] = useState(null);
-  const runningRef = useRef(false);
-  const blockStartRef = useRef(null);
-  const reward_share = 0.5;
-  const toggle = ()=>{
-    if (on){
-      runningRef.current = false;
-      runningRef.et?.return();
-      runningRef.et = null;
-      setOn(false);
-      return;
-    }
-    runningRef.current = true;
-    setOn(true);
-    setStats({});
-    setElapsed(0);
-    blockStartRef.current = Date.now();
-    runningRef.et = etask(function*(){
-      const saddr = wallet.c.receiveAddress;
-      let ret, target = target_get();
-      let et;
-      try {
-        et = mine_instant_pool({wallet, reward_share, target});
-        et.on('update', up=>{
-          let st = {...stats, ...up, ...mine_stats_calc(up)};
-          st.earn_hour = Math.floor((st.earn_hour||0)*(1-reward_share));
-          setStats(st);
-        });
-        et.on('pay', pay=>{
-          console.log('payout', pay);
-          assert(pay.tx);
-        });
-        et.on('win', win=>{
-          console.log('win', win);
-          assert(win.height);
-        });
-        ret = yield et;
-      } catch(err){ CEA(err);
-        ret = {err: ''+err};
-      }
-      setLastStatus(ret.err);
-      setOn(false);
-    });
-  };
-  useEffect(()=>{
-    if (!on)
-      return;
-    const id = setInterval(()=>{
-      setElapsed(Math.floor((Date.now()-blockStartRef.current)/1000));
-    }, 1000);
-    return ()=>clearInterval(id);
-  }, [on]);
-  useEffect(()=>()=>{ runningRef.current = false; }, []);
+  const {pool_state, pool_toggle} = useContext(Mining_ctx);
+  const id = wallet.ls.id;
+  const info = pool_state[id];
+  const on = info?.on || false;
+  const stats = info?.stats || {};
+  const elapsed = info?.elapsed || 0;
+  const lastStatus = info?.lastStatus || null;
+  const toggle = ()=>pool_toggle(wallet);
   return (
     <div style={{marginTop: 16, maxWidth: 480}}>
       <h3>Mining pool server</h3>
@@ -1441,6 +1457,19 @@ function Mine_on({wallet, onMine}){
       onClick={onMine}
       style={{cursor: 'pointer', userSelect: 'none'}}
     >🔴 Mining</span>
+  );
+}
+
+// Mine Pool On indicator
+function Mine_pool_on({wallet, onMinePool}){
+  const {pool_state} = useContext(Mining_ctx);
+  if (!pool_state[wallet.ls.id]?.on)
+    return null;
+  return (
+    <span
+      onClick={onMinePool}
+      style={{cursor: 'pointer', userSelect: 'none'}}
+    >🔴 Pool Mining</span>
   );
 }
 

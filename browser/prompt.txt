@@ -1366,3 +1366,7 @@ USER: 'Send' and 'Get Key/val' are today disabled if no balance. They should not
 
 CLAUDE: Removed disabled={!allAddrs.length} from Send and Get Key/Val buttons in Wallet_screen. Added useFormValid, bal, balOk, and Balance_and_mine widget to Kv_add_raw_screen (same pattern as other screens). Send button now gated on isValid instead of allAddrs.
 ---
+USER: Add a widget <Mine_pool_on>. It is similar to <Mine_on>, but just for pool mining. The pool mining reference is also stored per-wallet (like regular mining). And also should be shown on the Wallet_card and top line of the Wallet screen (just next to the <Mine_on> widget). Clicking on it moves you into the Mine_pool_screen.
+
+CLAUDE: Extended useMining with independent pool_state/pool_handles/pool_toggle (separate from regular mining, can run in parallel). pool_toggle uses mine_instant_pool in a while loop. Refactored Mine_pool_screen to read from Mining_ctx (no own state). Added Mine_pool_on widget. Added Mine_pool_on to Wallet_card (onMinePool prop) and Wallet_screen header next to Mine_on. Wired onMinePool through Home_screen and BrightWallet.
+---
