@@ -95,17 +95,20 @@ const newCardStyle = {
   color: '#666',
 };
 
-// Select or create the best LIF wallet for domain purchase
-function select_lif_wallet(){
+// Ensure at least one LIF wallet exists
+function ensure_lif_wallet(){
   const all = OV(wallets_get());
-  const lif = all.filter(w=>w.ls.network=='lif');
-  if (!lif.length){
-    const mnemonic = bip39.generateMnemonic();
-    const id = Date.now().toString();
-    wallet_add({id, name: 'My first LIF wallet', network: 'lif', mnemonic,
-      passphrase: '', derivPath: null});
-    return id;
-  }
+  if (all.some(w=>w.ls.network=='lif'))
+    return;
+  const mnemonic = bip39.generateMnemonic();
+  const id = Date.now().toString();
+  wallet_add({id, name: 'My first LIF wallet', network: 'lif', mnemonic,
+    passphrase: '', derivPath: null});
+}
+
+// Select the best LIF wallet (highest balance)
+function select_lif_wallet(){
+  const lif = OV(wallets_get()).filter(w=>w.ls.network=='lif');
   let best = lif[0];
   for (const w of lif){
     if ((w.c.balance||0) > (best.c.balance||0))
@@ -116,7 +119,7 @@ function select_lif_wallet(){
 
 // Main App
 function BrightWallet(){
-  const [wallets, setWallets] = useState(()=>wallets_get());
+  const [wallets, setWallets] = useState(()=>{ ensure_lif_wallet(); return wallets_get(); });
   const [screen, setScreen] = useState('home');
   const [activeWalletId, setActiveWalletId] = useState(null);
   const [getDomain, setGetDomain] = useState(null);

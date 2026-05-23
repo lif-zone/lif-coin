@@ -1300,3 +1300,9 @@ USER: today there is logic in Get_domain() that checks if a LIF wallet already e
 
 CLAUDE: Changed the auto-created wallet name in select_lif_wallet() from 'Wallet #'+n to 'My first LIF wallet'. Also removed the now-unused `n` variable.
 ---
+
+---
+USER: today there is logic in Get_domain() that checks if a LIF wallet already exists, and if not - creates it. Move this logic outside of Get_domain() and make it global: whenever opening BrightWallet, it checks whether a LIF wallet exists, and creates one if not.
+
+CLAUDE: Extracted creation logic from select_lif_wallet() into ensure_lif_wallet(). select_lif_wallet() now only picks the best (highest balance) LIF wallet. ensure_lif_wallet() is called in BrightWallet's useState initializer for wallets, so it runs once on mount before any rendering.
+---
