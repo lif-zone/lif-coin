@@ -2,4 +2,4 @@
 
 pkill -9 lif_node
 rm -rf ~/lif.store/
-node --inspect-brk ~/lif-coin/lif-node/lif_node.js 
+node ~/lif-coin/bin/lif_node.js 
