@@ -698,8 +698,8 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
         <button onClick={onSend} disabled={!allAddrs.length}>Send</button>
         {netconf.lif_kv && <button onClick={onKvAdd}>Get Domain Name</button>}
         {netconf.lif_kv && <button onClick={onMine}>Mine</button>}
-        {netconf.lif_kv && balance>=50*1e8 && <button onClick={onMinePool}>Mining pool</button>}
-        {netconf.lif_kv && settings.ls.devtools && <button onClick={onKvAddRaw} disabled={!allAddrs.length}>Get Key/Val</button>}
+        {netconf.lif_kv && settings.ls.advanced && balance>=50*1e8 && <button onClick={onMinePool}>Mining pool</button>}
+        {netconf.lif_kv && settings.ls.advanced && <button onClick={onKvAddRaw} disabled={!allAddrs.length}>Get Key/Val</button>}
         {settings.ls.devtools && transactions.some(tx=>!tx.timestamp) && (
           <button onClick={async()=>{
             try {
@@ -817,6 +817,12 @@ function Wallet_settings_subscreen({wallet, onUpdate, onDelete}){
   const [name, setName] = useState(wallet.ls.name);
   const [showBackup, setShowBackup] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [advanced, setAdvanced] = useState(!!settings.ls.advanced);
+  const toggle_advanced = ()=>{
+    settings.ls.advanced = !settings.ls.advanced;
+    settings_save();
+    setAdvanced(!!settings.ls.advanced);
+  };
   const hasPassphrase = !!wallet.ls.passphrase;
   const derivPath = wallet.ls.derivPath || hd_path_def(netconf);
   return (
@@ -828,9 +834,10 @@ function Wallet_settings_subscreen({wallet, onUpdate, onDelete}){
             onClick={()=>setShowDelete(true)}
             style={{color: '#c00', border: '1px solid #c00', background: 'transparent'}}
           >Delete Wallet</button>
-          {!showBackup && (
-            <button onClick={()=>setShowBackup(true)}>Backup Wallet</button>
-          )}
+          <button onClick={toggle_advanced}>
+            Advanced: {advanced ? 'On' : 'Off'}
+          </button>
+          <button onClick={()=>setShowBackup(true)}>Backup Wallet</button>
         </div>
       </div>
       {showDelete && (

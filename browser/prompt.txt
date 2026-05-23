@@ -1348,3 +1348,15 @@ USER: In the Wallet_settings screen, Move Backup Wallet to the top (Under "Walle
 
 CLAUDE: Restructured Wallet_settings_subscreen: header row now has "Wallet Settings" h3 on the left and Delete Wallet + Backup Wallet buttons on the right. Wallet_delete and Wallet_backup widgets render below the header row (before the Name field). Removed the old bottom button row.
 ---
+
+---
+USER: The "Backup" button disappears when clicked. Should always be there, even if in the middle of a backup process.
+
+CLAUDE: Removed the !showBackup condition from the Backup Wallet button so it always renders.
+---
+
+---
+USER: Add a button (before Backup Wallet) of "Advanced: Off". This will be a global feature. Clicking toggles settings.ls.advanced. "Mining pool" and "Get Key/Val" buttons should appear only in advanced mode (Mining pool also requires 50 LIF balance).
+
+CLAUDE: Added advanced local state + toggle_advanced() in Wallet_settings_subscreen that mutates settings.ls.advanced and calls settings_save(). Added "Advanced: Off/On" button before "Backup Wallet". Changed Mining pool condition from balance>=50*1e8 to settings.ls.advanced && balance>=50*1e8. Changed Get Key/Val condition from settings.ls.devtools to settings.ls.advanced && settings.ls.devtools.
+---
