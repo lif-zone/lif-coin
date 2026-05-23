@@ -102,8 +102,7 @@ function select_lif_wallet(){
   if (!lif.length){
     const mnemonic = bip39.generateMnemonic();
     const id = Date.now().toString();
-    const n = all.length+1;
-    wallet_add({id, name: 'Wallet #'+n, network: 'lif', mnemonic,
+    wallet_add({id, name: 'My first LIF wallet', network: 'lif', mnemonic,
       passphrase: '', derivPath: null});
     return id;
   }

@@ -100,16 +100,20 @@ make wallet.jsx support multiple wallets
 + instant mine: when success: should fill up progress bar, and show how much
   $ you won.
 + instant mine bug: not stopping mining after winning.
-- UI bugs: when creating new wallet - need to go into wallet after creation
 - create 'My first LIF wallet' when starting the app with no wallets
+- UI bugs: when creating new wallet - need to go into wallet after creation
+- In wallets with 0 TX, add "start mining to get some $ LIF for free"
++ add support for npm imports not package.json
++ lpm refresh: lif/local - always check.
++ lpm refresh: git - when no-cache request sent
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to
   and rpc(), but with remove connection.
+- lpm refresh: locate github latest releases, and releases by tags
 - lif-net
   - add an outgoing proxy from lif_node to lif server.
   - add lif-net incoming connections to lif-coin:8432
   - add lif-net outgoing connections to github
   - make lif/git source to bring most up-to-date versions
-- locate github latest releases, and releases by tags
 
 For release
 -----------

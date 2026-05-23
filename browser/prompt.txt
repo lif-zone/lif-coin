@@ -1294,3 +1294,9 @@ USER: I don't understand: why does it have to do modifications outside <Balance_
 
 CLAUDE: User was right. Reverted all parent earned state changes. Balance_and_mine now has onSufficient prop - it tracks earned internally, computes effectiveBal=bal+earned, and calls onSufficient(!insufficient) via useEffect when sufficiency changes. Parents just pass onSufficient={ok=>setValid('bal', ok)} - no earned state needed in parents. Mine_fund still calls onEarned={setEarned} internally within Balance_and_mine.
 ---
+
+---
+USER: today there is logic in Get_domain() that checks if a LIF wallet already exists, and if not - creates it. Change the name of the newly created LIF wallet to "My first LIF wallet".
+
+CLAUDE: Changed the auto-created wallet name in select_lif_wallet() from 'Wallet #'+n to 'My first LIF wallet'. Also removed the now-unused `n` variable.
+---
