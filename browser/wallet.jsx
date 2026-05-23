@@ -294,7 +294,7 @@ function BrightWallet(){
           onKvAdd={()=>setScreen('wallet_kv_add')}
           onKvAddRaw={()=>setScreen('wallet_kv_add_raw')}
           onSettings={()=>setScreen('wallet_settings')}
-          onMine={(autoStart)=>{ setMineStart(!!autoStart); setScreen('wallet_mine'); }}
+          onMine={()=>{ setScreen('wallet_mine'); }}
           onMinePool={()=>setScreen('wallet_mine_pool')}
           refreshTick={refreshTick}
           setWalletLoading={setWalletLoading}
@@ -689,10 +689,7 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
             {balance>=50*1e8 && (
               <button onClick={onMinePool}>Mining pool</button>
             )}
-            {miningOn
-              ? <button onClick={()=>miningToggle(wallet)}>⏹ Stop mining</button>
-              : <button onClick={onMine}>Get free LIF - click & mine!</button>
-            }
+            <button onClick={onMine}>{miningOn?'🔴 ':' '}Mine </button>
           </div>
         )}
       </div>
@@ -747,7 +744,7 @@ function Wallet_screen({wallet, onDelete, onUpdate, onSelectTx,
         ) : !transactions.length ? (
           <div>
             <p>No transactions yet.</p>
-            <button onClick={()=>onMine(true)}>Mine and get $LIF into wallet</button>
+            <button onClick={()=>onMine()}>Mine and earn $LIF</button>
           </div>
         ) : (
           <ul style={{marginTop: 8, paddingLeft: 0, listStyle: 'none'}}>
