@@ -22,8 +22,12 @@ export default [json.configs.recommended, {
       },
     },
   },
+  linterOptions: {
+    reportUnusedDisableDirectives: false,
+  },
   files: ['**/*.jsx', '**/*.js', '**/*.jsm', '**/*.tsx'],
   rules: {
+    'no-debugger': 'warn',
     'no-cond-assign': 'off',
     'no-unused-vars': 'off',
     'no-constant-condition': 'off',
