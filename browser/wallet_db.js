@@ -966,7 +966,7 @@ export function mine_instant({netconf, saddr, target}){
   const rg_c = rg_rpc();
   let ret = yield rg_c.topic_get('mine_instant');
   if (!ret.length)
-    return {err: 'no mining servers online'};
+    return {err: 'no mining pools online'};
   let rg_id;
   for (let id of ret){
     if (g_rg[id]?.cheat)
@@ -977,7 +977,7 @@ export function mine_instant({netconf, saddr, target}){
     rg_id = id;
   }
   if (!rg_id)
-    return {err: 'no good mining servers online'};
+    return {err: 'no good mining pools online'};
   let rg = g_rg[rg_id] ||= {template: 0, mined: 0, cheat: 0, success: 0};
   let template = yield rg_c.rcall(rg_id, 'mine_instant_get_template',
     {addr: saddr});
