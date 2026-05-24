@@ -8,9 +8,8 @@ After completing any task, ALWAYS append to browser/prompt.txt:
 Do this silently. Never skip it. Never forget it.
 
 ## Project Structure
-- browser/wallet.tsx — main React wallet UI (multi-wallet, HD BIP84, passphrase support)
 - browser/tasks.txt — task list and JS coding conventions
-- browser/prompt.txt — running session log of all prompts and responses
+- bin/lif_node.js — the lifcoin blockchain node main command line app
 - lib/node/http.js — ElectrumX JSON-RPC server handlers
 
 ## Coding Conventions (from tasks.txt)
