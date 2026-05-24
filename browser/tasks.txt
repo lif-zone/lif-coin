@@ -106,6 +106,9 @@ make wallet.jsx support multiple wallets
 + add support for npm imports not package.json
 + lpm refresh: lif/local - always check.
 + lpm refresh: git - when no-cache request sent
+- wallet.lif.zone - fix github to lif-zone/lif-wallet - crash in TX fini
+  - get it work again from Windows (externally)
+- Mining widget progress in Mine screen, and Mine_pool.
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to
   and rpc(), but with remove connection.
 - lpm refresh: locate github latest releases, and releases by tags
@@ -130,6 +133,7 @@ For release
     {"hash": "112233..."}. info will be collected via electrum, and checked it
     does not yet appear in the KV DB. coinbase KVs will be stored in a
     separate prefix than rest of KVs.
+  - ben shushan word counting 4-6 jpg
 
 Low priority:
 -------------
