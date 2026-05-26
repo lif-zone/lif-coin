@@ -106,17 +106,22 @@ make wallet.jsx support multiple wallets
 + add support for npm imports not package.json
 + lpm refresh: lif/local - always check.
 + lpm refresh: git - when no-cache request sent
-- wallet.lif.zone - fix github to lif-zone/lif-wallet - crash in TX fini
-  - get it work again from Windows (externally)
++ wallet.lif.zone - fix github to lif-zone/lif-wallet - crash in TX fini
++ get wallet.lif.zone it work again from Windows (externally)
++ make F5 refresh work
++ add generic support for git: hosts, and make order in util npm<->lpm API
+  + add support for git #version <=> lpm @version
+  + correct KV from git/github/... to git/github.com/...
+- in Kv_edit_screen: do JSON validation, and dont allow to continue
+- in Kv_edit_screen: add: Edit and Cancel buttons
+- git refresh: locate github latest releases, and releases by tags
 - Mining widget progress in Mine screen, and Mine_pool.
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to
   and rpc(), but with remove connection.
-- lpm refresh: locate github latest releases, and releases by tags
 - lif-net
   - add an outgoing proxy from lif_node to lif server.
   - add lif-net incoming connections to lif-coin:8432
   - add lif-net outgoing connections to github
-  - make lif/git source to bring most up-to-date versions
 
 For release
 -----------
@@ -135,8 +140,14 @@ For release
     separate prefix than rest of KVs.
   - ben shushan word counting 4-6 jpg
 
+Post release:
+-------------
+- add LIF storage (instead of github), for immediate site setup like WIX,
+- add git API, and a website developme with WYSIWIG
+
 Low priority:
 -------------
+- make lif-coin browser blockchain work
 - UI solution to update version: instead of
   Devtools->Application->Service Worker->Update->Unregister
 - instant mine: funding payouts for multiple wins
