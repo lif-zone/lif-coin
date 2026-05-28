@@ -115,9 +115,9 @@ make wallet.jsx support multiple wallets
 + remove obsolete .npm etc. just use .lif/<lpm path>. add support for local:
 + add support to locate git short-hand URLs and expand them
 + git refresh: locate github latest releases, and releases by tags
-- in Kv_edit_screen: do JSON validation, and dont allow to continue
-- in Kv_edit_screen: add: Edit and Cancel buttons
-- Mining widget progress in Mine screen, and Mine_pool.
++ in Kv_edit_screen: do JSON validation, and dont allow to continue
+c in Kv_edit_screen: add: Edit and Cancel buttons
++ Mining widget progress in Mine screen, and Mine_pool.
 - tun: add rpc.rconnect() - remote connection. Gives an object similar to
   and rpc(), but with remove connection.
 - lif-net
@@ -135,6 +135,7 @@ For release
     Hamavdil ben kodesh le hol. Separating the 7 from 6.
   - add marking in genesis block of bitcoin block hash.
   - 5 book names: beginning, names, calling, talking, things.
+    begin, name, call, talk, thing.
   - the GUIDE, the BIBLE, the TORAH. HHUMS HTORA MDRIH
   - creating basecoin TX: adding 'kv' bitcoin/block/2323' val
     {"hash": "112233..."}. info will be collected via electrum, and checked it
