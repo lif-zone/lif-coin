@@ -152,11 +152,11 @@ Post release:
 
 kernel.js
 ---------
++ rename 'globDependencies' to 'override'
+- add to overrides in the future an option for nested scoped overrides
 - add unit-tests for pkg_browser_lookup(). Move it to util.js
   - See whats the right places to put it.
   - do a proper correct implementation
-- rename 'globDependencies' to 'override'
-- add to overrides in the future an option for nested scoped overrides
 
 Low priority:
 -------------
