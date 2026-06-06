@@ -127,7 +127,7 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
 
 For release
 -----------
-- add LIF production network with production target (4G).
+- add LIF production network with production target (4G hash).
   move current network to test network.
 - prepare genesis block inscriptions:
   - 42 words, The 42 of 18: The Meaning of Lif
@@ -142,6 +142,7 @@ For release
     does not yet appear in the KV DB. coinbase KVs will be stored in a
     separate prefix than rest of KVs.
   - ben shushan word counting 4-6 jpg
+  - add Paul bug, and Dr. Suess, add Yiddish
 
 Post release:
 -------------
