@@ -118,8 +118,7 @@ make wallet.jsx support multiple wallets
 + in Kv_edit_screen: do JSON validation, and dont allow to continue
 c in Kv_edit_screen: add: Edit and Cancel buttons
 + Mining widget progress in Mine screen, and Mine_pool.
-- tun: add rpc.rconnect() - remote connection. Gives an object similar to
-  and rpc(), but with remove connection.
+* tun: add rpc.rconnect()- remote connection. Gives a rpc_sock() object.
 - lif-net
   - add an outgoing proxy from lif_node to lif server.
   - add lif-net incoming connections to lif-coin:8432
