@@ -118,11 +118,29 @@ make wallet.jsx support multiple wallets
 + in Kv_edit_screen: do JSON validation, and dont allow to continue
 c in Kv_edit_screen: add: Edit and Cancel buttons
 + Mining widget progress in Mine screen, and Mine_pool.
-* tun: add rpc.rconnect()- remote connection. Gives a rpc_sock() object.
-- lif-net
-  - add an outgoing proxy from lif_node to lif server.
-  - add lif-net incoming connections to lif-coin:8432
-  - add lif-net outgoing connections to github
++ tun: add rpc.rconnect()- remote connection. Gives a rpc_sock() object.
+* lif-net
+  + add tcp outgoing connections
+  * add http/https outgoing connection
+  - add lif-net incoming connections to lif-coin:8432 listen('server/lifcoin/electrum')
+  - add an outgoing TCP proxy from lif_node to lif server. 172.16.0.0/15
+    pub('server/lifcoin/node') - allocate virtual IP for server. each local
+    server remembers its IP<->rg_id mapping. once finished - reuse oldest.
+  - add lif-kernel outgoing connections to github pub('server/ip_bridge/http_out').
+    and lif_fetch('https://github.com/lif-zone/lif-kernel.git/info/refs?...')
+- improve performance via react@18.3.1/.lif.modules/
+  the equivalent of node_modules.
+- respond hi.html with any request. add support for /.lif.local/lif-kernel
+  - add pass through to kernel.js
+  - add server.js mapping
+  - add support for esplora: compile rxjs *.js via jsx, add index.html
+  - upload to github.com/lif-zone/lif-explorer
+- add a complete SPV model:
+  - store TXes (with/witout proofs)
+  - block headers (must always have connection, even if only to checkpoints)
+  - ask electrum only for what is missing
+  - handle multi-version chains (re-orgs). define 'safe' distance, to be
+    3 blocks in bitcoin. 6 blocks in lif (amount of time to show conflicts)
 
 For release
 -----------
@@ -142,6 +160,12 @@ For release
     separate prefix than rest of KVs.
   - ben shushan word counting 4-6 jpg
   - add Paul bug, and Dr. Suess, add Yiddish
+  - put full bible inscription 300K letters in one of the first blocks.
+  - rosseta stone: 42 words, in hebrew, english, spanish, greek, arameic.
+    will be the 1st data inscription. future: KV system will have also bin data:
+    key, val (json), valb (binary). json points to binary.
+- improve perf of npm version list: https://registry.npmjs.org/express
+  make sure to use ETag/LMod on request, and make sure 304 response.
 
 Post release:
 -------------
