@@ -121,22 +121,22 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
 + tun: add rpc.rconnect()- remote connection. Gives a rpc_sock() object.
 * lif-net
   + add tcp outgoing connections
-  * add http/https outgoing connection
-  - add websocket outgoing connection
-  - add lif-net incoming connections to lif-coin:8432 listen('server/lifcoin/electrum')
-  - add an outgoing TCP proxy from lif_node to lif server. 172.16.0.0/15
-    pub('server/lifcoin/node') - allocate virtual IP for server. each local
-    server remembers its IP<->rg_id mapping. once finished - reuse oldest.
-  - add lif-kernel outgoing connections to github pub('server/ip_bridge/http_out').
-    and lif_fetch('https://github.com/lif-zone/lif-kernel.git/info/refs?...')
-- improve performance via react@18.3.1/.lif.modules/
-  the equivalent of node_modules.
+  + add http/https outgoing connection
+  + add websocket outgoing connection
+  + add lif:net/lifcoin/node to localhost:8433
+  + add lif:net/lifcoin/electrum to localhost:8432
+  * use lif:net/lifcoin/electrum to localhost:8432
+  - use lif:net/ip_bridge/tcp_out for btc bluewallet electrum server access
+  - implement lif-net only between nodejs servers. allow address targets to
+    connect to rg_id, "light nodes".
 - respond hi.html with any request. add support for /.lif.local/lif-kernel
   - add pass through to kernel.js
   - add server.js mapping
   - add support for esplora: compile rxjs *.js via jsx, add index.html
   - upload to github.com/lif-zone/lif-explorer
   - support bitcoin esplora CORS vis lif_net
+- improve performance via react@18.3.1/.lif.modules/
+  the equivalent of node_modules.
 - add a complete SPV model:
   - store TXes (with/witout proofs)
   - block headers (must always have connection, even if only to checkpoints)
@@ -168,9 +168,21 @@ For release
     key, val (json), valb (binary). json points to binary.
 - improve perf of npm version list: https://registry.npmjs.org/express
   make sure to use ETag/LMod on request, and make sure 304 response.
+- add support for npm package listing: (quick 'neg', and sha256 to compare
+  download)
+  https://unpkg.com/react@18.3.1/?meta
+  https://data.jsdelivr.com/v1/packages/npm/react@18.3.1
 
 Post release:
 -------------
+* lif-net
+  - implement lifcoin tcp socket via lif:net/lifcoin/node for an
+    incoming and outgoing TCP proxy.
+    Maybe map IPs to virtual 172.16.0.0/15
+    allocate virtual IP for server. each local
+    server remembers its IP<->rg_id mapping. once finished - reuse oldest.
+  - add lif-kernel outgoing connections to github lif:net/ip_bridge/http_out.
+    and lif_fetch('https://github.com/lif-zone/lif-kernel.git/info/refs?...')
 - add livecodes.io support
 - add LIF storage (instead of github), for immediate site setup like WIX,
 - add git API, and a website developme with WYSIWIG
