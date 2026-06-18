@@ -171,8 +171,8 @@ For release
     key, val (json), valb (binary). json points to binary.
 - F5 reload sw: detect refresh in boot.js
   performance.getEntriesByType('navigation') reload back forward navigate
-  and load sw?revalidate=1, which tells kernel.js fetch() to use revalidate
-  options to revalidate etag/lmod
+  prerender and load sw?revalidate=1, which tells kernel.js fetch() to
+  use revalidate options to revalidate etag/lmod
   mayne move part of kernel to sw_boot.js
 - improve perf of npm version list: https://registry.npmjs.org/express
   make sure to use ETag/LMod on request, and make sure 304 response.
