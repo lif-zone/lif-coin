@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-'use strict'; /* eslint-env node */
+'use strict';
 process.title = 'lif_node';
 import '../browser/browser_env.js';
 import {mine_single, target_to_compact, target_from_nhash,

@@ -1,7 +1,3 @@
-/* eslint-disable quotes */
-/* eslint-env mocha */
-/* eslint prefer-arrow-callback: "off" */
-
 'use strict';
 
 const KeyProvider = require('../lib/descriptor/keyprovider');

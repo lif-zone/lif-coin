@@ -1,6 +1,3 @@
-/* eslint-env mocha */
-/* eslint prefer-arrow-callback: "off" */
-
 'use strict';
 
 const {BloomFilter} = require('bfilter');
@@ -12,8 +9,7 @@ const FullNode = require('../lib/node/fullnode');
 const ChainEntry = require('../lib/blockchain/chainentry');
 const pkg = require('../lib/pkg');
 
-if (process.browser)
-  return;
+assert(!process.browser, 'browser not supported');
 
 const ports = {
   p2p: 49331,

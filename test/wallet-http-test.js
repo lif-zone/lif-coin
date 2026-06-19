@@ -1,6 +1,3 @@
-/* eslint-env mocha */
-/* eslint prefer-arrow-callback: "off" */
-
 'use strict';
 
 const assert = require('bsert');
@@ -11,8 +8,7 @@ const Witness = require('../lib/script/witness');
 const MTX = require('../lib/primitives/mtx');
 const FullNode = require('../lib/node/fullnode');
 
-if (process.browser)
-  return;
+assert(!process.browser, 'browser not supported');
 
 const ports = {
   p2p: 49331,

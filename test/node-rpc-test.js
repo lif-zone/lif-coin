@@ -1,7 +1,3 @@
-/* eslint-env mocha */
-/* eslint-disable quotes */
-/* eslint prefer-arrow-callback: "off" */
-
 'use strict';
 
 const assert = require('bsert');

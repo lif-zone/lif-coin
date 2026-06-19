@@ -1,6 +1,3 @@
-/* eslint-env mocha */
-/* eslint prefer-arrow-callback: "off" */
-
 /**
  * Parts of these testcases are taken from Bitcoin core
  * @see https://github.com/bitcoin/bitcoin/blob/master/src/test/descriptor_tests.cpp
