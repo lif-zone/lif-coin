@@ -1,8 +1,8 @@
 bench/
-bin/cli
-bin/node
-bin/spvnode
-bin/wallet
+bin/
+bin/
+bin/
+bin/
 browser/
 lib/
 migrate/
