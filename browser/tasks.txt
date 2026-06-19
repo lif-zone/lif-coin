@@ -124,8 +124,9 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
   + add http/https outgoing connection
   + add websocket outgoing connection
   + add lif:net/lifcoin/node to localhost:8433
+  * add http out to localhost:8432 KV: leaf at server, emtry point at GW
   * add jsonrpc outgoing connection
-  * use lif:net/lifcoin/electrum to localhost:8432
+  * use lif:net/lifcoin/electrum json rpc leaf to localhost:8432
   - add rpc_jsonrpc (replacing rpc_websocket), and add tcp/tls support
   - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
   - implement lif-net only between nodejs servers. allow address targets to
