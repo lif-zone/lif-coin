@@ -17,7 +17,7 @@ jobs:
       - name: Setup
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 26.x
 
       - name: Install dependencies
         run: npm install --location=global bslint
@@ -35,7 +35,7 @@ jobs:
       - name: Setup
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 26.x
 
       - name: Install dependencies
         run: npm install --location=global nyc codecov
@@ -57,7 +57,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: [18.x, 20.x]
+        node: [26.x]
 
     steps:
       - uses: actions/checkout@v3
