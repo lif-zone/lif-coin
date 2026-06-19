@@ -24,7 +24,8 @@ export default [{
   linterOptions: {
     reportUnusedDisableDirectives: false,
   },
-  files: ['**/*.jsx', '**/*.js', '**/*.jsm', '**/*.tsx'],
+  files: ['**/*.jsx', '**/*.js', '**/*.jsm', '**/*.tsx',
+    "bin/{bcoin-cli,bwallet-cli,cli,node,spvnode,wallet}"],
   rules: {
     'no-debugger': 'warn',
     'no-cond-assign': 'off',
