@@ -180,6 +180,7 @@
     "nan"
   ],
   "devDependencies": {
+    "globals": "17.6.0",
     "bmocha": "git+https://github.com/bcoin-org/bmocha.git#semver:=2.1.2",
     "@eslint/js": "10.0.1",
     "@eslint/json": "1.2.0",
