@@ -23,7 +23,7 @@ jobs:
         run: npm ci
 
       - name: Lint
-        run: npx lint-ci
+        run: npm run lint-ci
 
   test-coverage:
     name: Test Coverage
@@ -41,7 +41,7 @@ jobs:
         run: npm ci
 
       - name: Test
-        run: npx test-ci
+        run: npm run test-ci
 
       - name: Coverage
         uses: codecov/codecov-action@v3
@@ -68,4 +68,4 @@ jobs:
         run: npm ci
 
       - name: Test
-        run: npx test
+        run: npm run test
