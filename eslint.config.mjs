@@ -3,10 +3,9 @@ import globals from 'globals';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import js from '@eslint/js';
-import {FlatCompat} from '@eslint/eslintrc';
 import json from '@eslint/json';
 
-export default [json.configs.recommended, {
+export default [{
   plugins: {},
   languageOptions: {
     globals: {
