@@ -3,9 +3,7 @@ bin/cli
 bin/node
 bin/spvnode
 bin/wallet
-browser/server.js
-browser/wsproxy.js
-browser/src/app.js
+browser/
 lib/
 migrate/
 scripts/
