@@ -19,11 +19,11 @@ jobs:
         with:
           node-version: 26.x
 
-      - name: Install dependencies
-        run: npm install --location=global bslint
+      - name: Install
+        run: npm ci
 
       - name: Lint
-        run: npm run lint-ci
+        run: npx lint-ci
 
   test-coverage:
     name: Test Coverage
@@ -37,14 +37,11 @@ jobs:
         with:
           node-version: 26.x
 
-      - name: Install dependencies
-        run: npm install --location=global nyc codecov
-
-      - name: Rebuild
-        run: npm rebuild
+      - name: Install
+        run: npm ci
 
       - name: Test
-        run: npm run test-ci
+        run: npx test-ci
 
       - name: Coverage
         uses: codecov/codecov-action@v3
@@ -67,14 +64,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: Install bmocha
-        run: npm install --location=global bmocha
-
-      - name: Rebuild
-        run: npm rebuild
-
       - name: Install
-        run: npm install --location=global
+        run: npm ci
 
       - name: Test
-        run: npm run test
+        run: npx test
