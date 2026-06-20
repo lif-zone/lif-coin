@@ -9,6 +9,7 @@ const util = require('../lib/utils/util');
 const NetAddress = require('../lib/net/netaddress');
 const {createChecksum} = require("../lib/descriptor/common");
 const common = require('../lib/net/common');
+const Address = require('../lib/primitives/address');
 
 const ports = {
   p2p: 49331,
@@ -31,7 +32,8 @@ const node = new FullNode({
     'BCOIN_WALLET_HTTP_PORT': ports.wallet.toString()
   },
   listen: true,
-  publicHost: '123.123.123.123'
+  publicHost: '123.123.123.123',
+  'coinbase-address': [new Address()],
 });
 
 const nclient = new NodeClient({
