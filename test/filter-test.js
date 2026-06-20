@@ -12,6 +12,7 @@ const Golomb = require('../lib/golomb/golomb');
 const {U64} = require('n64');
 const BasicFilter = require('../lib/golomb/basicFilter');
 const {NodeClient} = require('../lib/client');
+const Address = require('../lib/primitives/address');
 
 class TestFilter extends Golomb {
   constructor() {
@@ -110,7 +111,7 @@ describe('Filter', function() {
   it('should test blocks get generated', async () => {
     const generateblocks = async (height, entry) => {
       for (let i = 0; i <= height; i++) {
-        const block = await node.miner.mineBlock(entry);
+        const block = await node.miner.mineBlock(entry, new Address());
         const testBlock = new TestBlock().fromRaw(block.toRaw());
         entry = await node.chain.add(testBlock);
       }
