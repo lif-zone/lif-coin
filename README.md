@@ -1,9 +1,9 @@
 # Lifcoin
 
-![BAT](https://github.com/lif-zone/lif-coin/workflows/test.yml/badge.svg)
-![Lint](https://github.com/lif-zone/lif-coin/workflows/test.yml/badge.svg?job=lint)
-![Coverate](https://github.com/lif-zone/lif-coin/workflows/test.yml/badge.svg?job=coverage)
-![Test](https://github.com/lif-zone/lif-coin/workflows/test.yml/badge.svg?job=test)
+![BAT](https://github.com/lif-zone/lif-coin/actions/workflows/test.yml/badge.svg)
+![Lint](https://github.com/lif-zone/lif-coin/actions/workflows/test.yml/badge.svg?job=lint)
+![Coverate](https://github.com/lif-zone/lif-coin/actions/workflows/test.yml/badge.svg?job=coverage)
+![Test](https://github.com/lif-zone/lif-coin/actions/workflows/test.yml/badge.svg?job=test)
 
 **Lifcoin** is JS implementation of the Lifcoin protocol, based on
 [**Bcoin**][bcoin] implementation,
