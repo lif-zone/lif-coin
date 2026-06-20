@@ -1,5 +1,9 @@
 # Lifcoin
 
+![Lint](https://github.com/lif-zone/lif-coin/workflows/Lint/badge.svg)
+![Test](https://github.com/lif-zone/lif-coin/workflows/Coverage/badge.svg)
+![Coverage](https://github.com/lif-zone/lif-coin/workflows/Test/badge.svg)
+
 **Lifcoin** is JS implementation of the Lifcoin protocol, based on
 [**Bcoin**][bcoin] implementation,
 following the Bitcoin protocol.
