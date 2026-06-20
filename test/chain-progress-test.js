@@ -81,7 +81,6 @@ describe('Chain Sync Progress', function () {
 
     // restore
     consensus.BIP16_TIME = savedBip16Time;
-    util.now = savedUtilNow;
     network.txnData = {
       rate: 0,
       time: 0,
@@ -139,24 +138,24 @@ describe('Chain Sync Progress', function () {
 
   for (const spv of [false, true]) {
     describe(`New chain: ${spv ? 'SPV' : 'Full'}`, function () {
-      // time never changes
-      util.now = () => {
-        return chain.tip.time;
-      };
-
-      const newBlocks = new BlockStore({
-        memory: true,
-        network
-      });
-
-      const newChain = new Chain({
-        memory: true,
-        blocks,
-        network,
-        spv
-      });
-
+      let newBlocks, newChain;
       before(async () => {
+        // time never changes
+        util.now = () => {
+          return chain.tip.time;
+        };
+        newBlocks = new BlockStore({
+          memory: true,
+          network
+        });
+
+        newChain = new Chain({
+          memory: true,
+          blocks,
+          network,
+          spv
+        });
+
         await newBlocks.open();
         await newChain.open();
       });
@@ -164,6 +163,7 @@ describe('Chain Sync Progress', function () {
       after(async () => {
         await newChain.close();
         await newBlocks.close();
+        util.now = savedUtilNow;
       });
 
       it('should sync the first 100 blocks and get progress', async () => {
