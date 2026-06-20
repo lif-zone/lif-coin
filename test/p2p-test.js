@@ -5,6 +5,7 @@ const FullNode = require('../lib/node/fullnode');
 const {forValue} = require('./util/common');
 const {MAX_CFILTERS} = require('../lib/net/common');
 const packets = require('../lib/net/packets');
+const Address = require('../lib/primitives/address');
 
 describe('P2P', function () {
   this.timeout(5000);
@@ -37,7 +38,7 @@ describe('P2P', function () {
 
   async function mineBlocks(n) {
     while (n) {
-      const block = await node2.miner.mineBlock();
+      const block = await node2.miner.mineBlock(null, new Address());
       await node2.chain.add(block);
       n--;
     }
