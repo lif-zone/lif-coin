@@ -11,6 +11,7 @@ export default [{
     globals: {
       ...globals.browser,
       ...globals.node,
+      ...globals.mocha,
     },
     ecmaVersion: 'latest',
     sourceType: 'module',
@@ -29,6 +30,7 @@ export default [{
   rules: {
     'no-debugger': 'warn',
     'no-cond-assign': 'off',
+    'no-undef': 'error',
     'no-unused-vars': 'off',
     'no-constant-condition': 'off',
     'no-constant-binary-expression': 'off',
