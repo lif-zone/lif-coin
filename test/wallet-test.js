@@ -2346,7 +2346,8 @@ describe('Wallet', function() {
         httpPort: ports.node,
         env: {
           'BCOIN_WALLET_HTTP_PORT': ports.wallet.toString()
-        }
+        },
+        'coinbase-address': [new Address()],
       });
 
       chain = node.chain;
