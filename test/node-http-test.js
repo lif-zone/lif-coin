@@ -45,6 +45,7 @@ describe('Node HTTP', function() {
   before(async () => {
     await node.open();
     await nclient.open();
+    node.miner.setAddresses([addr]);
   });
 
   after(async () => {
