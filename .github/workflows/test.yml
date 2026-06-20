@@ -1,4 +1,4 @@
-name: Build
+name: BAT
 
 on:
   push:
@@ -10,68 +10,55 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup
         uses: actions/setup-node@v4
         with:
           node-version: 26.x
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-
       - name: Install
         run: npm ci --prefer-offline --no-audit --no-fund
-
       - name: Lint
         run: npm run lint-ci
 
-  test-coverage:
-    name: Test Coverage
+  coverage:
+    name: Coverage
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup
         uses: actions/setup-node@v4
         with:
           node-version: 26.x
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-
       - name: Install
         run: npm ci --prefer-offline --no-audit --no-fund
-
       - name: Test
         run: npm run test-ci
-
       - name: Coverage
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  build-test:
-    name: Build & Test
+  test:
+    name: Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
         node: [26.x]
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-
       - name: Install
         run: npm ci --prefer-offline --no-audit --no-fund
-
       - name: Test
         run: npm run test
