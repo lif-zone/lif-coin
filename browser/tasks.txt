@@ -121,9 +121,11 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
 + tun: add rpc.rconnect()- remote connection. Gives a rpc_sock() object.
 + move xderry/bfile -> lif-zone/bfile
 * unit tests: github actions: lint+tests
-  + lif-coin
-  * lif-kernel
-  * lif-net
+  + lif-coin: node test, lint
+  + lif-kernel: krenel, node test, lint
+  * lif-kernel: browser pupperteer
+  + lif-net: README, node test, lint
+  - lif-net: browser: node ./server.js -l localhost:4001 - run puppeteer
   * lif-wallet
   - lif-os
 * lif-net
