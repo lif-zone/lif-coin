@@ -120,10 +120,10 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
 + Mining widget progress in Mine screen, and Mine_pool.
 + tun: add rpc.rconnect()- remote connection. Gives a rpc_sock() object.
 * unit tests: github actions: lint+tests
-  * lif-coin
-  - lif-kernel
-  - lif-net
-  - lif-wallet
+  + lif-coin
+  * lif-kernel
+  * lif-net
+  * lif-wallet
   - lif-os
 - move xderry/bfile -> lif-zone/bfile
 * lif-net
