@@ -3,8 +3,10 @@
 [![BAT](https://github.com/lif-zone/lif-coin/actions/workflows/test.yml/badge.svg)](https://github.com/lif-zone/lif-coin/actions/workflows/test.yml)
 
 **Lifcoin** is JS implementation of the Lifcoin protocol, based on
-[**Bcoin**][bcoin] implementation,
-following the Bitcoin protocol.
+[**Bcoin**][bcoin] implementation, following the Bitcoin protocol.
+
+A web based HD BIP44/BIP84 wallet for LIF cointype 1842 is available
+at [LIF Wallet][LIF wallet]
 
 The Lifcoin protocol provides domain naming services for the
 [LIF Network][lif.zone]
@@ -47,3 +49,4 @@ See LICENSE for more info.
 
 [bcoin]: https://github.com/bcoin-org/bcoin
 [lif.zone]: https://lif.zone
+[LIF wallet]: https://github.com/lif-zone/lif-wallet
