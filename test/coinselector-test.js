@@ -197,10 +197,8 @@ describe('Coin Selector', function () {
 });
 
 describe('Integration', function () {
-  before(function(){
-    if (!process.env.BCOIN_RUN_LONG_TESTS)
-      this.skip();
-  });
+  if (!process.env.BCOIN_RUN_LONG_TESTS)
+    return; // skipping long tests. only in CI
 
   this.timeout(0);
 
