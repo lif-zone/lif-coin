@@ -197,8 +197,10 @@ describe('Coin Selector', function () {
 });
 
 describe('Integration', function () {
-  if (!process.env.BCOIN_RUN_LONG_TESTS)
-    this.skip();
+  before(()=>{
+    if (!process.env.BCOIN_RUN_LONG_TESTS)
+      this.skip();
+  });
 
   this.timeout(0);
 
