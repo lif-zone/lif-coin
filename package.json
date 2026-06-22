@@ -208,8 +208,8 @@
     "test-browser": "NODE_BACKEND=js mocha --reporter spec test/*.js",
     "test-file": "mocha --reporter spec",
     "test-file-browser": "NODE_BACKEND=js mocha --reporter spec",
-    "test-ci": "BCOIN_RUN_LONG_TESTS=true mocha --reporter mocha-junit-reporter --reporter-options mochaFile=./test-results.xml test/*.js",
-    "cov-ci": "BCOIN_RUN_LONG_TESTS=true nyc -a -n 'lib/**/*.js' --reporter=lcov --reporter=text mocha --reporter mocha-junit-reporter --reporter-options mochaFile=./test-results.xml test/*.js"
+    "cov-ci": "BCOIN_RUN_LONG_TESTS=true mocha --reporter mocha-junit-reporter --reporter-options mochaFile=./test-results.xml test/*.js",
+    "test-ci": "BCOIN_RUN_LONG_TESTS=true nyc -a -n 'lib/**/*.js' --reporter=lcov --reporter=text mocha --reporter mocha-junit-reporter --reporter-options mochaFile=./test-results.xml test/*.js"
   },
   "browser": {
     "./lib/hd/nfkd": "./lib/hd/nfkd-compat.js",
