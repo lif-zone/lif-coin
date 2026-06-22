@@ -185,6 +185,7 @@
     "eslint": "10.5.0",
     "globals": "17.6.0",
     "mocha": "11.7.6",
+    "mocha-junit-reporter": "^2.2.1",
     "nyc": "18.0.0"
   },
   "main": "./lib/bcoin.js",
@@ -200,7 +201,7 @@
     "browserify": "browserify -s bcoin lib/bcoin-browser.js | uglifyjs -c > bcoin.js",
     "clean": "rm -f {browser/,}{bcoin.js,bcoin-worker.js,app.js,worker.js}",
     "docs": "jsdoc -c jsdoc.json",
-    "lint": "eslint $(cat .eslintfiles) || exit 0",
+    "lint": "eslint $(cat .eslintfiles)",
     "lint-ci": "eslint $(cat .eslintfiles)",
     "lint-file": "eslint",
     "test": "mocha --reporter spec test/*.js",

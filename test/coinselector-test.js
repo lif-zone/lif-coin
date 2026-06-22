@@ -197,7 +197,7 @@ describe('Coin Selector', function () {
 });
 
 describe('Integration', function () {
-  before(()=>{
+  before(function(){
     if (!process.env.BCOIN_RUN_LONG_TESTS)
       this.skip();
   });
