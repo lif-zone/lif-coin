@@ -122,11 +122,12 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
 + move xderry/bfile -> lif-zone/bfile
 * unit tests: github actions: lint+tests
   + lif-coin: node test, lint
-  + lif-kernel: krenel, node test, lint
-  * lif-kernel: browser pupperteer
+  + lif-kernel: kernel, node test, lint
+  + lif-kernel: browser pupperteer
   + lif-net: README, node test, lint
   + lif-net: browser: node ./server.js -l localhost:4001 - run puppeteer
-  * lif-wallet
+  * lif-net: based on lif-kernel
+  + lif-wallet
   - lif-os
 * lif-net
   + add tcp outgoing connections
