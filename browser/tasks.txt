@@ -128,7 +128,7 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
   + lif-net: browser: node ./server.js -l localhost:4001 - run puppeteer
   * lif-net: based on lif-kernel
   + lif-wallet
-  - lif-os
+  * lif-os
 * lif-net
   + add tcp outgoing connections
   + add http/https outgoing connection
