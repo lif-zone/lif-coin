@@ -1,4 +1,4 @@
-name: BAT test
+name: BAT lint
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
   pull_request:
 
 jobs:
-  test:
-    name: Test
+  lint:
+    name: Lint
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -20,12 +20,5 @@ jobs:
           cache-dependency-path: '**/package-lock.json'
       - name: Install
         run: npm ci --prefer-offline --no-audit --no-fund
-      - name: Test
-        run: npm run test-ci
-        timeout-minutes: 10
-      - name: Publish Test Results (Mocha)
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: ./test/results.xml
-          comment_mode: always
+      - name: Lint
+        run: npm run lint-ci
