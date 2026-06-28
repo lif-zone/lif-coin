@@ -129,15 +129,17 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
   + lif-net: based on lif-kernel
   + lif-wallet
   + lif-os
++ register 1842 coin with SLIP
 * lif-net
   + add tcp outgoing connections
   + add http/https outgoing connection
   + add websocket outgoing connection
   + add lif:net/lifcoin/node to localhost:8433
   * add http out to localhost:8432 KV: leaf at server, emtry point at GW
-  * add jsonrpc outgoing connection
-  * use lif:net/lifcoin/electrum json rpc leaf to localhost:8432
-  - add rpc_jsonrpc (replacing rpc_websocket), and add tcp/tls support
+  + add jsonrpc outgoing connection
+  + use lif:lifcoin/electrum json rpc leaf to localhost:8432
+  - add 1 sec retry on leaf_s.js: permanent topics (auto re-register)
+  - add jsonrpc tcp/tls support
   - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
   - implement lif-net only between nodejs servers. allow address targets to
     connect to rg_id, "light nodes". all nodes connect to all nodes,
@@ -160,7 +162,6 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
 
 For release
 -----------
-* register 1842 coin with SLIP
 - add LIF production network with production target (4G hash).
   move current network to test network.
 - prepare genesis block inscriptions:
