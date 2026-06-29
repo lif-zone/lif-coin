@@ -135,30 +135,17 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
   + add http/https outgoing connection
   + add websocket outgoing connection
   + add lif:net/lifcoin/node to localhost:8433
-  * add http out to localhost:8432 KV: leaf at server, emtry point at GW
+  + add http out to localhost:8432 KV: leaf at server, emtry point at GW
   + add jsonrpc outgoing connection
   + use lif:lifcoin/electrum json rpc leaf to localhost:8432
-  - add 1 sec retry on leaf_s.js: permanent topics (auto re-register)
-  - add jsonrpc tcp/tls support
-  - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
-  - implement lif-net only between nodejs servers. allow address targets to
+  + auto-reconnect lifnet - retry every 1s
+  + add 1 sec retry on leaf_s.js: permanent topics (auto re-register)
+  + get mine_instant working on lifnet_connect/lifnet_listen
+  - get electrum to work directly on lifnet_connect+call (not via websocket gw)
+  - implement lifnet only between nodejs servers. allow address targets to
     connect to rg_id, "light nodes". all nodes connect to all nodes,
     pub/unpub: flood all
     connect rg_id: is self? is in mem table (last connected)? flood all.
-- respond hi.html with any request. add support for /.lif.local/lif-kernel
-  - add pass through to kernel.js
-  - add server.js mapping
-  - add support for esplora: compile rxjs *.js via jsx, add index.html
-  - upload to github.com/lif-zone/lif-explorer
-  - support bitcoin esplora CORS vis lif_net
-- improve performance via react@18.3.1/.lif.modules/
-  the equivalent of node_modules.
-- add a complete SPV model:
-  - store TXes (with/witout proofs)
-  - block headers (must always have connection, even if only to checkpoints)
-  - ask electrum only for what is missing
-  - handle multi-version chains (re-orgs). define 'safe' distance, to be
-    3 blocks in bitcoin. 6 blocks in lif (amount of time to show conflicts)
 
 For release
 -----------
@@ -182,6 +169,8 @@ For release
   - rosseta stone: 42 words, in hebrew, english, spanish, greek, arameic.
     will be the 1st data inscription. future: KV system will have also bin data:
     key, val (json), valb (binary). json points to binary.
+  - Fire Lights, and forever alive HSNH BUOR UJI LNXJ
+    Life's fire never burns out HSNH BUOR UAINU OUKL
 - F5 reload sw: detect refresh in boot.js
   performance.getEntriesByType('navigation') reload back forward navigate
   prerender and load sw?revalidate=1, which tells kernel.js fetch() to
@@ -196,7 +185,24 @@ For release
 
 Post release:
 -------------
+- respond hi.html with any request. add support for /.lif.local/lif-kernel
+  - add pass through to kernel.js
+  - add server.js mapping
+  - add support for esplora: compile rxjs *.js via jsx, add index.html
+  - upload to github.com/lif-zone/lif-explorer
+  - support bitcoin esplora CORS vis lif_net
+- improve performance via react@18.3.1/.lif.modules/
+  the equivalent of node_modules.
+- add a complete SPV model:
+  - store TXes (with/witout proofs)
+  - block headers (must always have connection, even if only to checkpoints)
+  - ask electrum only for what is missing
+  - handle multi-version chains (re-orgs). define 'safe' distance, to be
+    3 blocks in bitcoin. 6 blocks in lif (amount of time to show conflicts)
 * lif-net
+  - add jsonrpc over tcp/tls support
+  - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
+    or lif:bitcoin/electrum
   - implement lifcoin tcp socket via lif:net/lifcoin/node for an
     incoming and outgoing TCP proxy.
     Maybe map IPs to virtual 172.16.0.0/15
