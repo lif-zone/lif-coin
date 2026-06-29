@@ -2,3 +2,5 @@ node_modules/
 webpack.*.js
 *.swp
 test/results.xml
+coverage/
+.nyc_output/
