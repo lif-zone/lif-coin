@@ -130,7 +130,7 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
   + lif-wallet
   + lif-os
 + register 1842 coin with SLIP
-* lif-net
++ lif-net
   + add tcp outgoing connections
   + add http/https outgoing connection
   + add websocket outgoing connection
@@ -141,11 +141,14 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
   + auto-reconnect lifnet - retry every 1s
   + add 1 sec retry on leaf_s.js: permanent topics (auto re-register)
   + get mine_instant working on lifnet_connect/lifnet_listen
-  - get electrum to work directly on lifnet_connect+call (not via websocket gw)
-  - implement lifnet only between nodejs servers. allow address targets to
+  + if no mine_instant servers found: mine solo
+  + implement lifnet only between nodejs servers. allow address targets to
     connect to rg_id, "light nodes". all nodes connect to all nodes,
     pub/unpub: flood all
     connect rg_id: is self? is in mem table (last connected)? flood all.
+  + leaf->trunk disconnect - should retry every 1 sec
+  + trunk peer disconnect - others should continue (retry every 1 sec)
+  + add lifnet loopback support
 
 For release
 -----------
@@ -154,7 +157,7 @@ For release
 - prepare genesis block inscriptions:
   - 42 words, The 42 of 18: The Meaning of Lif
     The Meaning of Rich Life: The 42 of 10 18: 6-7
-    Hamavdil ben kodesh le hol. Separating the 7 from 6.
+    Hamavdil ben kodesh lehol. Separating the 7 from 6.
   - add marking in genesis block of bitcoin block hash.
   - 5 book names: beginning, names, calling, talking, things.
     begin, name, call, talk, thing.
@@ -164,24 +167,21 @@ For release
     does not yet appear in the KV DB. coinbase KVs will be stored in a
     separate prefix than rest of KVs.
   - ben shushan word counting 4-6 jpg
-  - add Paul bug, and Dr. Suess, add Yiddish
+  - add Paul bug, Bach Beach, and Dr. Suess, add Yiddish. Maybe woody alan.
   - put full bible inscription 300K letters in one of the first blocks.
   - rosseta stone: 42 words, in hebrew, english, spanish, greek, arameic.
     will be the 1st data inscription. future: KV system will have also bin data:
     key, val (json), valb (binary). json points to binary.
   - Fire Lights, and forever alive HSNH BUOR UJI LNXJ
     Life's fire never burns out HSNH BUOR UAINU OUKL
-- F5 reload sw: detect refresh in boot.js
-  performance.getEntriesByType('navigation') reload back forward navigate
-  prerender and load sw?revalidate=1, which tells kernel.js fetch() to
-  use revalidate options to revalidate etag/lmod
-  mayne move part of kernel to sw_boot.js
-- improve perf of npm version list: https://registry.npmjs.org/express
-  make sure to use ETag/LMod on request, and make sure 304 response.
-- add support for npm package listing: (quick 'neg', and sha256 to compare
-  download)
-  https://unpkg.com/react@18.3.1/?meta
-  https://data.jsdelivr.com/v1/packages/npm/react@18.3.1
+    Life's light never burns out
+    Ethernal Flame
+    Eternal Network: Etha-Net
+  - Sefaria hebrew text
+    Gideon's bible
+    https://github.com/scrollmapper/bible_databases
+    https://github.com/Sefaria/Sefaria-Data/tree/master/sources
+    https://www.openbible.info/labs/browse-books/
 
 Post release:
 -------------
@@ -200,6 +200,7 @@ Post release:
   - handle multi-version chains (re-orgs). define 'safe' distance, to be
     3 blocks in bitcoin. 6 blocks in lif (amount of time to show conflicts)
 * lif-net
+  - get electrum to work directly on lifnet_connect+call (not via websocket gw)
   - add jsonrpc over tcp/tls support
   - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
     or lif:bitcoin/electrum
@@ -210,6 +211,17 @@ Post release:
     server remembers its IP<->rg_id mapping. once finished - reuse oldest.
   - add lif-kernel outgoing connections to github lif:net/ip_bridge/http_out.
     and lif_fetch('https://github.com/lif-zone/lif-kernel.git/info/refs?...')
+- F5 reload sw: detect refresh in boot.js
+  performance.getEntriesByType('navigation') reload back forward navigate
+  prerender and load sw?revalidate=1, which tells kernel.js fetch() to
+  use revalidate options to revalidate etag/lmod
+  mayne move part of kernel to sw_boot.js
+- improve perf of npm version list: https://registry.npmjs.org/express
+  make sure to use ETag/LMod on request, and make sure 304 response.
+- add support for npm package listing: (quick 'neg', and sha256 to compare
+  download)
+  https://unpkg.com/react@18.3.1/?meta
+  https://data.jsdelivr.com/v1/packages/npm/react@18.3.1
 - add livecodes.io support
 - add LIF storage (instead of github), for immediate site setup like WIX,
 - add git API, and a website developme with WYSIWIG
