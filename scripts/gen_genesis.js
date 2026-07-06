@@ -14,7 +14,6 @@ const Mnemonic = require('../lib/hd/mnemonic');
 const HDPrivateKey = require('../lib/hd/private');
 const KeyRing = require('../lib/primitives/keyring');
 
-let nets = {};
 function createGenesisBlock(options) {
   let flags = options.flags;
   let key = options.key;
@@ -64,39 +63,13 @@ function createGenesisBlock(options) {
   return block;
 }
 
-nets.main = createGenesisBlock({
-  version: 1,
-  time: 1231006505,
-  bits: 0x1d00ffff, nonce: 2083236893,
-});
-nets.lifmain = createGenesisBlock({
-  version: 1,
-  time: 1753572481,
-  //bits: 0x1d00ffff, nonce: ???, // 256*10sec = 1hour
-  //bits: 0x1e00ffff, nonce: ???, // 10sec
-  bits: 0x1f00ffff, // 0.1sec fast
-  nonce: 29664,
-  net_type: 'lifmain',
-});
-
-nets.testnet = createGenesisBlock({
-  version: 1,
-  time: 1296688602,
-  bits: 0x1d00ffff,
-  nonce: 414098458,
-});
-
-nets.regtest = createGenesisBlock({
-  version: 1,
-  time: 1296688602,
-  bits: 0x207fffff, nonce: 2,
-});
-
-nets.simnet = createGenesisBlock({
-  version: 1,
-  time: 1401292357,
-  bits: 0x207fffff, nonce: 2,
-});
+function gen_block(name){
+  let net = Networks[name];
+  let gen = net.genesis;
+  return net.genesis_block = createGenesisBlock(
+    {version: 1, time: gen.time, bits: gen.bits, nonce: gen.nonce,
+    net_type: name});
+}
 
 function str_diff(a, b){
   let i;
@@ -110,11 +83,13 @@ function str_diff(a, b){
   return i;
 }
 function to_bin(hex){ return Buffer.from(hex, 'hex'); }
-function diff_block(name, block, net_def){
-  let err;
+function diff_block(name){
+  let net = Networks[name];
+  let block = gen_block(name);
+  let err, is_lif = name.startsWith('lif');
   console.log('--------- '+name+' ---------------');
   // complete block
-  let b_orig = net_def.genesisBlock;
+  let b_orig = net.genesisBlock;
   let b_gen = block.toRaw().toString('hex');
   if (b_orig!=b_gen){
     console.log(err='ERR block gen:', b_gen);
@@ -122,8 +97,8 @@ function diff_block(name, block, net_def){
   }
   console.log('block orig:', b_orig);
   // check orig header hash matchs computed
-  let g = net_def.genesis;
-  let pow = net_def.pow;
+  let g = net.genesis;
+  let pow = net.pow;
   let h_orig = g.hash.toString('hex');
   let h_orig_comp = new Block().fromHead(to_bin(b_orig)).hash()
     .toString('hex');
@@ -143,16 +118,20 @@ function diff_block(name, block, net_def){
   let calc_bits = consensus.toCompact(pow.limit);
   if (calc_bits!=pow.bits)
     console.log(err='ERR limit mismatch: pow.bits='+pow.bits.toString(16)+' compact(limit)='+calc_bits.toString(16));
-  // chainwork for genesis = 2^256 / (target + 1)
-  let genesis_target = consensus.fromCompact(block.bits);
-  let MAX_CHAINWORK = new BN(1).ushln(256);
-  let genesis_chainwork = MAX_CHAINWORK.div(genesis_target.iaddn(1));
-  let genesis_chainwork_hex = genesis_chainwork.toString('hex', 64);
-  console.log('genesis chainwork:', genesis_chainwork_hex);
-  let chainwork_hex = pow.chainwork.toString('hex', 64);
-  if (pow.chainwork.gt(genesis_chainwork))
-    console.log(err='ERR chainwork: pow.chainwork > genesis (genesis block fails minimum):', chainwork_hex);
-  if (!err)
+  if (is_lif){
+    // chainwork for genesis = 2^256 / (target + 1)
+    let genesis_target = consensus.fromCompact(block.bits);
+    let MAX_CHAINWORK = new BN(1).ushln(256);
+    let genesis_chainwork = MAX_CHAINWORK.div(genesis_target.iaddn(1));
+    let genesis_chainwork_hex = genesis_chainwork.toString('hex', 64);
+    console.log('genesis chainwork:', genesis_chainwork_hex);
+    let chainwork_hex = pow.chainwork.toString('hex', 64);
+    if (pow.chainwork.gt(genesis_chainwork))
+      console.log(err='ERR chainwork: pow.chainwork > genesis (genesis block fails minimum):', chainwork_hex);
+  }
+  if (err)
+    console.log('ERROR');
+  else
     console.log('SUCCESS');
 }
 
@@ -225,17 +204,16 @@ function do_mine(block){
 }
 
 function do_test(){
-  diff_block('main', nets.main, Networks.main);
+  diff_block('main');
   Network.set('lifmain');
-  diff_block('lifmain', nets.lifmain, Networks.lifmain);
+  diff_block('lifmain');
   Network.set();
-  return;
-  diff_block('testnet', nets.testnet, Networks.testnet);
-  diff_block('regtest', nets.regtest, Networks.regtest);
-  diff_block('simnet', nets.simnet, Networks.simnet);
-  0 && do_mine(nets.main);
+  diff_block('testnet');
+  diff_block('regtest');
+  diff_block('simnet');
+  0 && do_mine(gen_block('main'));
   Network.set('lifmain');
-  1 && do_mine(nets.lifmain);
+  1 && do_mine(gen_block('lifmain'));
   Network.set();
 }
 
