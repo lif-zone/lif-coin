@@ -155,7 +155,7 @@ For release
 -----------
 * add LIF production network with production target (4G hash).
 * move current network to test network.
-  - how did lifmain allow allow 0x1d00ffff pow and allow lower vals in?
+  * how did lifmain allow allow 0x1d00ffff pow and allow lower vals in?
   + adding liftest
   + add liftest to wallet, and liftest_lif_kv to net
   - gen_genesis.js to compute genesis block values and mining

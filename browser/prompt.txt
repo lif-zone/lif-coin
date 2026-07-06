@@ -50,3 +50,19 @@ how is chainwork calculated? can you add code to calculate its correct value, an
 CLAUDE:
 Added chainwork calculation to diff_block() in gen_genesis.js. Genesis chainwork = 2^256 / (fromCompact(genesis.bits) + 1). Added BN require. Prints genesis chainwork and checks if pow.chainwork > genesis_chainwork (meaning genesis block alone doesn't satisfy minimum — expected for mainnet checkpoint, should not happen for fresh chains like lifmain/liftest).
 ---
+---
+USER:
+I want the code to be corrected. And then to validate it really corrected, I will re-run and check that it discards all the blocks with target too low.
+
+CLAUDE:
+Fixed two bugs related to PoW target validation:
+1. lib/blockchain/chain.js getTarget(): added clamp before returning prev.bits — if consensus.fromCompact(prev.bits).gt(pow.limit), return pow.bits instead. Prevents easy genesis bits from propagating to all blocks until retarget.
+2. lib/blockchain/chaindb.js saveGenesis(): added assert that block.bits === pow.bits, catching misconfiguration at DB init time.
+---
+---
+USER:
+I ran my node with 'node ~/lif-coin/bin/lif_node.js' command. It did not recheck all the blocks in the DB. what do I need to modify in lif_node.js so that it will recheck the existing blocks?
+
+CLAUDE:
+Added recheck_blocks() function to lif_node.js that iterates all blocks 1..tip from the DB and calls chain.verify() on each to re-run the fixed getTarget()/bits check. Run with: recheck=1 node ~/lif-coin/bin/lif_node.js
+---

@@ -233,8 +233,33 @@ async function send_tx(){
     await mine_blocks(1);
 }
 
+async function recheck_blocks(){
+  let chain = node.chain;
+  let tip = chain.tip;
+  console.log('rechecking blocks 1..'+tip.height);
+  let flags = (await import('../lib/blockchain/common.js')).default.flags.DEFAULT_FLAGS;
+  let bad = 0;
+  for (let h=1; h<=tip.height; h++){
+    let entry = await chain.db.getEntryByHeight(h);
+    let prev = await chain.db.getEntryByHeight(h-1);
+    let block = await chain.db.getBlock(entry.hash);
+    try {
+      await chain.verify(block, prev, flags);
+    } catch(e){
+      console.error('BAD block height='+h+' hash='+entry.hash.toString('hex')+': '+e.message);
+      bad++;
+    }
+  }
+  if (!bad)
+    console.log('all blocks OK');
+  else
+    console.log(bad+' bad blocks found');
+}
+
 export async function main(){
   await start();
+  if (+process.env.recheck)
+    await recheck_blocks();
   if (+process.env.mine)
     await mine_blocks(1);
   if (+process.env.tx)
