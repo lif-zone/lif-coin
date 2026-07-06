@@ -235,18 +235,18 @@ async function send_tx(){
 
 async function recheck_blocks(){
   let chain = node.chain;
+  let pow = chain.network.pow;
   let tip = chain.tip;
   console.log('rechecking blocks 1..'+tip.height);
-  let flags = (await import('../lib/blockchain/common.js')).default.flags.DEFAULT_FLAGS;
+  console.log('pow.bits='+pow.bits.toString(16)+' pow.limit='+pow.limit.toString('hex'));
   let bad = 0;
   for (let h=1; h<=tip.height; h++){
     let entry = await chain.db.getEntryByHeight(h);
     let prev = await chain.db.getEntryByHeight(h-1);
-    let block = await chain.db.getBlock(entry.hash);
-    try {
-      await chain.verify(block, prev, flags);
-    } catch(e){
-      console.error('BAD block height='+h+' hash='+entry.hash.toString('hex')+': '+e.message);
+    let expected_bits = await chain.getTarget(entry.time, prev);
+    if (entry.bits !== expected_bits){
+      console.error('BAD block height='+h+' bits=0x'+entry.bits.toString(16)
+        +' expected=0x'+expected_bits.toString(16));
       bad++;
     }
   }
