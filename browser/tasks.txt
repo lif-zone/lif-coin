@@ -155,11 +155,14 @@ For release
 -----------
 * add LIF production network with production target (4G hash).
   move current network to test network.
-  * adding liftest
+  + adding liftest
+  + add liftest to wallet, and liftest_lif_kv to net
+  - gen_genesis.js to compute genesis block values and mining
   - setting lifmain difficuly to 1d00ffff
   - creating genesis blocks, validating TODO items networks.js
-  - add liftest to wallet, and liftest_lif_kv to net
   - copy (backup) original blocks ~/lif.store/lifmain
+  - create gen block: get from electrum block hash, mine lif,
+    once completed submit electrum TX to bitcoin
 - prepare genesis block inscriptions:
   - 42 words, The 42 of 18: The Meaning of Lif
     The Meaning of Rich Life: The 42 of 10 18: 6-7
