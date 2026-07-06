@@ -66,3 +66,17 @@ I ran my node with 'node ~/lif-coin/bin/lif_node.js' command. It did not recheck
 CLAUDE:
 Added recheck_blocks() function to lif_node.js that iterates all blocks 1..tip from the DB and calls chain.verify() on each to re-run the fixed getTarget()/bits check. Run with: recheck=1 node ~/lif-coin/bin/lif_node.js
 ---
+---
+USER:
+pow.limit and pow.chainwork are still on a high difficulty - and yet the DB checks passes. arent pow.limit and pow.chainwork used in validation?
+
+CLAUDE:
+Explained: pow.chainwork is NOT used in block validation - only in maybeSync()/isFull() for sync status. pow.limit before our fix was only used in retarget() (every 2016 blocks), not for non-retarget blocks. Also fixed the recheck_blocks() function - replaced fragile dynamic import + chain.verify() call with a direct chain.getTarget() comparison against entry.bits. Also prints pow.bits and pow.limit at start of recheck for visibility.
+---
+---
+USER:
+But it now tells its "ok" when its not ok: pow.bits=1f00ffff pow.limit=ffffffff... all blocks OK
+
+CLAUDE:
+Fixed the clamp in getTarget(): was returning pow.bits (which itself equaled 0x1f00ffff = same as block bits, so check trivially passed). Changed to return consensus.toCompact(pow.limit) instead, which is the actual hard limit bits. Also fixed the same bug in retarget(). Now when prev.bits exceeds pow.limit, getTarget returns toCompact(pow.limit), and any block with easier bits will be caught.
+---
