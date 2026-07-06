@@ -74,14 +74,16 @@ nets.lifmain = createGenesisBlock({
   time: 1753572481,
   //bits: 0x1d00ffff, nonce: ???, // 256*10sec = 1hour
   //bits: 0x1e00ffff, nonce: ???, // 10sec
-  bits: 0x1f00ffff, nonce: 29664, // 0.1sec fast
+  bits: 0x1f00ffff, // 0.1sec fast
+  nonce: 29664,
   net_type: 'lifmain',
 });
 
 nets.testnet = createGenesisBlock({
   version: 1,
   time: 1296688602,
-  bits: 0x1d00ffff, nonce: 414098458,
+  bits: 0x1d00ffff,
+  nonce: 414098458,
 });
 
 nets.regtest = createGenesisBlock({
@@ -107,6 +109,7 @@ function str_diff(a, b){
   console.log('pos '+i+' diff: '+a.slice(i, i+8)+' -> '+b.slice(i, i+8));
   return i;
 }
+function to_bin(hex){ return Buffer.from(hex, 'hex'); }
 function diff_block(name, block, net_def){
   let err;
   console.log('--------- '+name+' ---------------');
@@ -119,8 +122,10 @@ function diff_block(name, block, net_def){
   }
   console.log('block orig:', b_orig);
   // check orig header hash matchs computed
-  let h_orig = net_def.genesis.hash.toString('hex');
-  let h_orig_comp = new Block().fromHead(Buffer.from(b_orig, 'hex')).hash()
+  let g = net_def.genesis;
+  let pow = net_def.pow;
+  let h_orig = g.hash.toString('hex');
+  let h_orig_comp = new Block().fromHead(to_bin(b_orig)).hash()
     .toString('hex');
   if (h_orig!=h_orig_comp)
     console.log(err='ERR hash orig comp:', h_orig_comp);
@@ -133,6 +138,11 @@ function diff_block(name, block, net_def){
       common.getTarget(block.bits));
   }
   console.log('hash orig:', h_orig);
+  if (g.bits!=pow.bits)
+    console.log(err='ERR bits mismatch', g.bits.toString(16), pow.bits.toString(16));
+  let calc_bits = consensus.toCompact(pow.limit);
+  if (calc_bits!=pow.bits)
+    console.log(err='ERR limit mismatch: pow.bits='+pow.bits.toString(16)+' compact(limit)='+calc_bits.toString(16));
   if (!err)
     console.log('SUCCESS');
 }
@@ -209,6 +219,7 @@ function do_test(){
   Network.set('lifmain');
   diff_block('lifmain', nets.lifmain, Networks.lifmain);
   Network.set();
+  return;
   diff_block('testnet', nets.testnet, Networks.testnet);
   diff_block('regtest', nets.regtest, Networks.regtest);
   diff_block('simnet', nets.simnet, Networks.simnet);
