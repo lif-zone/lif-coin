@@ -26,7 +26,7 @@ async function start_lif_node(){
 
 async function start_lif_gen_run_test(){
   console.log('loading gen.do_test');
-  let {do_test} = await import('./gen.js');
+  let {do_test} = await import('../scripts/gen_genesis.js');
   await do_test();
 }
 
