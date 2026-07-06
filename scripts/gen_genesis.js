@@ -143,10 +143,20 @@ function diff_block(name, block, net_def){
   let calc_bits = consensus.toCompact(pow.limit);
   if (calc_bits!=pow.bits)
     console.log(err='ERR limit mismatch: pow.bits='+pow.bits.toString(16)+' compact(limit)='+calc_bits.toString(16));
+  // chainwork for genesis = 2^256 / (target + 1)
+  let genesis_target = consensus.fromCompact(block.bits);
+  let MAX_CHAINWORK = new BN(1).ushln(256);
+  let genesis_chainwork = MAX_CHAINWORK.div(genesis_target.iaddn(1));
+  let genesis_chainwork_hex = genesis_chainwork.toString('hex', 64);
+  console.log('genesis chainwork:', genesis_chainwork_hex);
+  let chainwork_hex = pow.chainwork.toString('hex', 64);
+  if (pow.chainwork.gt(genesis_chainwork))
+    console.log(err='ERR chainwork: pow.chainwork > genesis (genesis block fails minimum):', chainwork_hex);
   if (!err)
     console.log('SUCCESS');
 }
 
+const BN = require('bcrypto/lib/bn.js');
 const hash256 = require('bcrypto/lib/hash256');
 const sha256 = require('bcrypto/lib/sha256');
 const _sha256 = require('../lib/utils/sha256');

@@ -154,13 +154,16 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
 For release
 -----------
 * add LIF production network with production target (4G hash).
-  move current network to test network.
+* move current network to test network.
+  - how did lifmain allow allow 0x1d00ffff pow and allow lower vals in?
   + adding liftest
   + add liftest to wallet, and liftest_lif_kv to net
   - gen_genesis.js to compute genesis block values and mining
   - setting lifmain difficuly to 1d00ffff
   - creating genesis blocks, validating TODO items networks.js
   - copy (backup) original blocks ~/lif.store/lifmain
+  - generate bitcoin TX to mark the new block with lif_kv
+    key=lifcoin/block@0/hash val={hash: '<32 bytes hex>'}
   - create gen block: get from electrum block hash, mine lif,
     once completed submit electrum TX to bitcoin
 - prepare genesis block inscriptions:

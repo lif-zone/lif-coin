@@ -36,3 +36,17 @@ CLAUDE: [Rewrote wallet.tsx with no spaces around => throughout]
 
 ---
 
+---
+USER:
+I ran it now for bitcoin mainnet - and the calculation is wrong: ERR limit mismatch orig=00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff calc=0000000000000000000000000000000000000000000000000000ffff00000000
+
+CLAUDE:
+Fixed gen_genesis.js limit comparison. Instead of comparing getTarget(pow.bits) with pow.limit (wrong because compact is lossy and getTarget returns little-endian), now uses consensus.toCompact(pow.limit) compared against pow.bits. Bitcoin mainnet now shows SUCCESS with no limit mismatch error.
+---
+---
+USER:
+how is chainwork calculated? can you add code to calculate its correct value, and add a check for it?
+
+CLAUDE:
+Added chainwork calculation to diff_block() in gen_genesis.js. Genesis chainwork = 2^256 / (fromCompact(genesis.bits) + 1). Added BN require. Prints genesis chainwork and checks if pow.chainwork > genesis_chainwork (meaning genesis block alone doesn't satisfy minimum — expected for mainnet checkpoint, should not happen for fresh chains like lifmain/liftest).
+---
