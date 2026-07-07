@@ -144,14 +144,10 @@ const hash256lif = require('../lib/utils/hash256lif');
 const mine = require('../lib/mining/mine');
 const common = require('../lib/mining/common');
 let whoami = 'IBEYOURGODDONTCREATEOTHERGODSOVERMEDONTUSEBEYOURGODSNAMEINVAINREMEMBERTODEDICATETHESATURDAYHONORYOURFATHERANDMOTHERDONTMURDERDONTBETRAYDONTSTEALDONTACCUSEBYLIESDONTGREEDFELLOWSHOME';
-console.log(hash256lif.digest(Buffer.from('IBEYOURGOD', 'ascii')).toString('hex'));
-console.log(sha256.digest(Buffer.from(whoami, 'ascii')).toString('hex'));
-console.log(sha256lif.digest(Buffer.from(whoami, 'ascii')).toString('hex'));
-console.log(hash256.digest(Buffer.from(whoami, 'ascii')).toString('hex'));
-let yekum = hash256lif.digest(Buffer.from(whoami, 'ascii')).toString('hex').slice(0, 8);
-let ehad = hash256lif.digest(Buffer.from(whoami.slice(0, 10)), 'ascii').toString('hex').slice(0, 8);
+let yekum = hash256lif.digest(Buffer.from(whoami, 'ascii')).slice(0, 4).reverse().toString('hex');
+let ehad = hash256lif.digest(Buffer.from(whoami.slice(0, 10)), 'ascii').slice(0, 4).reverse().toString('hex');
 console.log(yekum);
-console.log(ehad, whoami.slice(0, 10));
+console.log('42 18', ehad, whoami.slice(0, 10));
 return;
 function mine_single(header, target, nonce){
   let hash;
