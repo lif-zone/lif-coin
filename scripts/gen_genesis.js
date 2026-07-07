@@ -143,6 +143,16 @@ const sha256lif = require('../lib/utils/sha256lif');
 const hash256lif = require('../lib/utils/hash256lif');
 const mine = require('../lib/mining/mine');
 const common = require('../lib/mining/common');
+let whoami = 'IBEYOURGODDONTCREATEOTHERGODSOVERMEDONTUSEBEYOURGODSNAMEINVAINREMEMBERTODEDICATETHESATURDAYHONORYOURFATHERANDMOTHERDONTMURDERDONTBETRAYDONTSTEALDONTACCUSEBYLIESDONTGREEDFELLOWSHOME';
+console.log(hash256lif.digest(Buffer.from('IBEYOURGOD', 'ascii')).toString('hex'));
+console.log(sha256.digest(Buffer.from(whoami, 'ascii')).toString('hex'));
+console.log(sha256lif.digest(Buffer.from(whoami, 'ascii')).toString('hex'));
+console.log(hash256.digest(Buffer.from(whoami, 'ascii')).toString('hex'));
+let yekum = hash256lif.digest(Buffer.from(whoami, 'ascii')).toString('hex').slice(0, 8);
+let ehad = hash256lif.digest(Buffer.from(whoami.slice(0, 10)), 'ascii').toString('hex').slice(0, 8);
+console.log(yekum);
+console.log(ehad, whoami.slice(0, 10));
+return;
 function mine_single(header, target, nonce){
   let hash;
   header.writeUInt32LE(nonce, 76);
