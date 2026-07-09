@@ -178,6 +178,9 @@ For release
     {"hash": "112233..."}. info will be collected via electrum, and checked it
     does not yet appear in the KV DB. coinbase KVs will be stored in a
     separate prefix than rest of KVs.
+    TORAH THE GUIDE TO LIF (18 chars, 5 words)
+    LIF is a book of LIFE
+
   - ben shushan word counting 4-6 jpg
   - add Paul bug, Bach Beach, and Dr. Suess, add Yiddish. Maybe woody alan.
   - put full bible inscription 300K letters in one of the first blocks.
@@ -189,6 +192,7 @@ For release
     Life's light never burns out
     Ethernal Flame
     Eternal Network: Etha-Net
+    wc: Begin Naming Calling and Meaning things. NESS!
   - Sefaria hebrew text
     Gideon's bible
     https://github.com/scrollmapper/bible_databases
