@@ -167,6 +167,7 @@ For release
     - start mining pool - add servers with "leaf" service of free mining,
       given a header. Periodically monitor bitcoin tip, and update mining pool.
     - once found, create an inscription output the text to update networks.js. commit it. tag it.
+      lifcoin/block_hash@1 {hash: ""}
   - generate bitcoin TX to mark the new block with lif_kv
     key=lifcoin/block@0/hash val={hash: '<32 bytes hex>'}
   - create gen block: get from electrum block hash, mine lif,
@@ -210,6 +211,8 @@ For release
     Verb (beginning) Gerund (naming) Gerund (calling) Gerund (meaning) Noum (things)
     A Homer: to pull a homer
     VALH SMUT - *these* are the names (the naming action/process, like LSIM)
+  - Torah letters 304805 words 79980, letters 5845
+    lif_kv HTURH/wc {things: 504885, names: 79980, signs: 5845}
   - Sefaria hebrew text
     Gideon's bible
     https://github.com/scrollmapper/bible_databases
