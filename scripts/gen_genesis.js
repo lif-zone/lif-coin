@@ -18,6 +18,12 @@ function createGenesisBlock(options) {
   let flags = options.flags;
   let key = options.key;
   let reward = options.reward;
+  let is_lif = options.net_type.startsWith('lif');
+  if (is_lif && !flags) // The Torah HTURH
+    flags = 'The Guide 18/Oct/1984 Ancient philology open D.N.A eternal words book';
+  // The Counter HSUPR
+  // How many sentences? how many words? how many letters?
+  // with JPG: Ben Shoshan on Counter Helpers work
   if (!flags)
     flags = 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks';
   if (typeof flags=='string')
@@ -39,7 +45,8 @@ function createGenesisBlock(options) {
       },
       script: new Script()
       .pushInt(0x1d00ffff) // ~4G hashing attempts needed
-      .pushPush(Buffer.from([options.net_type=='lifmain' ? 2 : 4])) // on avarage even 1 nonce cycle (32^2).
+      // 1st genesis 2009: 4, 2nd genesis 2026 2.
+      .pushPush(Buffer.from([is_lif ? 2 : 4]))
       .pushData(flags)
       .compile(),
       sequence: 0xffffffff
@@ -82,7 +89,10 @@ function str_diff(a, b){
   console.log('pos '+i+' diff: '+a.slice(i, i+8)+' -> '+b.slice(i, i+8));
   return i;
 }
+
+// helps edit and validate lib/protocol/networks.js
 function to_bin(hex){ return Buffer.from(hex, 'hex'); }
+function hex_lines(hex){ return hex.match(/.{1,70}/g).join('\n'); }
 function diff_block(name){
   let net = Networks[name];
   let block = gen_block(name);
@@ -91,11 +101,12 @@ function diff_block(name){
   // complete block
   let b_orig = net.genesisBlock;
   let b_gen = block.toRaw().toString('hex');
+  let D = 0;
   if (b_orig!=b_gen){
-    console.log(err='ERR block gen:', b_gen);
+    console.log(err='ERR block gen\n:', hex_lines(b_gen));
     str_diff(b_orig, b_gen);
   }
-  console.log('block orig:', b_orig);
+  console.log('block orig:\n', hex_lines(b_orig));
   // check orig header hash matchs computed
   let g = net.genesis;
   let pow = net.pow;
@@ -118,7 +129,7 @@ function diff_block(name){
   let calc_bits = consensus.toCompact(pow.limit);
   if (calc_bits!=pow.bits)
     console.log(err='ERR limit mismatch: pow.bits='+pow.bits.toString(16)+' compact(limit)='+calc_bits.toString(16));
-  if (is_lif){
+  if (is_lif && D){
     // chainwork for genesis = 2^256 / (target + 1)
     let genesis_target = consensus.fromCompact(block.bits);
     let MAX_CHAINWORK = new BN(1).ushln(256);
@@ -156,7 +167,7 @@ function mine_single(header, target, nonce){
   let found = mine.rcmp(hash, target)<=0;
   if (!found)
     return;
-  console.log('found nonce', nonce, header.toString('hex'));
+  console.log('found nonce', nonce, '\n', hex_lines(header.toString('hex')));
   return true;
 }
 
@@ -209,9 +220,10 @@ function do_test(){
   Network.set('lifmain');
   diff_block('lifmain');
   Network.set();
-  diff_block('testnet');
-  diff_block('regtest');
-  diff_block('simnet');
+  0 && diff_block('testnet');
+  0 && diff_block('liftest');
+  0 && diff_block('regtest');
+  0 && diff_block('simnet');
   0 && do_mine(gen_block('main'));
   Network.set('lifmain');
   1 && do_mine(gen_block('lifmain'));
