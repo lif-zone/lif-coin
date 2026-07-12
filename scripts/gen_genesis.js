@@ -14,13 +14,14 @@ const Mnemonic = require('../lib/hd/mnemonic');
 const HDPrivateKey = require('../lib/hd/private');
 const KeyRing = require('../lib/primitives/keyring');
 
-function createGenesisBlock(options) {
-  let flags = options.flags;
-  let key = options.key;
-  let reward = options.reward;
-  let is_lif = options.net_type.startsWith('lif');
+function createGenesisBlock(opt) {
+  let flags = opt.flags;
+  let key = opt.key;
+  let reward = opt.reward;
+  let is_lif = opt.net_type.startsWith('lif');
   if (is_lif && !flags) // The Torah HTURH
-    flags = 'The Guide 18/Oct/1984 Ancient philology open D.N.A eternal words book';
+    //flags = 'The Guide 18/Oct/1984 Ancient philology open D.N.A eternal words book';
+    flags = 'The Guide 18/Oct/1984 DNA Ancient philology book - eternal publishing';
   // The Counter HSUPR
   // How many sentences? how many words? how many letters?
   // with JPG: Ben Shoshan on Counter Helpers work
@@ -58,13 +59,13 @@ function createGenesisBlock(options) {
     locktime: 0
   });
   const block = new Block({
-    version: options.version,
+    version: opt.version,
     prevBlock: consensus.ZERO_HASH,
     merkleRoot: tx.hash(),
-    time: options.time,
-    bits: options.bits,
-    nonce: options.nonce,
-    height: 0
+    time: opt.time,
+    bits: opt.bits,
+    nonce: opt.nonce,
+    height: 0,
   });
   block.txs.push(tx);
   return block;
@@ -92,41 +93,52 @@ function str_diff(a, b){
 
 // helps edit and validate lib/protocol/networks.js
 function to_bin(hex){ return Buffer.from(hex, 'hex'); }
-function hex_lines(hex){ return hex.match(/.{1,70}/g).join('\n'); }
+function hex_lines(hex){ return "'"+hex.match(/.{1,70}/g).join("'\n+'")+"'"; }
 function date_time(){ return Math.floor(Date.now()/1000); }
 function diff_block(name){
   let net = Networks[name];
+  let g = net.genesis;
   let block = gen_block(name);
   let err, is_lif = name.startsWith('lif');
   console.log('--------- '+name+' ---------------');
   // complete block
   let b_orig = net.genesisBlock;
-  let b_gen = block.toRaw().toString('hex');
+  let b_calc = block.toRaw().toString('hex');
   let D = 0;
-  if (b_orig!=b_gen){
-    console.log(err='ERR block gen\n:', hex_lines(b_gen));
-    str_diff(b_orig, b_gen);
+  let genesisBlock_diff;
+  if (b_orig!=b_calc){
+    console.log(err='ERR genesisBlock calc:\n', hex_lines(b_calc));
+    str_diff(b_orig, b_calc);
+    genesisBlock_diff = true;
   }
-  console.log('block orig:\n', hex_lines(b_orig));
+  console.log('genesisBlock orig:\n', hex_lines(b_orig));
+  // check merkleRoot
+  let merkleRoot_calc = block.merkleRoot.toString('hex');
+  let merkleRoot_orig = g.merkleRoot.toString('hex');
+  if (merkleRoot_calc!=merkleRoot_orig){
+    console.log(err='ERR genesis.merkleRoot calc', merkleRoot_calc);
+    console.log('orig merkleRoot', merkleRoot_orig);
+  }
   // check orig header hash matchs computed
-  let g = net.genesis;
   let pow = net.pow;
   let h_orig = g.hash.toString('hex');
   let h_orig_comp = new Block().fromHead(to_bin(b_orig)).hash()
     .toString('hex');
-  if (h_orig!=h_orig_comp)
-    console.log(err='ERR hash orig comp:', h_orig_comp);
-  let h_gen = block.hash().toString('hex');
-  if (h_gen!=h_orig)
-    console.log(err='ERR hash gen:', h_gen);
+  if (h_orig!=h_orig_comp && !genesisBlock_diff)
+    console.log(err='ERR genesisBlock orig calc hash:', h_orig_comp);
+  let h_calc = block.hash().toString('hex');
+  if (h_calc!=h_orig)
+    console.log(err='ERR genesis.hash calc:', h_calc);
   // check hash matches target
   let header = block.toRaw().slice(0, 80);
   let nonce = block.nonce;
+  let mine_err;
   if (mine_range({header, min: nonce, max: nonce})<0){
     console.log(err='ERR target not reached:', '0x'+block.bits.toString(16),
       common.getTarget(block.bits));
+    mine_err = true;
   }
-  console.log('hash orig:', h_orig);
+  console.log('genesis.hash orig:', h_orig);
   if (g.bits!=pow.bits)
     console.log(err='ERR bits mismatch', g.bits.toString(16), pow.bits.toString(16));
   let calc_bits = consensus.toCompact(pow.limit);
@@ -147,6 +159,8 @@ function diff_block(name){
     console.log('ERROR');
   else
     console.log('SUCCESS');
+  if (!g.time || !g.nonce)
+    do_mine(block);
 }
 
 const BN = require('bcrypto/lib/bn.js');
@@ -157,7 +171,11 @@ const sha256lif = require('../lib/utils/sha256lif');
 const hash256lif = require('../lib/utils/hash256lif');
 const mine = require('../lib/mining/mine');
 const common = require('../lib/mining/common');
-//let yekum = hash256lif.digest(Buffer.from(whoami, 'ascii')).slice(0, 4).reverse().toString('hex');
+function magic_calc(){
+  let whoami = 'IBEYOURGODDONTCREATEOTHERGODSOVERMEDONTUSEBEYOURGODSNAMEINVAINREMEMBERTODEDICATETHESATURDAYHONORYOURFATHERANDMOTHERDONTMURDERDONTBETRAYDONTSTEALDONTACCUSEBYLIESDONTGREEDFELLOWSHOME';
+  let yekum = hash256lif.digest(Buffer.from(whoami, 'ascii')).slice(0, 4).reverse().toString('hex');
+  console.log('lifmain magic', '0x'+yekum);
+}
 function mine_single({header, target, nonce, time}){
   let hash;
   header.writeUInt32LE(nonce, 76);
@@ -171,7 +189,7 @@ function mine_single({header, target, nonce, time}){
   let found = mine.rcmp(hash, target)<=0;
   if (!found)
     return;
-  console.log('found nonce', nonce, '\n', hex_lines(header.toString('hex')));
+  console.log('found nonce', nonce, 'time', time, 'header:\n', hex_lines(header.toString('hex')));
   return true;
 }
 
@@ -212,6 +230,7 @@ function do_mine(block){
       time = date_time();
       if (time!=time_last)
         i = min;
+      time_last = time;
     }
     let _max = Math.min(max, i+inc-1);
     nonce = mine_range({header, target, min: i, max: _max, time});
@@ -232,6 +251,7 @@ function do_test(){
   diff_block('main');
   Network.set('lifmain');
   diff_block('lifmain');
+  0 && magic_calc();
   Network.set();
   0 && diff_block('testnet');
   0 && diff_block('liftest');
@@ -239,7 +259,7 @@ function do_test(){
   0 && diff_block('simnet');
   0 && do_mine(gen_block('main'));
   Network.set('lifmain');
-  1 && do_mine(gen_block('lifmain'));
+  0 && do_mine(gen_block('lifmain'));
   Network.set();
 }
 
