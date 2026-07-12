@@ -93,6 +93,7 @@ function str_diff(a, b){
 // helps edit and validate lib/protocol/networks.js
 function to_bin(hex){ return Buffer.from(hex, 'hex'); }
 function hex_lines(hex){ return hex.match(/.{1,70}/g).join('\n'); }
+function date_time(){ return Math.floor(Date.now()/1000); }
 function diff_block(name){
   let net = Networks[name];
   let block = gen_block(name);
@@ -119,7 +120,9 @@ function diff_block(name){
   if (h_gen!=h_orig)
     console.log(err='ERR hash gen:', h_gen);
   // check hash matches target
-  if (mine_range(block.toRaw().slice(0, 80), null, block.nonce, block.nonce)<0){
+  let header = block.toRaw().slice(0, 80);
+  let nonce = block.nonce;
+  if (mine_range({header, min: nonce, max: nonce})<0){
     console.log(err='ERR target not reached:', '0x'+block.bits.toString(16),
       common.getTarget(block.bits));
   }
@@ -155,9 +158,10 @@ const hash256lif = require('../lib/utils/hash256lif');
 const mine = require('../lib/mining/mine');
 const common = require('../lib/mining/common');
 //let yekum = hash256lif.digest(Buffer.from(whoami, 'ascii')).slice(0, 4).reverse().toString('hex');
-function mine_single(header, target, nonce){
+function mine_single({header, target, nonce, time}){
   let hash;
   header.writeUInt32LE(nonce, 76);
+  header.writeUInt32LE(time, 68);
   //hash = sha256.digest(sha256.digest(header)); // 0.22M/sec
   //hash = _sha256.digest(_sha256.digest(header)); // 0.33M/sec
   //hash = sha256lif.digest(_sha256.digest(header)); // 0.29M/sec
@@ -171,13 +175,15 @@ function mine_single(header, target, nonce){
   return true;
 }
 
-function mine_range(header, target, min, max){
+function mine_range({header, target, min, max, time}){
   if (!target)
     target = common.getTarget(header.readUInt32LE(72));
+  if (!time)
+    time = header.readUInt32LE(68) || date_time();
   if (0)
     return mine(header, target, min, max); // 0.28M/sec
   for (let nonce=min; nonce<=max; nonce++){
-    if (mine_single(header, target, nonce))
+    if (mine_single({header, target, nonce, time}))
       return nonce;
   }
   return -1;
@@ -196,12 +202,19 @@ function do_mine(block){
   let max = 0x100000000;
   let target = common.getTarget(block.bits);
   console.log('difficulty:', block.bits.toString(16), target.toString('hex'));
-  let inc = 1000000;
+  let inc = 200000;
   let nonce = -1;
+  let fixed_time = header.readUInt32LE(68);
+  let time = fixed_time, time_last;
   for (let i=min; i<=max; i+=inc){
     let start = Date.now();
+    if (!fixed_time){
+      time = date_time();
+      if (time!=time_last)
+        i = min;
+    }
     let _max = Math.min(max, i+inc-1);
-    nonce = mine_range(header, target, i, _max);
+    nonce = mine_range({header, target, min: i, max: _max, time});
     if (nonce>=0)
       break;
     let tm = Date.now()-start;
@@ -212,7 +225,7 @@ function do_mine(block){
     return;
   }
   console.log('SUCCESS: nonce='+nonce, header.toString('hex'));
-  return nonce;
+  return {nonce, time, header};
 }
 
 function do_test(){
