@@ -171,10 +171,17 @@ const sha256lif = require('../lib/utils/sha256lif');
 const hash256lif = require('../lib/utils/hash256lif');
 const mine = require('../lib/mining/mine');
 const common = require('../lib/mining/common');
+const final = 1;
 function magic_calc(){
   let whoami = 'IBEYOURGODDONTCREATEOTHERGODSOVERMEDONTUSEBEYOURGODSNAMEINVAINREMEMBERTODEDICATETHESATURDAYHONORYOURFATHERANDMOTHERDONTMURDERDONTBETRAYDONTSTEALDONTACCUSEBYLIESDONTGREEDFELLOWSHOME';
   let yekum = hash256lif.digest(Buffer.from(whoami, 'ascii')).slice(0, 4).reverse().toString('hex');
-  console.log('lifmain magic', '0x'+yekum);
+  let _yekum = +('0x'+yekum);
+  if ((+_yekum)!=0x0eca929b)
+    console.log('lifmain magic', '0x'+yekum);
+  let net = Networks.lifmain;
+  if (_yekum != net.magic)
+    console.log('ERROR', yekum, net.magic.toString(16));
+
 }
 function mine_single({header, target, nonce, time}){
   let hash;
@@ -251,7 +258,7 @@ function do_test(){
   diff_block('main');
   Network.set('lifmain');
   diff_block('lifmain');
-  0 && magic_calc();
+  magic_calc();
   Network.set();
   0 && diff_block('testnet');
   0 && diff_block('liftest');
