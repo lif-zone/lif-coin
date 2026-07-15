@@ -13,6 +13,20 @@ const Script = require('../lib/script/script');
 const Mnemonic = require('../lib/hd/mnemonic');
 const HDPrivateKey = require('../lib/hd/private');
 const KeyRing = require('../lib/primitives/keyring');
+const opcodes = require('../lib/script/opcodes');
+
+function kv_script(key, val, valbin){
+  let s = new Script()
+    .pushOp(opcodes.OP_RETURN)
+    .pushData(Buffer.from('lif'))
+    .pushData(Buffer.from('key'))
+    .pushData(Buffer.from(key))
+    .pushData(Buffer.from('val'))
+    .pushData(Buffer.from(val));
+  if (valbin)
+    s = s.pushData(Buffer.from('valbin')).pushData(Buffer.from(valbin));
+  return s.compile();
+}
 
 function createGenesisBlock(opt) {
   let flags = opt.flags;
@@ -55,7 +69,10 @@ function createGenesisBlock(opt) {
     outputs: [{
       value: reward,
       script: Script.fromPubkey(key)
-    }],
+    }/*, {
+      value: 0,
+      script: Script.fromPubkey(lif_kv)
+    }*/],
     locktime: 0
   });
   const block = new Block({
