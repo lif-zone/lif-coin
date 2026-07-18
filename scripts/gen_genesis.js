@@ -477,9 +477,12 @@ async function test_and_create_gen(){
     return tip;
   console.log('btc tip', tip);
   // mine new block with new TIP
-  let ret = do_mine(gen_block('lifmain', {btc_timestamp: tip.id}));
+  let block = gen_block('lifmain', {btc_timestamp: tip.id});
+  let ret = do_mine(block);
   if (ret.error)
     return ret;
+  let block_hex = block.toRaw().toString('hex');
+  console.log('genesis block:\n', hex_lines(block_hex));
   // create BTC KV transaction with lifocin/block_hash@0
   Network.set(); // return it to BTC to broadcast btc tx
   let btc_tx = await btc_create_kv({coin, change_addr, fee: 1842,
