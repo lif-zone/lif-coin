@@ -357,7 +357,7 @@ async function fetch_json(url){
     let json = await ret.json();
     return json;
   } catch(error){
-    console.log('failed fetch '+url);
+    console.log('failed fetch '+url, error);
     return {error};
   }
 }
@@ -372,13 +372,14 @@ async function btc_fetch_tip(url, cmp){
   }
   return tip;
 }
-async function btc_post_tx(url, tx){
+async function btc_post_tx(tx){
   assert(typeof tx=='string' && tx.length>20);
+  let url = 'https://mempool.space/api/tx';
   try {
     // https://btcscan.org/api/tx
     // https://blockstream.info/api/tx
     // https://blockchain.info/pushtx?cors=true
-    let ret = await fetch('https://mempool.space/api/tx', {
+    let ret = await fetch(url, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain'},
       body: tx,
@@ -430,7 +431,7 @@ async function btc_create_kv({coin, change_addr, fee, lif_timestamp}){
     hash: prevHash,
     index: outi,
     value,
-    script: Script.fromAddress(addr), //keyRing.getScript(),
+    script: Script.fromAddress(addr),
   });
   let mtx = new MTX();
   mtx.addCoin(c);
@@ -439,12 +440,16 @@ async function btc_create_kv({coin, change_addr, fee, lif_timestamp}){
   mtx.changeIndex = 0;
   mtx.addOutput({value: 0, script: kv_script});
   mtx.sign(keyRing);
-  let hex = mtx.toTX().toRaw().toString('hex');
-  console.log('BTC TX:', mtx.toJSON());
+  let tx = mtx.toTX();
+  let hex = tx.toRaw().toString('hex');
+  let _txid = tx.rhash();
+  0 && console.log('BTC TX:', mtx.toJSON());
   console.log('BTC TX hex:', hex);
-  return {hex};
+  console.log('BTC TXID:', _txid);
+  return {tx, tx_hex: hex, txid: _txid};
 }
 async function test_and_create_gen(){
+  let broadcast_btc = false;
   let error;
   // validate setup: btc tip and submit, coin for kv submission
   let _coin = await file_json(homedir()+'/btc_coin.json');
@@ -477,12 +482,19 @@ async function test_and_create_gen(){
     return ret;
   // create BTC KV transaction with lifocin/block_hash@0
   Network.set(); // return it to BTC to broadcast btc tx
-  ret = await btc_create_kv({coin, change_addr, fee: 1842,
+  let btc_tx = await btc_create_kv({coin, change_addr, fee: 1842,
     lif_timestamp: ret.hash});
-  if (ret?.error)
-    return ret;
+  if (btc_tx?.error)
+    return btc_tx;
   // submit new BTC transaction, using existing btc keypair and coin, as long
   // as no new btc tip has been created
+  if (broadcast_btc){
+    ret = await btc_post_tx(btc_tx.tx_hex);
+    if (ret.error)
+      return ret;
+  }
+  console.log('broadcast txid', btc_tx.tx.rhash());
+  console.log('SUCCESS');
 }
 
 async function main(){
