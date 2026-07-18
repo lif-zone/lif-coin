@@ -80,3 +80,10 @@ But it now tells its "ok" when its not ok: pow.bits=1f00ffff pow.limit=ffffffff.
 CLAUDE:
 Fixed the clamp in getTarget(): was returning pow.bits (which itself equaled 0x1f00ffff = same as block bits, so check trivially passed). Changed to return consensus.toCompact(pow.limit) instead, which is the actual hard limit bits. Also fixed the same bug in retarget(). Now when prev.bits exceeds pow.limit, getTarget returns toCompact(pow.limit), and any block with easier bits will be caught.
 ---
+---
+USER:
+did any bitcoin forks start their genesis after BIP9/SegWit? what version should the genesis block use?
+
+CLAUDE:
+Most famous Bitcoin forks (BCH, BTG, BSV) inherit Bitcoin's genesis block (version 1) rather than creating a new one. lifmain is one of the few Bitcoin-codebase chains with a truly new genesis created after BIP9 and SegWit were established. Setting version 0x20000000 would be semantically honest - signaling that this chain was born already knowing about all those soft forks. Should use 0x20000000 (not 0x20000001) because the lower 29 bits signal pending soft forks, and lifmain starts with everything already locked in from genesis via bip34hash/bip65hash/bip66hash all pointing to genesis hash.
+---

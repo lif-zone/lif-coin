@@ -178,6 +178,7 @@ For release
     git commit networks.js with nonce+time, submitting bitcoin TX with link
     to lif genesis, and lif hash itself, in a lif-kv format
 - prepare genesis block inscriptions:
+  - Mine. Your Name. ANUKI HSM ALUHK.
   - 42 words, The 42 of 18: The Meaning of Lif
     The Meaning of Rich Life: The 42 of 10 18: 6-7
     Hamavdil ben kodesh lehol. Separating the 7 from 6.

@@ -13,7 +13,7 @@ const Script = require('../lib/script/script');
 const Mnemonic = require('../lib/hd/mnemonic');
 const HDPrivateKey = require('../lib/hd/private');
 const KeyRing = require('../lib/primitives/keyring');
-const opcodes = require('../lib/script/opcodes');
+const {opcodes} = require('../lib/script/common');
 
 function kv_script(key, val, valbin){
   let s = new Script()
