@@ -162,12 +162,13 @@ For release
   * gen_genesis.js to compute genesis block values and mining
   * setting lifmain difficuly to 1d00ffff
   * creating genesis blocks, validating TODO items networks.js
-    - create genesis 0x1f00ffff. magic to 42 words. add KV output of
+    + create genesis 0x1f00ffff. magic to 42 words. add KV output of
       bitcoin link bitcoin/block_hash@2948243 {hash: "00112233..."}
-    - start mining pool - add servers with "leaf" service of free mining,
-      given a header. Periodically monitor bitcoin tip, and update mining pool.
-    - once found, create an inscription output the text to update networks.js. commit it. tag it.
+    + once found, create an inscription output the text to update networks.js. commit it. tag it.
       lifcoin/block_hash@1 {hash: ""}
+    * mining perf: start mining pool - add servers with "leaf" service of
+      free mining, given a header. Periodically monitor bitcoin tip,
+      and update mining pool.
   - generate bitcoin TX to mark the new block with lif_kv
     key=lifcoin/block@0/hash val={hash: '<32 bytes hex>'}
   - create gen block: get from electrum block hash, mine lif,
