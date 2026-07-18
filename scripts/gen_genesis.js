@@ -370,6 +370,21 @@ async function btc_fetch_tip(url, cmp){
   }
   return tip;
 }
+async function btc_post_tx(url, tx){
+  assert(typeof tx=='string' && tx.length>20);
+  try {
+    let ret = await fetch('https://mempool.space/api/tx', {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: tx,
+    });
+    let json = await ret.json();
+    return json;
+  } catch(error){
+    console.log('failed fetch '+url);
+    return {error};
+  }
+}
 async function btc_get_tip({test}={}){
   let tip = await btc_fetch_tip('https://mempool.space/api/v1/blocks');
   if (tip.error)
@@ -397,18 +412,23 @@ async function btc_get_tip({test}={}){
   }
   return tip;
 }
-async function btc_create_kv({coin, lif_timestamp}){
+async function btc_create_kv({coin, change_addr, fee, lif_timestamp}){
   let timestamp = JSON.stringify({lif_timestamp: lif_timestamp});
-  let script = lif_kv_script({key: 'timestamp', val: timestamp});
+  let kv_script = lif_kv_script({key: 'timestamp', val: timestamp});
+  let {keypair, value, outi, tx} = coin;
+  let {addr, priv} = keypair;
+  // create a transaction, input from coin.addr (bc1...) signed with coin.priv,
+  // output to change_addr (bc1...), second output is OP_RETURN kv_script
+  // coin includes: value (in sats), tx, outi (output index in tx), and
+  // TODO: create here the transaction
 }
 async function test_and_create_gen(){
   let error;
-  let coin;
   // validate setup: btc tip and submit, coin for kv submission
-  coin = await file_json(homedir()+'/btc_coin.json');
-  if (coin?.error)
-    return coin;
-  coin = coin.coin;
+  let _coin = await file_json(homedir()+'/btc_coin.json');
+  if (_coin?.error)
+    return _coin;
+  let {coin, change_addr, tx, outi} = _coin;
   if (coin.tx?.length!=64 || typeof coin.outi!='number' ||
     !coin.keypair.addr || !coin.keypair.priv)
   {
@@ -434,7 +454,8 @@ async function test_and_create_gen(){
   if (ret.error)
     return ret;
   // create BTC KV transaction with lifocin/block_hash@0
-  ret = await btc_create_kv({coin, lif_timestamp: ret.hash});
+  ret = await btc_create_kv({coin, change_addr, fee: 1842,
+    lif_timestamp: ret.hash});
   if (ret?.error)
     return ret;
   // submit new BTC transaction, using existing btc keypair and coin, as long
