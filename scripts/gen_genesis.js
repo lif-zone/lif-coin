@@ -13,6 +13,8 @@ const Script = require('../lib/script/script');
 const Mnemonic = require('../lib/hd/mnemonic');
 const HDPrivateKey = require('../lib/hd/private');
 const KeyRing = require('../lib/primitives/keyring');
+const Coin = require('../lib/primitives/coin');
+const Address = require('../lib/primitives/address');
 const {opcodes} = require('../lib/script/common');
 const {readFile} = require('fs/promises');
 const {homedir} = require('os');
@@ -373,6 +375,9 @@ async function btc_fetch_tip(url, cmp){
 async function btc_post_tx(url, tx){
   assert(typeof tx=='string' && tx.length>20);
   try {
+    // https://btcscan.org/api/tx
+    // https://blockstream.info/api/tx
+    // https://blockchain.info/pushtx?cors=true
     let ret = await fetch('https://mempool.space/api/tx', {
       method: 'POST',
       headers: {'Content-Type': 'text/plain'},
@@ -413,14 +418,31 @@ async function btc_get_tip({test}={}){
   return tip;
 }
 async function btc_create_kv({coin, change_addr, fee, lif_timestamp}){
-  let timestamp = JSON.stringify({lif_timestamp: lif_timestamp});
+  let timestamp = JSON.stringify({lif_timestamp});
   let kv_script = lif_kv_script({key: 'timestamp', val: timestamp});
-  let {keypair, value, outi, tx} = coin;
-  let {addr, priv} = keypair;
-  // create a transaction, input from coin.addr (bc1...) signed with coin.priv,
-  // output to change_addr (bc1...), second output is OP_RETURN kv_script
-  // coin includes: value (in sats), tx, outi (output index in tx), and
-  // TODO: create here the transaction
+  let {keypair, value, outi, txid} = coin;
+  let {priv, addr} = keypair;
+  let keyRing = new KeyRing({privateKey: Buffer.from(priv, 'hex'),
+    witness: true});
+  console.log(keyRing.getScriptAddress('base58'));
+  let prevHash = Buffer.from(txid, 'hex').reverse();
+  let c = Coin.fromOptions({
+    hash: prevHash,
+    index: outi,
+    value,
+    script: Script.fromAddress(addr), //keyRing.getScript(),
+  });
+  let mtx = new MTX();
+  mtx.addCoin(c);
+  let change_script = Script.fromAddress(change_addr);
+  mtx.addOutput({value: value - fee, script: change_script});
+  mtx.changeIndex = 0;
+  mtx.addOutput({value: 0, script: kv_script});
+  mtx.sign(keyRing);
+  let hex = mtx.toTX().toRaw().toString('hex');
+  console.log('BTC TX:', mtx.toJSON());
+  console.log('BTC TX hex:', hex);
+  return {hex};
 }
 async function test_and_create_gen(){
   let error;
@@ -428,8 +450,8 @@ async function test_and_create_gen(){
   let _coin = await file_json(homedir()+'/btc_coin.json');
   if (_coin?.error)
     return _coin;
-  let {coin, change_addr, tx, outi} = _coin;
-  if (coin.tx?.length!=64 || typeof coin.outi!='number' ||
+  let {coin, change_addr, txid, outi} = _coin;
+  if (coin.txid?.length!=64 || typeof coin.outi!='number' ||
     !coin.keypair.addr || !coin.keypair.priv)
   {
     console.log('missing coin fields');
@@ -454,13 +476,13 @@ async function test_and_create_gen(){
   if (ret.error)
     return ret;
   // create BTC KV transaction with lifocin/block_hash@0
+  Network.set(); // return it to BTC to broadcast btc tx
   ret = await btc_create_kv({coin, change_addr, fee: 1842,
     lif_timestamp: ret.hash});
   if (ret?.error)
     return ret;
   // submit new BTC transaction, using existing btc keypair and coin, as long
   // as no new btc tip has been created
-  Network.set();
 }
 
 async function main(){
