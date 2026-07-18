@@ -14,11 +14,13 @@ const Mnemonic = require('../lib/hd/mnemonic');
 const HDPrivateKey = require('../lib/hd/private');
 const KeyRing = require('../lib/primitives/keyring');
 const {opcodes} = require('../lib/script/common');
+const {readFile} = require('fs/promises');
+const {homedir} = require('os');
 
-function kv_script(key, val, valbin){
+function lif_kv_script({net, key, val, valbin}){
   let s = new Script()
     .pushOp(opcodes.OP_RETURN)
-    .pushData(Buffer.from('lif'))
+    .pushData(Buffer.from(net || 'lif'))
     .pushData(Buffer.from('key'))
     .pushData(Buffer.from(key))
     .pushData(Buffer.from('val'))
@@ -35,6 +37,8 @@ function createGenesisBlock(opt) {
   let is_lif = opt.net_type.startsWith('lif');
   if (is_lif && !flags) // The Torah HTURH
     //flags = 'The Guide 18/Oct/1984 Ancient philology open D.N.A eternal words book';
+    // Mine your name
+    //flags = 'The Guide 18/Oct/1984 Permissionless read-write bible torah guide BBS';
     flags = 'The Guide 18/Oct/1984 DNA Ancient philology book - eternal publishing';
   // The Counter HSUPR
   // How many sentences? how many words? how many letters?
@@ -51,30 +55,37 @@ function createGenesisBlock(opt) {
   }
   if (!reward)
     reward = 50 * consensus.COIN;
-  const tx = new TX({
-    version: 1,
-    inputs: [{
-      prevout: {
-        hash: consensus.ZERO_HASH,
-        index: 0xffffffff
-      },
-      script: new Script()
-      .pushInt(0x1d00ffff) // ~4G hashing attempts needed
-      // 1st genesis 2009: 4, 2nd genesis 2026 2.
-      .pushPush(Buffer.from([is_lif ? 2 : 4]))
-      .pushData(flags)
-      .compile(),
-      sequence: 0xffffffff
-    }],
-    outputs: [{
-      value: reward,
-      script: Script.fromPubkey(key)
-    }/*, {
-      value: 0,
-      script: Script.fromPubkey(lif_kv)
-    }*/],
-    locktime: 0
-  });
+  let input = new Script()
+  .pushInt(0x1d00ffff) // ~4G hashing attempts needed
+  // 1st genesis 2009: 4, 2nd genesis 2026 2.
+  .pushPush(Buffer.from([is_lif ? 2 : 4]))
+  .pushData(flags);
+  let outputs = [{
+    value: reward,
+    script: Script.fromPubkey(key)
+  }];
+  let inputs = [{
+    prevout: {hash: consensus.ZERO_HASH, index: 0xffffffff},
+    script: input.compile(),
+    sequence: 0xffffffff,
+  }];
+  if (is_lif && opt.btc_timestamp){
+    let push_output = true;
+    if (push_output){
+      // push in output script
+      let timestamp = {btc_timestamp: opt.btc_timestamp};
+      let script = lif_kv_script({key: 'timestamp',
+        val: JSON.stringify(timestamp)});
+      outputs.push({value: 0, script});
+    } else {
+      // push in input script
+      input.pushData('btc_timestamp');
+      let btc_timestamp = Buffer.from(opt.btc_timestamp, 'hex').reverse();
+      assert(btc_timestamp.length==32, 'invalid btc_timestamp');
+      input.pushData(btc_timestamp);
+    }
+  }
+  const tx = new TX({version: 1, inputs, outputs, locktime: 0});
   const block = new Block({
     version: opt.version,
     prevBlock: consensus.ZERO_HASH,
@@ -88,12 +99,12 @@ function createGenesisBlock(opt) {
   return block;
 }
 
-function gen_block(name){
+function gen_block(name, opt={}){
   let net = Networks[name];
   let gen = net.genesis;
   return net.genesis_block = createGenesisBlock(
     {version: 1, time: gen.time, bits: gen.bits, nonce: gen.nonce,
-    net_type: name});
+    net_type: name, btc_timestamp: opt.btc_timestamp});
 }
 
 function str_diff(a, b){
@@ -143,17 +154,25 @@ function diff_block(name){
     .toString('hex');
   if (h_orig!=h_orig_comp && !genesisBlock_diff)
     console.log(err='ERR genesisBlock orig calc hash:', h_orig_comp);
-  let h_calc = block.hash().toString('hex');
+  if (g.nonce && !g.time)
+    console.log(err='ERR genesis.nonce set but genesis.time=0');
+  let h_calc;
+  if (g.nonce)
+    h_calc = block.hash().toString('hex');
+  else
+    h_calc = '01'.repeat(32); // mark hash not yet calculated
   if (h_calc!=h_orig)
     console.log(err='ERR genesis.hash calc:', h_calc);
-  // check hash matches target
-  let header = block.toRaw().slice(0, 80);
-  let nonce = block.nonce;
-  let mine_err;
-  if (mine_range({header, min: nonce, max: nonce})<0){
-    console.log(err='ERR target not reached:', '0x'+block.bits.toString(16),
-      common.getTarget(block.bits));
-    mine_err = true;
+  if (g.nonce){
+    // check hash matches target
+    let header = block.toRaw().slice(0, 80);
+    let nonce = block.nonce;
+    let mine_err;
+    if (mine_range({header, min: nonce, max: nonce})<0){
+      console.log(err='ERR target not reached:', '0x'+block.bits.toString(16),
+        common.getTarget(block.bits));
+      mine_err = true;
+    }
   }
   console.log('genesis.hash orig:', h_orig);
   if (g.bits!=pow.bits)
@@ -176,8 +195,9 @@ function diff_block(name){
     console.log('ERROR');
   else
     console.log('SUCCESS');
-  if (!g.time || !g.nonce)
+  if (!g.nonce)
     do_mine(block);
+  return err;
 }
 
 const BN = require('bcrypto/lib/bn.js');
@@ -196,9 +216,10 @@ function magic_calc(){
   if ((+_yekum)!=0x0eca929b)
     console.log('lifmain magic', '0x'+yekum);
   let net = Networks.lifmain;
-  if (_yekum != net.magic)
+  if (_yekum != net.magic){
     console.log('ERROR', yekum, net.magic.toString(16));
-
+    return 'ERR magic';
+  }
 }
 function mine_single({header, target, nonce, time}){
   let hash;
@@ -267,15 +288,18 @@ function do_mine(block){
     console.log('failed mining');
     return;
   }
-  console.log('SUCCESS: nonce='+nonce, header.toString('hex'));
-  return {nonce, time, header};
+  let hash = Network.get_pow_hash256().digest(header).reverse().toString('hex');
+  console.log('SUCCESS: nonce='+nonce, 'header=', header.toString('hex'),
+    'hash', hash);
+  return {nonce, time, header, hash};
 }
 
 function do_test(){
+  let error;
   diff_block('main');
   Network.set('lifmain');
-  diff_block('lifmain');
-  magic_calc();
+  error ||= magic_calc();
+  error ||= diff_block('lifmain');
   Network.set();
   0 && diff_block('testnet');
   0 && diff_block('liftest');
@@ -285,6 +309,7 @@ function do_test(){
   Network.set('lifmain');
   0 && do_mine(gen_block('lifmain'));
   Network.set();
+  return {error};
 }
 
 function bech32(mnemonic){
@@ -313,7 +338,122 @@ function do_tx(){
   Network.set();
 }
 
+async function file_json(file){
+  let f;
+  try {
+    f = await readFile(file, 'utf8');
+    return JSON.parse(f);
+  } catch(error){
+    console.error(error);
+    console.log('failed file_json '+file);
+    return {error};
+  }
+}
+async function fetch_json(url){
+  try {
+    let ret = await fetch('https://mempool.space/api/v1/blocks');
+    let json = await ret.json();
+    return json;
+  } catch(error){
+    console.log('failed fetch '+url);
+    return {error};
+  }
+}
+async function btc_fetch_tip(url, cmp){
+  let _tip = await fetch_json('https://mempool.space/api/v1/blocks');
+  let tip = {id: _tip[0].id, height: _tip[0].height};
+  if (!tip.id || !tip.height)
+    return {error: 'failed fetch'};
+  if (cmp && (cmp.id!=tip.id || cmp.height!=tip.height)){
+    console.log('tip mismatch btcscan', tip, 'orig', cmp);
+    return {error: 'tip mismatch'};
+  }
+  return tip;
+}
+async function btc_get_tip({test}={}){
+  let tip = await btc_fetch_tip('https://mempool.space/api/v1/blocks');
+  if (tip.error)
+    return tip;
+  if (typeof tip.height!='number' || tip<900000 || tip.height>1100000){
+    console.log('invalid tip height', tip.height);
+    return {error: 'invalid tip height'};
+  }
+  if (tip.id?.length!=64){
+    console.log('invalid tip id', tip.id);
+    return {error: 'invalid tip id'};
+  }
+  if (test){
+    let tip2;
+    tip2 = await btc_fetch_tip('https://btcscan.org/api/blocks/tip');
+    if (tip2.error)
+      return tip2;
+    // ?cors=true only needed for browsers
+    tip2 = await btc_fetch_tip('https://blockchain.info/latestblock?cors=true');
+    if (tip2.error)
+      return tip2;
+    tip2 = await btc_fetch_tip('https://api.blockcypher.com/v1/btc/main');
+    if (tip2.error)
+      return tip2;
+  }
+  return tip;
+}
+async function btc_create_kv({coin, lif_timestamp}){
+  let timestamp = JSON.stringify({lif_timestamp: lif_timestamp});
+  let script = lif_kv_script({key: 'timestamp', val: timestamp});
+}
+async function test_and_create_gen(){
+  let error;
+  let coin;
+  // validate setup: btc tip and submit, coin for kv submission
+  coin = await file_json(homedir()+'/btc_coin.json');
+  if (coin?.error)
+    return coin;
+  coin = coin.coin;
+  if (coin.tx?.length!=64 || typeof coin.outi!='number' ||
+    !coin.keypair.addr || !coin.keypair.priv)
+  {
+    console.log('missing coin fields');
+    return {error: 'missing coin fields'};
+  }
+  let tip = await btc_get_tip({test: true});
+  if (tip.error)
+    return tip;
+  // validate current genesis is correct
+  Network.set('lifmain');
+  if (error=magic_calc())
+    return {error};
+  if (error=diff_block('lifmain', {mine: false}))
+    return {error};
+  // get new btc TIP
+  tip = await btc_get_tip();
+  if (tip?.error)
+    return tip;
+  console.log('btc tip', tip);
+  // mine new block with new TIP
+  let ret = do_mine(gen_block('lifmain', {btc_timestamp: tip.id}));
+  if (ret.error)
+    return ret;
+  // create BTC KV transaction with lifocin/block_hash@0
+  ret = await btc_create_kv({coin, lif_timestamp: ret.hash});
+  if (ret?.error)
+    return ret;
+  // submit new BTC transaction, using existing btc keypair and coin, as long
+  // as no new btc tip has been created
+  Network.set();
+}
+
+async function main(){
+  let argv = process.argv;
+  if (argv.includes('test'))
+    await do_test({mine: true});
+  else if (argv.includes('gen'))
+    await test_and_create_gen();
+  else
+    console.log('invalid command: test|gen');
+  process.exit(0);
+}
+
 if (!process.browser)
-  do_test();
+  main();
 module.exports = {do_test, do_tx};
 
