@@ -3,10 +3,13 @@
 const SHA256 = require('../lib/utils/sha256');
 const SHA256LIF = require('../lib/utils/sha256lif');
 const arg = process.argv.find(a=>a=='sha256'||a=='sha256lif'||a=='hash256'||a=='hash256lif') || 'sha256lif';
+const hex = process.argv.includes('hex');
 const chunks = [];
 process.stdin.on('data', chunk=>chunks.push(chunk));
 process.stdin.on('end', ()=>{
-  const buf = Buffer.concat(chunks);
+  let buf = Buffer.concat(chunks);
+  if (hex)
+    buf = Buffer.from(buf.toString('ascii'), 'hex');
   let hash;
   if (arg=='sha256')
     hash = SHA256.digest(buf);

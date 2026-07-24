@@ -41,6 +41,7 @@ function createGenesisBlock(opt) {
     //flags = 'The Guide 18/Oct/1984 Ancient philology open D.N.A eternal words book';
     // Mine your name
     //flags = 'The Guide 18/Oct/1984 Permissionless read-write bible torah guide BBS';
+    //flags = ' M.S. Ancient Philology: Justice Ethics Morals letter word count guide';
     flags = 'The Guide 18/Oct/1984 DNA Ancient philology book - eternal publishing';
   // The Counter HSUPR
   // How many sentences? how many words? how many letters?
