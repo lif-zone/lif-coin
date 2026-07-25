@@ -199,6 +199,7 @@
     "bwallet-cli": "./bin/bwallet-cli"
   },
   "scripts": {
+    "serve": "node bin/lif_node.js",
     "browserify": "browserify -s bcoin lib/bcoin-browser.js | uglifyjs -c > bcoin.js",
     "clean": "rm -f {browser/,}{bcoin.js,bcoin-worker.js,app.js,worker.js}",
     "docs": "jsdoc -c jsdoc.json",
