@@ -200,7 +200,7 @@
   },
   "scripts": {
     "serve": "node bin/lif_node.js",
-    "serve_web": "node node_modules/lif-kernel/serve.js -p 4202",
+    "serve_web": "node node_modules/lif-kernel/web/serve.js -p 4202",
     "browserify": "browserify -s bcoin lib/bcoin-browser.js | uglifyjs -c > bcoin.js",
     "clean": "rm -f {browser/,}{bcoin.js,bcoin-worker.js,app.js,worker.js}",
     "docs": "jsdoc -c jsdoc.json",
