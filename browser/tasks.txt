@@ -150,6 +150,7 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
   + trunk peer disconnect - others should continue (retry every 1 sec)
   + add lifnet loopback support
   + use lif:bitcoin/electrum json rpc TCP/SSL leaf to bluewallet server
+  + get electrum to work directly on lifnet_connect+call (not via websocket gw)
 
 For release
 -----------
@@ -166,9 +167,10 @@ For release
       bitcoin link bitcoin/block_hash@2948243 {hash: "00112233..."}
     + once found, create an inscription output the text to update networks.js. commit it. tag it.
       lifcoin/block_hash@1 {hash: ""}
-    * mining perf: start mining pool - add servers with "leaf" service of
+    + mining perf: start mining pool - add servers with "leaf" service of
       free mining, given a header. Periodically monitor bitcoin tip,
       and update mining pool.
+    - setup full mining cycle and actually mine a test block
   - generate bitcoin TX to mark the new block with lif_kv
     key=lifcoin/block@0/hash val={hash: '<32 bytes hex>'}
   - create gen block: get from electrum block hash, mine lif,
@@ -251,7 +253,6 @@ Post release:
   - handle multi-version chains (re-orgs). define 'safe' distance, to be
     3 blocks in bitcoin. 6 blocks in lif (amount of time to show conflicts)
 * lif-net
-  - get electrum to work directly on lifnet_connect+call (not via websocket gw)
   - add jsonrpc over tcp/tls support
   - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
     or lif:bitcoin/electrum
