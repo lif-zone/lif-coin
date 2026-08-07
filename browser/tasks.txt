@@ -163,7 +163,7 @@ For testnet release
   + setting lifmain difficuly to 1d00ffff
   + add gen_genesis.js to compute genesis block values and mining
   * creating genesis blocks, validating TODO items networks.js
-    - select SELECT in networks.js
+    - 'select' in networks.js
     - run node scripts/gen_genesis.js test
     + create genesis 0x1f00ffff. magic to 42 words. add KV output of
       bitcoin link bitcoin/block_hash@2948243 {hash: "00112233..."}
@@ -189,11 +189,13 @@ For testnet release
   - 21-Aug-2026 testnet release h' ALUL H'TSPU, PRAST KI TXA
   - 02-Oct-2026 mainnet release K"A TSRI H'TSPZ, ERB SMhT TURA
 - 21-Aug-2026 release day:
+  - delete existing mainnet
 
 For mainnet release
 -------------------
 - 02-Oct-2026 release day:
-  - backup testnet to other directory
+  - backup mainnet->testnet to other directory
+  - delete existing mainnet
   - update lif-coin/lib/protocol/networks.js:
     lifmain.magic = 0x0eca929b; // LIF(10 things).LE32() // select
     and enable gen_genesis.js:magic_calc()
