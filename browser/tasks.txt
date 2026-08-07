@@ -187,10 +187,10 @@ For release
   - 21-Aug-2026 testnet release h' ALUL H'TSPU, PRAST KI TXA
   - 02-Oct-2026 mainnet release K"A TSRI H'TSPZ, ERB SMhT TURA
 - prepare genesis block inscriptions:
-  - begin name call nothing thing
+  - Begin Name Call Nothing Thing
     BRASIT SMUT VIKRA BMDBR DVRIM
   - BEGINNING NAMES CALLED NOTHING THINGS
-    Babel Universal Tongue stright to Simplified Technical Language
+    Babel Universal Tongue straight to Simplified Technical Language
     BRASIT In the BEGINNING
     SMUT   These are the NAMES
     VIKRA  Be CALLED
@@ -199,17 +199,15 @@ For release
   - NOTHING but DESERT
     NAMEing gives MEANing
     BEGIN a BEING
-  - wc tr rot1
+  - wc Word Count
+    tr Translate TO=AL
+    r1 ROT1=>ROT2
   - wc: 1 2 5 6 7 18: 42
-  - tr: 
-    ZKUR SMUR
-    BIT AST
-    SQR SVA
-    HSM MSH
-    GL OD YGR SHDUTA Eternal Witness
-  - BOB GOD
-    FORD LORD
-    AL TO
+  - ZKUR=SMUR, BIT=AST, SQR=SVA
+    r1: MSH=>HSM
+    tr: GL OD = YGR SHDUTA = Eternal Witness
+  - r1: BOB=>GOD, FORD=>LORD
+  - AL=TO
   - Mine. Your Name. ANUKI HSM ALUHK.
     Lord Perfect Godspell Joseph
     Harm Less
