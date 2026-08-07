@@ -152,17 +152,19 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
   + use lif:bitcoin/electrum json rpc TCP/SSL leaf to bluewallet server
   + get electrum to work directly on lifnet_connect+call (not via websocket gw)
 
-For release
------------
-* add LIF production network with production target (4G hash).
-* move current network to test network.
+For testnet release
+-------------------
++ move current network to test network.
   + copy (backup) original blocks ~/lif.store/lifmain
   + how did lifmain allow allow 0x1d00ffff pow and allow lower vals in?
   + adding liftest
   + add liftest to wallet, and liftest_lif_kv to net
-  * gen_genesis.js to compute genesis block values and mining
-  * setting lifmain difficuly to 1d00ffff
+* add LIF production network with production target (4G hash).
+  + setting lifmain difficuly to 1d00ffff
+  + add gen_genesis.js to compute genesis block values and mining
   * creating genesis blocks, validating TODO items networks.js
+    - select SELECT in networks.js
+    - run node scripts/gen_genesis.js test
     + create genesis 0x1f00ffff. magic to 42 words. add KV output of
       bitcoin link bitcoin/block_hash@2948243 {hash: "00112233..."}
     + once found, create an inscription output the text to update networks.js. commit it. tag it.
@@ -186,82 +188,20 @@ For release
     so that can surf to them in https.
   - 21-Aug-2026 testnet release h' ALUL H'TSPU, PRAST KI TXA
   - 02-Oct-2026 mainnet release K"A TSRI H'TSPZ, ERB SMhT TURA
-- prepare genesis block inscriptions:
-  - Begin Name Call Nothing Thing
-    BRASIT SMUT VIKRA BMDBR DVRIM
-  - BEGINNING NAMES CALLED NOTHING THINGS
-    Babel Universal Tongue straight to Simplified Technical Language
-    BRASIT In the BEGINNING
-    SMUT   These are the NAMES
-    VIKRA  Be CALLED
-    BMDBR  In the NOTHING
-    DVRIM  These are the THINGS
-  - NOTHING but DESERT
-    NAMEing gives MEANing
-    BEGIN a BEING
-  - wc Word Count
-    tr Translate TO=AL
-    r1 ROT1=>ROT2
-  - wc: 1 2 5 6 7 18: 42
-  - ZKUR=SMUR, BIT=AST, SQR=SVA
-    r1: MSH=>HSM
-    tr: GL OD = YGR SHDUTA = Eternal Witness
-  - r1: BOB=>GOD, FORD=>LORD
-  - AL=TO
-  - Mine. Your Name. ANUKI HSM ALUHK.
-    Lord Perfect Godspell Joseph
-    Harm Less
-  a brilliant academic career studying ancient
-philology, transformational ethics and the wave harmonic theory of
-historical perception, and then, after a nigh
-    M.Shoshan: Ancient Philology: Justice Ethics Morals letter word count guide    
-    M.S. Ancient Philology: Justice Ethics Morals letter word count guide    
-    M.S.: Ancient Philology: Justice Ethics Morals - counting letters and words
-    (M. Ben Shoshan 1952, JEM Pub. 1969, DNA Pub. 18-Oct-1984): the study of Justice, Ethcs and Morals 
-    LCPUR AUT UMILH
-  - 42 words, The 42 of 18: The Meaning of Lif
-    The Meaning of Rich Life: The 42 of 10 18: 6-7
-    Hamavdil ben kodesh lehol. Separating the 7 from 6.
-  - Is Real Truth Priest
-    Getting the right 42 words needed for revival into every hotel room
-    for travelers
-  - add marking in genesis block of bitcoin block hash.
-  - 5 book names: beginning, names, calling, talking, things.
-    begin, name, call, talk, thing.
-  - the GUIDE, the BIBLE, the TORAH. HHUMS HTORA MDRIH
-  - creating basecoin TX: adding 'kv' bitcoin/block/2323' val
-    {"hash": "112233..."}. info will be collected via electrum, and checked it
-    does not yet appear in the KV DB. coinbase KVs will be stored in a
-    separate prefix than rest of KVs.
-    TORAH THE GUIDE TO LIF (18 chars, 5 words)
-    LIF is a book of LIFE
-    MSH BAK: Philological Book of Eternal Life Scripture
-    Lif is a Philological Book reader-writer scribed by Eternal Digital Ink
-    (mostly Eternal)
-    The Guide and The Well and the Torah
-  - ben shushan word counting 4-6 jpg
-  - add Paul bug, Bach Beach, and Dr. Suess, add Yiddish. Maybe woody alan.
-  - put full bible inscription 300K letters in one of the first blocks.
-  - rosseta stone: 42 words, in hebrew, english, spanish, greek, arameic.
-    will be the 1st data inscription. future: KV system will have also bin data:
-    key, val (json), valb (binary). json points to binary.
-  - Fire Lights, and forever alive HSNH BUOR UJI LNXJ
-    Life's fire never burns out HSNH BUOR UAINU OUKL
-    Life's light never burns out
-    Ethernal Flame
-    Eternal Network: Etha-Net
-    wc: Beginning Naming Calling and Meaning things
-    what do you get seven times nine
-    Verb (beginning) Gerund (naming) Gerund (calling) Gerund (meaning) Noum (things)
-    A Homer: to pull a homer
-    VALH SMUT - *these* are the names (the naming action/process, like LSIM)
-  - Torah letters 304805 words 79980, letters 5845
-    lif_kv HTURH/wc {things: 504885, names: 79980, signs: 5845}
-  - Sefaria hebrew text
-    Gideon's bible
-    https://github.com/scrollmapper/bible_databases
-    https://github.com/Sefaria/Sefaria-Data/tree/master/sources
-    https://www.openbible.info/labs/browse-books/
+- 21-Aug-2026 release day:
+
+For mainnet release
+-------------------
+- 02-Oct-2026 release day:
+  - backup testnet to other directory
+  - update lif-coin/lib/protocol/networks.js:
+    lifmain.magic = 0x0eca929b; // LIF(10 things).LE32() // select
+    and enable gen_genesis.js:magic_calc()
+
+Post mainnet release
+-------------------
+- buy: lifnet-test.com lifocin-test.com
+- move old mainnet to testnet. add domains lifnet-test.com
 
 Post release:
 -------------
@@ -367,6 +307,85 @@ The highest ROI in order:
 1. React Router — biggest reduction, the screen state machine is ~100 lines of logic                                                               
 2. TanStack Query — eliminates repetitive fetch boilerplate across many screens                                                                    
 3. React Hook Form — cleans up the form screens                                                                                                    
+
+Text source options
+-------------------
+- prepare genesis block inscriptions:
+  - Begin Name Call Nothing Thing
+    BRASIT SMUT VIKRA BMDBR DVRIM
+  - BEGINNING NAMES CALLED NOTHING THINGS
+    Babel Universal Tongue straight to Simplified Technical Language
+    BRASIT In the BEGINNING
+    SMUT   These are the NAMES
+    VIKRA  Be CALLED
+    BMDBR  In the NOTHING
+    DVRIM  These are the THINGS
+  - NOTHING but DESERT
+    NAMEing gives MEANing
+    BEGIN a BEING
+  - wc Word Count
+    tr Translate TO=AL
+    r1 ROT1=>ROT2
+  - wc: 1 2 5 6 7 18: 42
+  - ZKUR=SMUR, BIT=AST, SQR=SVA
+    r1: MSH=>HSM
+    tr: GL OD = YGR SHDUTA = Eternal Witness
+  - r1: BOB=>GOD, FORD=>LORD
+  - AL=TO
+  - Mine. Your Name. ANUKI HSM ALUHK.
+    Lord Perfect Godspell Joseph
+    Harm Less
+  a brilliant academic career studying ancient
+philology, transformational ethics and the wave harmonic theory of
+historical perception, and then, after a nigh
+    M.Shoshan: Ancient Philology: Justice Ethics Morals letter word count guide    
+    M.S. Ancient Philology: Justice Ethics Morals letter word count guide    
+    M.S.: Ancient Philology: Justice Ethics Morals - counting letters and words
+    (M. Ben Shoshan 1952, JEM Pub. 1969, DNA Pub. 18-Oct-1984): the study of Justice, Ethcs and Morals 
+    LCPUR AUT UMILH
+  - 42 words, The 42 of 18: The Meaning of Lif
+    The Meaning of Rich Life: The 42 of 10 18: 6-7
+    Hamavdil ben kodesh lehol. Separating the 7 from 6.
+  - Is Real Truth Priest
+    Getting the right 42 words needed for revival into every hotel room
+    for travelers
+  - add marking in genesis block of bitcoin block hash.
+  - 5 book names: beginning, names, calling, talking, things.
+    begin, name, call, talk, thing.
+  - the GUIDE, the BIBLE, the TORAH. HHUMS HTORA MDRIH
+  - creating basecoin TX: adding 'kv' bitcoin/block/2323' val
+    {"hash": "112233..."}. info will be collected via electrum, and checked it
+    does not yet appear in the KV DB. coinbase KVs will be stored in a
+    separate prefix than rest of KVs.
+    TORAH THE GUIDE TO LIF (18 chars, 5 words)
+    LIF is a book of LIFE
+    MSH BAK: Philological Book of Eternal Life Scripture
+    Lif is a Philological Book reader-writer scribed by Eternal Digital Ink
+    (mostly Eternal)
+    The Guide and The Well and the Torah
+  - ben shushan word counting 4-6 jpg
+  - add Paul bug, Bach Beach, and Dr. Suess, add Yiddish. Maybe woody alan.
+  - put full bible inscription 300K letters in one of the first blocks.
+  - rosseta stone: 42 words, in hebrew, english, spanish, greek, arameic.
+    will be the 1st data inscription. future: KV system will have also bin data:
+    key, val (json), valb (binary). json points to binary.
+  - Fire Lights, and forever alive HSNH BUOR UJI LNXJ
+    Life's fire never burns out HSNH BUOR UAINU OUKL
+    Life's light never burns out
+    Ethernal Flame
+    Eternal Network: Etha-Net
+    wc: Beginning Naming Calling and Meaning things
+    what do you get seven times nine
+    Verb (beginning) Gerund (naming) Gerund (calling) Gerund (meaning) Noum (things)
+    A Homer: to pull a homer
+    VALH SMUT - *these* are the names (the naming action/process, like LSIM)
+  - Torah letters 304805 words 79980, letters 5845
+    lif_kv HTURH/wc {things: 504885, names: 79980, signs: 5845}
+  - Sefaria hebrew text
+    Gideon's bible
+    https://github.com/scrollmapper/bible_databases
+    https://github.com/Sefaria/Sefaria-Data/tree/master/sources
+    https://www.openbible.info/labs/browse-books/
 
 coding conventions:
 -------------------

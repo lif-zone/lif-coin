@@ -213,6 +213,7 @@ const mine = require('../lib/mining/mine');
 const common = require('../lib/mining/common');
 const final = 1;
 function magic_calc(){
+  return; // XXX remove before mainnet release
   let whoami = 'IBEYOURGODDONTCREATEOTHERGODSOVERMEDONTUSEBEYOURGODSNAMEINVAINREMEMBERTODEDICATETHESATURDAYHONORYOURFATHERANDMOTHERDONTMURDERDONTBETRAYDONTSTEALDONTACCUSEBYLIESDONTGREEDFELLOWSHOME';
   let yekum = hash256lif.digest(Buffer.from(whoami, 'ascii')).slice(0, 4).reverse().toString('hex');
   let _yekum = +('0x'+yekum);
