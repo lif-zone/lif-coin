@@ -161,7 +161,7 @@ async function diff_block(name){
   let merkleRoot_calc = block.merkleRoot.toString('hex');
   let merkleRoot_orig = g.merkleRoot.toString('hex');
   if (merkleRoot_calc!=merkleRoot_orig){
-    console.log(err='ERR genesis.merkleRoot calc', merkleRoot_calc);
+    console.log(err='ERR set new: genesis.merkleRoot calc', merkleRoot_calc);
     console.log('orig merkleRoot', merkleRoot_orig);
   }
   // check orig header hash matchs computed
