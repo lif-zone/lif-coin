@@ -180,7 +180,7 @@ For release
     template, periodic test and update if new bitcoin hash to lif coinbase,
     git commit networks.js with nonce+time, submitting bitcoin TX with link
     to lif genesis, and lif hash itself, in a lif-kv format
-- Setup lifnet and lifcoin servers:
+- Setup 2 lifnet and lifcoin servers:
   - Install and run on VPS1 and VPS2: lif_node.js, lif-kernel ssl, lifcoin_s.js
   - setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
     so that can surf to them in https.
