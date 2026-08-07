@@ -126,7 +126,7 @@ function str_diff(a, b){
 function to_bin(hex){ return Buffer.from(hex, 'hex'); }
 function hex_lines(hex){ return "'"+hex.match(/.{1,70}/g).join("'\n+'")+"'"; }
 function date_time(){ return Math.floor(Date.now()/1000); }
-function diff_block(name){
+async function diff_block(name){
   let net = Networks[name];
   let g = net.genesis;
   let block = gen_block(name);
@@ -199,7 +199,7 @@ function diff_block(name){
   else
     console.log('SUCCESS');
   if (!g.nonce)
-    do_mine(block);
+    await do_mine(block);
   return err;
 }
 
@@ -256,7 +256,7 @@ function mine_range({header, target, min, max, time}){
   return -1;
 }
 
-function do_mine(block){
+async function do_mine(block){
   // $ speed -bytes 80 sha256
   // Doing sha256 for 3s on 80 size blocks: 4368155 sha256's in 2.98s
   // so does 1.3M/sec (nodeJS native).
@@ -298,20 +298,20 @@ function do_mine(block){
   return {nonce, time, header, hash};
 }
 
-function do_test(){
+async function do_test(){
   let error;
-  diff_block('main');
+  await diff_block('main');
   Network.set('lifmain');
   error ||= magic_calc();
-  error ||= diff_block('lifmain');
+  error ||= await diff_block('lifmain');
   Network.set();
-  0 && diff_block('testnet');
-  0 && diff_block('liftest');
-  0 && diff_block('regtest');
-  0 && diff_block('simnet');
-  0 && do_mine(gen_block('main'));
+  0 && await diff_block('testnet');
+  0 && await diff_block('liftest');
+  0 && await diff_block('regtest');
+  0 && await diff_block('simnet');
+  0 && await do_mine(gen_block('main'));
   Network.set('lifmain');
-  0 && do_mine(gen_block('lifmain'));
+  0 && await do_mine(gen_block('lifmain'));
   Network.set();
   return {error};
 }
@@ -471,7 +471,7 @@ async function test_and_create_gen(){
   Network.set('lifmain');
   if (error=magic_calc())
     return {error};
-  if (error=diff_block('lifmain', {mine: false}))
+  if (error=await diff_block('lifmain', {mine: false}))
     return {error};
   // get new btc TIP
   tip = await btc_get_tip();
@@ -480,7 +480,7 @@ async function test_and_create_gen(){
   console.log('btc tip', tip);
   // mine new block with new TIP
   let block = gen_block('lifmain', {btc_timestamp: tip.id});
-  let ret = do_mine(block);
+  let ret = await do_mine(block);
   if (ret.error)
     return ret;
   let block_hex = block.toRaw().toString('hex');
