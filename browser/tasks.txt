@@ -180,7 +180,36 @@ For release
     template, periodic test and update if new bitcoin hash to lif coinbase,
     git commit networks.js with nonce+time, submitting bitcoin TX with link
     to lif genesis, and lif hash itself, in a lif-kv format
+- Setup lifnet and lifcoin servers:
+  - Install and run on VPS1 and VPS2: lif_node.js, lif-kernel ssl, lifcoin_s.js
+  - setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
+    so that can surf to them in https.
+  - 21-Aug-2026 testnet release h' ALUL H'TSPU, PRAST KI TXA
+  - 02-Oct-2026 mainnet release K"A TSRI H'TSPZ, ERB SMhT TURA
 - prepare genesis block inscriptions:
+  - begin name call nothing thing
+    BRASIT SMUT VIKRA BMDBR DVRIM
+  - BEGINNING NAMES CALLED NOTHING THINGS
+    Babel Uni-Tongue stright to Simplified Technical Language
+    BRASIT In the BEGINNING
+    SMUT   These are the NAMES
+    VIKRA  Be CALLED
+    BMDBR  In the NOTHING
+    DVRIM  These are the THINGS
+  - NOTHING but DESERT
+    NAMEing gives MEANing
+    BEGIN a BEING
+  - wc tr rot1
+  - wc: 1 2 5 6 7 18: 42
+  - tr: 
+    ZKUR SMUR
+    BIT AST
+    SQR SVA
+    HSM MSH
+    GL OD YGR SHDUTA Eternal Witness
+  - BOB GOD
+    FORD LORD
+    AL TO
   - Mine. Your Name. ANUKI HSM ALUHK.
     Lord Perfect Godspell Joseph
     Harm Less
