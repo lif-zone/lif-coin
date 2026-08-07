@@ -56,7 +56,7 @@ function createGenesisBlock(opt) {
     //flags = 'The Guide 18/Oct/1984 Permissionless read-write bible torah guide BBS';
     //flags = ' M.S. Ancient Philology: Justice Ethics Morals letter word count guide';
     //flags = 'The Guide 18/Oct/1984 DNA Ancient philology book - eternal publishing';
-    flags = 'T1 The Guide 08/ALU/5786 KI TXA Ethernal Names Philology DNA/Shoshani';
+    flags = 't1 The Guide 08/ALU/5786 KI TXA Ethernal Names Philology DNA/Shoshani';
     //flags = 'The Guide 21/TSR/5787 SMhT TURA Ethernal Names Philology DNA/Shoshani';
   // The Counter HSUPR
   // How many sentences? how many words? how many letters?
