@@ -553,5 +553,5 @@ async function main(){
 }
 
 if (!process.browser)
-  main();
+  await main();
 
