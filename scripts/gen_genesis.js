@@ -2,22 +2,35 @@
 'use strict';
 process.title = 'gen';
 
-const assert = require('bsert');
-const consensus = require('../lib/protocol/consensus');
-const Networks = require('../lib/protocol/networks');
-const Network = require('../lib/protocol/network');
-const TX = require('../lib/primitives/tx');
-const MTX = require('../lib/primitives/mtx');
-const Block = require('../lib/primitives/block');
-const Script = require('../lib/script/script');
-const Mnemonic = require('../lib/hd/mnemonic');
-const HDPrivateKey = require('../lib/hd/private');
-const KeyRing = require('../lib/primitives/keyring');
-const Coin = require('../lib/primitives/coin');
-const Address = require('../lib/primitives/address');
-const {opcodes} = require('../lib/script/common');
-const {readFile} = require('fs/promises');
-const {homedir} = require('os');
+import assert from 'bsert';
+import consensus from '../lib/protocol/consensus.js';
+import Networks from '../lib/protocol/networks.js';
+import Network from '../lib/protocol/network.js';
+import TX from '../lib/primitives/tx.js';
+import MTX from '../lib/primitives/mtx.js';
+import Block from '../lib/primitives/block.js';
+import Script from '../lib/script/script.js';
+import Mnemonic from '../lib/hd/mnemonic.js';
+import HDPrivateKey from '../lib/hd/private.js';
+import KeyRing from '../lib/primitives/keyring.js';
+import Coin from '../lib/primitives/coin.js';
+import Address from '../lib/primitives/address.js';
+import {opcodes} from '../lib/script/common.js';
+import {readFile} from 'fs/promises';
+import {homedir} from 'os';
+import etask from 'lif-kernel/etask';
+const {wait: ewait} = etask;
+import {lifnet_connect} from 'lif-kernel/lifnet';
+
+function buf_from_hex(b){
+  if (Buffer.isBuffer(b))
+    return Buffer.from(b);
+  return Buffer.from(b, 'hex');
+}
+function buf_to_hex(b){
+  b = Buffer.from(b);
+  return b.toString('hex');
+}
 
 function lif_kv_script({net, key, val, valbin}){
   let s = new Script()
@@ -51,10 +64,10 @@ function createGenesisBlock(opt) {
   if (typeof flags=='string')
     flags = Buffer.from(flags, 'ascii');
   if (!key) {
-    key = Buffer.from(''
+    key = buf_from_hex(''
       + '04678afdb0fe5548271967f1a67130b7105cd6a828e039'
       + '09a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c3'
-      + '84df7ba0b8d578a4c702b6bf11d5f', 'hex');
+      + '84df7ba0b8d578a4c702b6bf11d5f');
   }
   if (!reward)
     reward = 50 * consensus.COIN;
@@ -83,7 +96,7 @@ function createGenesisBlock(opt) {
     } else {
       // push in input script
       input.pushData('btc_timestamp');
-      let btc_timestamp = Buffer.from(opt.btc_timestamp, 'hex').reverse();
+      let btc_timestamp = buf_from_hex(opt.btc_timestamp).reverse();
       assert(btc_timestamp.length==32, 'invalid btc_timestamp');
       input.pushData(btc_timestamp);
     }
@@ -123,10 +136,9 @@ function str_diff(a, b){
 }
 
 // helps edit and validate lib/protocol/networks.js
-function to_bin(hex){ return Buffer.from(hex, 'hex'); }
 function hex_lines(hex){ return "'"+hex.match(/.{1,70}/g).join("'\n+'")+"'"; }
 function date_time(){ return Math.floor(Date.now()/1000); }
-function diff_block(name){
+async function diff_block(name){
   let net = Networks[name];
   let g = net.genesis;
   let block = gen_block(name);
@@ -153,7 +165,7 @@ function diff_block(name){
   // check orig header hash matchs computed
   let pow = net.pow;
   let h_orig = g.hash.toString('hex');
-  let h_orig_comp = new Block().fromHead(to_bin(b_orig)).hash()
+  let h_orig_comp = new Block().fromHead(buf_from_hex(b_orig)).hash()
     .toString('hex');
   if (h_orig!=h_orig_comp && !genesisBlock_diff)
     console.log(err='ERR genesisBlock orig calc hash:', h_orig_comp);
@@ -199,20 +211,21 @@ function diff_block(name){
   else
     console.log('SUCCESS');
   if (!g.nonce)
-    do_mine(block);
+    await do_mine(block);
   return err;
 }
 
-const BN = require('bcrypto/lib/bn.js');
-const hash256 = require('bcrypto/lib/hash256');
-const sha256 = require('bcrypto/lib/sha256');
-const _sha256 = require('../lib/utils/sha256');
-const sha256lif = require('../lib/utils/sha256lif');
-const hash256lif = require('../lib/utils/hash256lif');
-const mine = require('../lib/mining/mine');
-const common = require('../lib/mining/common');
+import BN from 'bcrypto/lib/bn.js';
+import hash256 from 'bcrypto/lib/hash256.js';
+import sha256 from 'bcrypto/lib/sha256.js';
+import _sha256 from '../lib/utils/sha256.js';
+import sha256lif from '../lib/utils/sha256lif.js';
+import hash256lif from '../lib/utils/hash256lif.js';
+import mine from '../lib/mining/mine.js';
+import  common from '../lib/mining/common.js';
 const final = 1;
 function magic_calc(){
+  return; // XXX remove before mainnet release
   let whoami = 'IBEYOURGODDONTCREATEOTHERGODSOVERMEDONTUSEBEYOURGODSNAMEINVAINREMEMBERTODEDICATETHESATURDAYHONORYOURFATHERANDMOTHERDONTMURDERDONTBETRAYDONTSTEALDONTACCUSEBYLIESDONTGREEDFELLOWSHOME';
   let yekum = hash256lif.digest(Buffer.from(whoami, 'ascii')).slice(0, 4).reverse().toString('hex');
   let _yekum = +('0x'+yekum);
@@ -233,7 +246,8 @@ function mine_single({header, target, nonce, time}){
   //hash = sha256lif.digest(_sha256.digest(header)); // 0.29M/sec
   //hash = hash256lif.digest(header); // 0.29M/sec
   //hash = hash256.digest(header); // 0.36M/sec
-  hash = Network.get_pow_hash256().digest(header);
+  const net = Network.get();
+  hash = net.pow_hash256.digest(header);
   let found = mine.rcmp(hash, target)<=0;
   if (!found)
     return;
@@ -255,7 +269,31 @@ function mine_range({header, target, min, max, time}){
   return -1;
 }
 
-function do_mine(block){
+function mine_slave({header, min, max, target}){ return etask(function*(){
+  // copied as-is from lif-wallet/mine_pool.js. not yet tested here
+  const net = Network.get();
+  let pow = net.pow_hash256_name;
+  let {sock, error} = yield lifnet_connect('lifcoin/mine_slave',
+    {header: buf_to_hex(header), target, min, max, pow});
+  if (error)
+    return {found: false, error};
+  let done = ewait();
+  let res;
+  sock.method('update', up=>this.emit('update', up));
+  sock.method('found', ret=>{
+    res = {...ret, header: buf_from_hex(ret.header)};
+  });
+  sock.method('not_found', ret=>{
+    res = {found: false, ...ret};
+  });
+  sock.on('close', ()=>done.return(
+    res || {found: false, error: 'disconnected'}));
+  this.on('finally', ()=>sock.close());
+  return yield done;
+}); }
+
+let enable_slave = process.env.MINE_SLAVE;
+async function do_mine(block){
   // $ speed -bytes 80 sha256
   // Doing sha256 for 3s on 80 size blocks: 4368155 sha256's in 2.98s
   // so does 1.3M/sec (nodeJS native).
@@ -281,7 +319,10 @@ function do_mine(block){
       time_last = time;
     }
     let _max = Math.min(max, i+inc-1);
-    nonce = mine_range({header, target, min: i, max: _max, time});
+    if (enable_slave)
+      nonce = mine_slave({header, target, min: i, max: _max, time});
+    else
+      nonce = mine_range({header, target, min: i, max: _max, time});
     if (nonce>=0)
       break;
     let tm = Date.now()-start;
@@ -291,26 +332,27 @@ function do_mine(block){
     console.log('failed mining');
     return;
   }
-  let hash = Network.get_pow_hash256().digest(header).reverse().toString('hex');
+  const net = Network.get();
+  let hash = net.pow_hash256.digest(header).reverse().toString('hex');
   console.log('SUCCESS: nonce='+nonce, 'header=', header.toString('hex'),
     'hash', hash);
   return {nonce, time, header, hash};
 }
 
-function do_test(){
+async function do_test(){
   let error;
-  diff_block('main');
+  await diff_block('main');
   Network.set('lifmain');
   error ||= magic_calc();
-  error ||= diff_block('lifmain');
+  error ||= await diff_block('lifmain');
   Network.set();
-  0 && diff_block('testnet');
-  0 && diff_block('liftest');
-  0 && diff_block('regtest');
-  0 && diff_block('simnet');
-  0 && do_mine(gen_block('main'));
+  0 && await diff_block('testnet');
+  0 && await diff_block('liftest');
+  0 && await diff_block('regtest');
+  0 && await diff_block('simnet');
+  0 && await do_mine(gen_block('main'));
   Network.set('lifmain');
-  0 && do_mine(gen_block('lifmain'));
+  0 && await do_mine(gen_block('lifmain'));
   Network.set();
   return {error};
 }
@@ -470,7 +512,7 @@ async function test_and_create_gen(){
   Network.set('lifmain');
   if (error=magic_calc())
     return {error};
-  if (error=diff_block('lifmain', {mine: false}))
+  if (error=await diff_block('lifmain', {mine: false}))
     return {error};
   // get new btc TIP
   tip = await btc_get_tip();
@@ -479,7 +521,7 @@ async function test_and_create_gen(){
   console.log('btc tip', tip);
   // mine new block with new TIP
   let block = gen_block('lifmain', {btc_timestamp: tip.id});
-  let ret = do_mine(block);
+  let ret = await do_mine(block);
   if (ret.error)
     return ret;
   let block_hex = block.toRaw().toString('hex');

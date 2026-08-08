@@ -2,7 +2,6 @@ import React from 'react';
 import {render} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import './node_env.js';
-//import App from './app.jsx';
 let App = (await import('./app.jsx')).default;
 // set favicon
 let link = document.createElement('link');
