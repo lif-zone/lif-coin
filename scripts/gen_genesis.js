@@ -56,8 +56,10 @@ function createGenesisBlock(opt) {
     //flags = 'The Guide 18/Oct/1984 Permissionless read-write bible torah guide BBS';
     //flags = ' M.S. Ancient Philology: Justice Ethics Morals letter word count guide';
     //flags = 'The Guide 18/Oct/1984 DNA Ancient philology book - eternal publishing';
-    flags = 't1 The Guide 08/ALU/5786 KI TXA Ethernal Names Philology DNA/Shoshani';
+    flags = 't1 The Guide KI TXA 08/ALU/5786 Ethernal Names Philology DNA/Shoshani';
     //flags = 'The Guide 21/TSR/5787 SMhT TURA Ethernal Names Philology DNA/Shoshani';
+    //flags = 'The Happiness Guide 21/TSR/5787 Ethernal Names Philology DNA/Shoshani';
+  // MR SUSNI. 1 2*5 6*10 18 7
   // The Counter HSUPR
   // How many sentences? how many words? how many letters?
   // with JPG: Ben Shoshan on Counter Helpers work
@@ -137,6 +139,7 @@ function str_diff(a, b){
   return i;
 }
 
+// fixing sequence of lif/protocol/networks.js
 // helps edit and validate lib/protocol/networks.js
 function hex_lines(hex){ return "'"+hex.match(/.{1,70}/g).join("'\n+'")+"'"; }
 function date_time(){ return Math.floor(Date.now()/1000); }
@@ -207,6 +210,13 @@ async function diff_block(name){
     let chainwork_hex = pow.chainwork.toString('hex', 64);
     if (pow.chainwork.gt(genesis_chainwork))
       console.log(err='ERR chainwork: pow.chainwork > genesis (genesis block fails minimum):', chainwork_hex);
+  }
+  if (is_lif){
+    let magic_calc = +('0x'+h_orig.slice(0, 8));
+    if (magic_calc != net.magic){
+      console.log(err='ERR magic mismatch: orig '+net.magic.toString(16)+
+        ' calc '+magic_calc.toString(16));
+    }
   }
   if (err)
     console.log('ERROR');
@@ -291,7 +301,9 @@ function mine_slave({header, min, max, target}){ return etask(function*(){
   sock.on('close', ()=>done.return(
     res || {found: false, error: 'disconnected'}));
   this.on('finally', ()=>sock.close());
-  return yield done;
+  let ret = yield done;
+  console.log('mine_slave return', ret);
+  return ret;
 }); }
 
 let enable_slave = process.env.MINE_SLAVE;
@@ -323,9 +335,11 @@ async function do_mine(block){
       time_last = time;
     }
     let _max = Math.min(max, i+inc-1);
-    if (enable_slave)
-      nonce = mine_slave({header, target, min: i, max: _max, time});
-    else
+    if (enable_slave){
+      nonce = await mine_slave({header, target: bits, min: i, max: _max, time});
+      if (nonce?.error)
+        return void console.log('mine_slave ERR', nonce.error);
+    } else
       nonce = mine_range({header, target, min: i, max: _max, time});
     if (nonce>=0)
       break;
@@ -347,11 +361,10 @@ export async function do_test(){
   let error;
   await diff_block('main');
   Network.set('lifmain');
-  error ||= magic_calc();
   error ||= await diff_block('lifmain');
   Network.set();
   0 && await diff_block('testnet');
-  0 && await diff_block('liftest');
+  1 && await diff_block('liftest');
   0 && await diff_block('regtest');
   0 && await diff_block('simnet');
   0 && await do_mine(gen_block('main'));
