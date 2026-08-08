@@ -166,9 +166,14 @@ For testnet release 21-Aug-2026
     02-10-2026          21-01-5787
     21x2 8+10 2+2+6=10  081 (1+1)*21     6*7
 * add LIF production network with production target (4G hash).
+  + automate the process: providing private addr for bitcoin transaction,
+    getting btc tip hash, inserting to lif genesis template, mining a lif
+    template, periodic test and update if new bitcoin hash to lif coinbase,
+    git commit networks.js with nonce+time, submitting bitcoin TX with link
+    to lif genesis, and lif hash itself, in a lif-kv format
   + setting lifmain difficuly to 1d00ffff
   + add gen_genesis.js to compute genesis block values and mining
-  * creating genesis blocks, validating TODO items networks.js
+  * creating genesis blocks, validating XXX items networks.js
     - 'select' in networks.js
     - run node scripts/gen_genesis.js test
     + create genesis 0x1f00ffff. magic to 42 words. add KV output of
@@ -183,17 +188,19 @@ For testnet release 21-Aug-2026
     key=lifcoin/block@0/hash val={hash: '<32 bytes hex>'}
   - create gen block: get from electrum block hash, mine lif,
     once completed submit electrum TX to bitcoin
-  - automate the process: providing private addr for bitcoin transaction,
-    getting btc tip hash, inserting to lif genesis template, mining a lif
-    template, periodic test and update if new bitcoin hash to lif coinbase,
-    git commit networks.js with nonce+time, submitting bitcoin TX with link
-    to lif genesis, and lif hash itself, in a lif-kv format
 - Setup 2 lifnet and lifcoin servers:
   - Install and run on VPS1 and VPS2: lif_node.js, lif-kernel ssl, lifcoin_s.js
   - setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
     so that can surf to them in https.
 - 21-Aug-2026 release day:
-  - delete existing mainnet
+  - set networks.js
+    - lifmain.magic to 0x0eca0001
+    - lifmain.genesis.nonce = 0
+    - lifmain.genesis.time = 0
+    - run node ~/lif-coin/scripts/gen_genesis.js test
+    - copy 'found nonce' and 'time' to networks.js:lifmain.genesis.nonce/time
+    - commit networks.js
+  - delete existing mainnet (vps1, vps2): rm -rf ~/lif.store/lifmain
 
 For mainnet release 02-Oct-2026
 -------------------------------
@@ -309,18 +316,18 @@ React rewrite
 -------------
 Screen routing (screen state + all those {screen=='x' && <Component />}) → React Router (react-router-dom). Each screen becomes a <Route>,         
 navigation becomes useNavigate(). This alone would cut a lot.                                                                                      
-                                                                                                                                                   
+
 Forms (manual useState per field, useFormValid, fee/address fields) → React Hook Form. Replaces most form state with useForm(), register(),        
 handleSubmit(). Works well with validation.                                                                                                        
 
 Async data fetching (the useEffect + setLoading + setConnErr + setBalance pattern repeated in every screen) → TanStack Query                       
 (@tanstack/react-query). Replaces all that with useQuery() and handles caching, loading, error states automatically.                               
-                                                                                                                                                   
+
 Inline styles (every element has style={{...}}) → Tailwind CSS or a small component library like Radix UI primitives. Even just extracting shared  
 styles to a styles.js object would help.                                                                                                           
-                                                                                                                                                   
+
 Modal system (the custom Modal_context) → Radix UI Dialog is a drop-in that handles accessibility, focus trapping, etc. for free.                  
-                                                                                                                                                   
+
 The highest ROI in order:                                                                                                                          
 1. React Router — biggest reduction, the screen state machine is ~100 lines of logic                                                               
 2. TanStack Query — eliminates repetitive fetch boilerplate across many screens                                                                    

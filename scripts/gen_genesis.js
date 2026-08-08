@@ -307,6 +307,7 @@ async function do_mine(block){
   let min = 0; // nonce bitcoin genesis 2083236893
   let max = 0x100000000;
   let target = common.getTarget(block.bits);
+  target = common.getTarget(0x1f00ffff);
   console.log('difficulty:', block.bits.toString(16), target.toString('hex'));
   let inc = 200000;
   let nonce = -1;
@@ -341,7 +342,7 @@ async function do_mine(block){
   return {nonce, time, header, hash};
 }
 
-async function do_test(){
+export async function do_test(){
   let error;
   await diff_block('main');
   Network.set('lifmain');
@@ -379,11 +380,6 @@ let wallet1 = 'six clip senior spy fury aerobic volume sheriff critic number fea
 let wallet1_a = bech32(wallet1);
 let wallet2 = 'morning like hello gym core stage wood deposit artefact monster turn absorb';
 let wallet2_a = bech32(wallet1);
-
-function do_tx(){
-  Network.set('lifmain');
-  Network.set();
-}
 
 async function file_json(file){
   let f;
@@ -558,5 +554,4 @@ async function main(){
 
 if (!process.browser)
   main();
-module.exports = {do_test, do_tx};
 
