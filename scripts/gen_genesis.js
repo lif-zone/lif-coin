@@ -319,7 +319,7 @@ async function do_mine(block){
   let min = 0; // nonce bitcoin genesis 2083236893
   let max = 0x100000000;
   let bits = block.bits;
-  bits = 0x1f00ffff;
+  // bits = 0x1f00ffff; // make it easier for testing
   let target = common.getTarget(bits);
   console.log('difficulty:', bits.toString(16), target.toString('hex'));
   let inc = 200000;
@@ -336,9 +336,14 @@ async function do_mine(block){
     }
     let _max = Math.min(max, i+inc-1);
     if (enable_slave){
-      nonce = await mine_slave({header, target: bits, min: i, max: _max, time});
-      if (nonce?.error)
-        return void console.log('mine_slave ERR', nonce.error);
+      let ret = await mine_slave({header, target: bits, min: i, max: _max, time});
+      if (ret?.error)
+        return void console.log('mine_slave ERR', ret.error);
+      if (ret.found){
+        nonce = ret.nonce;
+        time = ret.time;
+      } else
+        nonce = -1;
     } else
       nonce = mine_range({header, target, min: i, max: _max, time});
     if (nonce>=0)
