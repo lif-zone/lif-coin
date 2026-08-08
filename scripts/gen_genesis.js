@@ -31,6 +31,9 @@ function buf_to_hex(b){
   b = Buffer.from(b);
   return b.toString('hex');
 }
+function int_to_hex(i){
+  return '0x'+i.toString(16);
+}
 
 function lif_kv_script({net, key, val, valbin}){
   let s = new Script()
@@ -189,17 +192,21 @@ async function diff_block(name){
     let nonce = block.nonce;
     let mine_err;
     if (mine_range({header, min: nonce, max: nonce})<0){
-      console.log(err='ERR target not reached:', '0x'+block.bits.toString(16),
+      console.log(err='ERR target not reached:', int_to_hex(block.bits),
         common.getTarget(block.bits));
       mine_err = true;
     }
   }
   console.log('genesis.hash orig:', h_orig);
-  if (g.bits!=pow.bits)
-    console.log(err='ERR bits mismatch', g.bits.toString(16), pow.bits.toString(16));
+  if (g.bits!=pow.bits){
+    console.log(err='ERR bits mismatch: g.bits '+int_to_hex(g.bits)+
+      ' pow.bits '+int_to_hex(pow.bits));
+  }
   let calc_bits = consensus.toCompact(pow.limit);
-  if (calc_bits!=pow.bits)
-    console.log(err='ERR limit mismatch: pow.bits='+pow.bits.toString(16)+' compact(limit)='+calc_bits.toString(16));
+  if (calc_bits!=pow.bits){
+    console.log(err='ERR limit mismatch: pow.bit '+int_to_hex(pow.bits)
+      +' compact(limit) '+int_to_hex(calc_bits));
+  }
   if (is_lif && D){
     // chainwork for genesis = 2^256 / (target + 1)
     let genesis_target = consensus.fromCompact(block.bits);
@@ -214,8 +221,8 @@ async function diff_block(name){
   if (is_lif){
     let magic_calc = +('0x'+h_orig.slice(0, 8));
     if (magic_calc != net.magic){
-      console.log(err='ERR magic mismatch: orig '+net.magic.toString(16)+
-        ' calc '+magic_calc.toString(16));
+      console.log(err='ERR magic mismatch: orig '+int_to_hex(net.magic)+
+        ' calc '+int_to_hex(magic_calc));
     }
   }
   if (err)
@@ -236,19 +243,7 @@ import hash256lif from '../lib/utils/hash256lif.js';
 import mine from '../lib/mining/mine.js';
 import  common from '../lib/mining/common.js';
 const final = 1;
-function magic_calc(){
-  return; // XXX remove before mainnet release
-  let whoami = 'IBEYOURGODDONTCREATEOTHERGODSOVERMEDONTUSEBEYOURGODSNAMEINVAINREMEMBERTODEDICATETHESATURDAYHONORYOURFATHERANDMOTHERDONTMURDERDONTBETRAYDONTSTEALDONTACCUSEBYLIESDONTGREEDFELLOWSHOME';
-  let yekum = hash256lif.digest(Buffer.from(whoami, 'ascii')).slice(0, 4).reverse().toString('hex');
-  let _yekum = +('0x'+yekum);
-  if ((+_yekum)!=0x0eca929b)
-    console.log('lifmain magic', '0x'+yekum);
-  let net = Networks.lifmain;
-  if (_yekum != net.magic){
-    console.log('ERROR', yekum, net.magic.toString(16));
-    return 'ERR magic';
-  }
-}
+
 function mine_single({header, target, nonce, time}){
   let hash;
   header.writeUInt32LE(nonce, 76);
@@ -321,7 +316,7 @@ async function do_mine(block){
   let bits = block.bits;
   // bits = 0x1f00ffff; // make it easier for testing
   let target = common.getTarget(bits);
-  console.log('difficulty:', bits.toString(16), target.toString('hex'));
+  console.log('difficulty:', int_to_hex(bits), int_to_hex(target));
   let inc = 200000;
   let nonce = -1;
   let fixed_time = header.readUInt32LE(68);
@@ -357,8 +352,8 @@ async function do_mine(block){
   }
   const net = Network.get();
   let hash = net.pow_hash256.digest(header).reverse().toString('hex');
-  console.log('SUCCESS: nonce='+nonce, 'header=', header.toString('hex'),
-    'hash', hash);
+  console.log('SUCCESS: nonce '+nonce, 'time '+time,
+    'header ', header.toString('hex'), 'hash', hash);
   return {nonce, time, header, hash};
 }
 
@@ -369,7 +364,7 @@ export async function do_test(){
   error ||= await diff_block('lifmain');
   Network.set();
   0 && await diff_block('testnet');
-  1 && await diff_block('liftest');
+  0 && await diff_block('liftest');
   0 && await diff_block('regtest');
   0 && await diff_block('simnet');
   0 && await do_mine(gen_block('main'));
@@ -527,8 +522,6 @@ async function test_and_create_gen(){
     return tip;
   // validate current genesis is correct
   Network.set('lifmain');
-  if (error=magic_calc())
-    return {error};
   if (error=await diff_block('lifmain', {mine: false}))
     return {error};
   // get new btc TIP

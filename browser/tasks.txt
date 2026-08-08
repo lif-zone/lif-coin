@@ -196,7 +196,7 @@ For testnet release 21-Aug-2026
   - set networks.js
     - lifmain.genesis.nonce = 0
     - lifmain.genesis.time = 0
-    - run node ~/lif-coin/scripts/gen_genesis.js test
+    - run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js test
     - copy 'found nonce' and 'time' to networks.js:lifmain.genesis.nonce/time
     - run node ~/lif-coin/scripts/gen_genesis.js test
     - copy magic to lifmain.magic
