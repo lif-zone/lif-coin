@@ -193,11 +193,24 @@ For testnet release 21-Aug-2026
   - setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
     so that can surf to them in https.
 - 21-Aug-2026 release day:
-  - set networks.js
+  - set networks.js:lifmain
     - lifmain.genesis.nonce = 0
     - lifmain.genesis.time = 0
     - run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js test
+    - update lifmain.merkleRoot XXX 01
+    - start Windows mining slave pool server:
+      in Windows open wallet-local.pub.site, enable Developer tools,
+      enable slave mining, in LIF wallet, enable Advanced,
+      then start Mining Pool
+  - btc mine loop run:
+    - get current btc head
+    - run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
+      wait for find winner.
     - copy 'found nonce' and 'time' to networks.js:lifmain.genesis.nonce/time
+      in XXX 02
+    - run node ~/lif-coin/scripts/gen_genesis.js test
+    - copy lifmain.genesis.hash XXX 03
+    - copy lifmain.genesisBlock XXX 03
     - run node ~/lif-coin/scripts/gen_genesis.js test
     - copy magic to lifmain.magic
     - run node ~/lif-coin/scripts/gen_genesis.js test
