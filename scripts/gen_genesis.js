@@ -306,9 +306,10 @@ async function do_mine(block){
   let header = block.toRaw().slice(0, 80);
   let min = 0; // nonce bitcoin genesis 2083236893
   let max = 0x100000000;
-  let target = common.getTarget(block.bits);
-  target = common.getTarget(0x1f00ffff);
-  console.log('difficulty:', block.bits.toString(16), target.toString('hex'));
+  let bits = block.bits;
+  bits = 0x1f00ffff;
+  let target = common.getTarget(bits);
+  console.log('difficulty:', bits.toString(16), target.toString('hex'));
   let inc = 200000;
   let nonce = -1;
   let fixed_time = header.readUInt32LE(68);
