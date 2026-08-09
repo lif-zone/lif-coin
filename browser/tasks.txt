@@ -173,9 +173,9 @@ For testnet release 21-Aug-2026
     to lif genesis, and lif hash itself, in a lif-kv format
   + setting lifmain difficuly to 1d00ffff
   + add gen_genesis.js to compute genesis block values and mining
-  * creating genesis blocks, validating XXX items networks.js
-    - 'select' in networks.js
-    - run node scripts/gen_genesis.js test
+  + creating genesis blocks, validating XXX items networks.js
+    + 'select' in networks.js
+    + run node scripts/gen_genesis.js test
     + create genesis 0x1f00ffff. magic to 42 words. add KV output of
       bitcoin link bitcoin/block_hash@2948243 {hash: "00112233..."}
     + once found, create an inscription output the text to update networks.js. commit it. tag it.
@@ -183,15 +183,16 @@ For testnet release 21-Aug-2026
     + mining perf: start mining pool - add servers with "leaf" service of
       free mining, given a header. Periodically monitor bitcoin tip,
       and update mining pool.
-    - setup full mining cycle and actually mine a test block
+    + setup full mining cycle and actually mine a test block
   - generate bitcoin TX to mark the new block with lif_kv
     key=lifcoin/block@0/hash val={hash: '<32 bytes hex>'}
   - create gen block: get from electrum block hash, mine lif,
     once completed submit electrum TX to bitcoin
 - Setup 2 lifnet and lifcoin servers:
-  - Install and run on VPS1 and VPS2: lif_node.js, lif-kernel ssl, lifcoin_s.js
-  - setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
+  * Install and run on VPS1 and VPS2: lif_node.js, lif-kernel ssl, lifcoin_s.js
+  * setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
     so that can surf to them in https.
+    lifcoin.com still cache not updated
 - 21-Aug-2026 release day:
   - set networks.js:lifmain
     - lifmain.genesis.nonce = 0

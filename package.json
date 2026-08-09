@@ -189,6 +189,10 @@
     "mocha-multi-reporters": "1.5.1",
     "nyc": "18.0.0"
   },
+  "optionalDependencies": {
+    "guide-tr": "github:scrollmapper/bible_databases",
+    "guide": "github:Sefaria/Sefaria-Data"
+  },
   "main": "./lib/bcoin.js",
   "bin": {
     "bcoin": "./bin/bcoin",
