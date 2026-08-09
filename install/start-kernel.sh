@@ -5,4 +5,5 @@ cd ~/lif-kernel
 rm package-lock.json
 git pull
 npm install
-sudo npm run serve-prod 
+#sudo npm run serve-prod 
+node ./web/server.js -s
