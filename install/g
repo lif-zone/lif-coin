@@ -16,7 +16,7 @@ my $stdin = 0;
 my $fg = 0;
 my $GVIM_PATH = $ENV{GVIM_PATH};
 if (!$GVIM_PATH){
-  $GVIM_PATH = $linux ? 'gvim' : 'c:/Vim/vim91/gvim';
+  $GVIM_PATH = $linux ? `which gvim || which vim` : 'c:/Vim/vim91/gvim';
 }
 my $verbose = 0;
 
