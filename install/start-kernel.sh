@@ -6,4 +6,4 @@ rm package-lock.json
 git pull
 npm install
 #sudo npm run serve-prod 
-node ./web/server.js -s
+sudo node ./web/server.js -s
