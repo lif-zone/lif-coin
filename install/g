@@ -17,6 +17,7 @@ my $fg = 0;
 my $GVIM_PATH = $ENV{GVIM_PATH};
 if (!$GVIM_PATH){
   $GVIM_PATH = $linux ? `which gvim || which vim` : 'c:/Vim/vim91/gvim';
+  chomp $GVIM_PATH;
 }
 my $verbose = 0;
 
