@@ -1,3 +1,3 @@
-#!/bin/bash -x -e
+#!/bin/bash -xe
 
 cp ~/lif-coin/install/* ~/bin/
