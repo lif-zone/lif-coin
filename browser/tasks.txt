@@ -165,6 +165,12 @@ For testnet release 21-Aug-2026
   + 21-08-2026          08-11-5786
     02-10-2026          21-01-5787
     21x2 8+10 2+2+6=10  081 (1+1)*21     6*7
++ Setup 1 lifnet and lifcoin servers:
+  + setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
+    so that can surf to them in https.
+    lifcoin.com still cache not updated
+  + Install and run on VPS1: lif_node.js, lif-kernel ssl, lifcoin_s.js
+    + add support for 1842 for local lif.net connection.
 * add LIF production network with production target (4G hash).
   + automate the process: providing private addr for bitcoin transaction,
     getting btc tip hash, inserting to lif genesis template, mining a lif
@@ -188,12 +194,6 @@ For testnet release 21-Aug-2026
     key=lifcoin/block@0/hash val={hash: '<32 bytes hex>'}
   - create gen block: get from electrum block hash, mine lif,
     once completed submit electrum TX to bitcoin
-- Setup 2 lifnet and lifcoin servers:
-  + setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
-    so that can surf to them in https.
-    lifcoin.com still cache not updated
-  * Install and run on VPS1 and VPS2: lif_node.js, lif-kernel ssl, lifcoin_s.js
-    * add support for 1842 for local lif.net connection.
 - 21-Aug-2026 release day:
   - set networks.js:lifmain
     - lifmain.genesis.nonce = 0
@@ -201,7 +201,7 @@ For testnet release 21-Aug-2026
     - run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js test
     - update lifmain.merkleRoot XXX 01
     - start Windows mining slave pool server:
-      in Windows open wallet-local.pub.site, enable Developer tools,
+      in Windows open wallet.lifcoin.com, enable Developer tools,
       enable slave mining, in LIF wallet, enable Advanced,
       then start Mining Pool
   - btc mine loop run:
@@ -219,13 +219,22 @@ For testnet release 21-Aug-2026
       make sure its SUCCESS
     - commit networks.js
   - delete existing mainnet (vps1, vps2): rm -rf ~/lif.store/lifmain
-  - open tmum.sh, with CTRL-b c create 3 terminals (CTRL-b n goto next term)
+  - open tmux.sh, with CTRL-b c create 3 terminals (CTRL-b n goto next term)
     - $ start-coin-lifnet.sh
     - $ start-kernel.sh
     - $ start-coin.sh
 
 For mainnet release 02-Oct-2026
 -------------------------------
+- support 2 VPS: support ns1 ns2 on different IPs: need acme ssl co-ordination in
+  startup: proxy dns _acme-challenge from ns2 ns3... to ns1.
+  Also need to transport the cert and key from ns1 to ns2 ns3...
+  to do that need a challenge/response: opening http admin connection
+  ns1->ns2,ns3... and providing them the cert+key.
+  might need to first generate a self-signed SSL, and add a port/server
+  for ns2 to ask fron ns1 for the certificates. ns1 to validate will
+  connect back https, validate the self-signed cert match, and then submit
+  the key to ns2.
 - prep genesis block
   - update flags: gen_genesis.js: update flags=21/TSR/5787
   - update magic: lib/protocol/networks.js:lifmain.magic = 02-Oct-2026
@@ -247,15 +256,6 @@ For mainnet release 02-Oct-2026
 
 Post mainnet release
 -------------------
-- support ns1 ns2 on different IPs: need acme ssl co-ordination in
-  startup: proxy dns _acme-challenge from ns2 ns3... to ns1.
-  Also need to transport the cert and key from ns1 to ns2 ns3...
-  to do that need a challenge/response: opening http admin connection
-  ns1->ns2,ns3... and providing them the cert+key.
-  might need to first generate a self-signed SSL, and add a port/server
-  for ns2 to ask fron ns1 for the certificates. ns1 to validate will
-  connect back https, validate the self-signed cert match, and then submit
-  the key to ns2.
 - buy: lifnet-test.com lifocin-test.com
 - move old mainnet to testnet. add domains lifnet-test.com
 
