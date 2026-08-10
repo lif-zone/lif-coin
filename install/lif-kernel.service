@@ -1,7 +1,7 @@
-# lif-kernel systemd control file:
+# lif-kernel systemd control file: dns 53 http 80 https 443 localhost 1842
 # sudo systemctl daemon-reload
-# sudo systemctl restart lif-server
-# sudo systemctl status lif-server
+# sudo systemctl restart lif-kernel
+# sudo systemctl status lif-kernel
 
 [Unit]
 Description=lif-kernel server: http https dns
