@@ -12,7 +12,7 @@ Type=simple
 User=lif
 Group=lif
 WorkingDirectory=/home/lif/lif-kernel
-ExecStart=/usr/bin/node /home/lif/lif-kernel/web/server.js
+ExecStart=/usr/bin/node /home/lif/lif-kernel/web/server.js -s
 Restart=on-failure
 RestartSec=5
 
