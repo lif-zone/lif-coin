@@ -1,0 +1,30 @@
+# lif-coin-lifnet systemd control file: connect electrum http 8432 to lifnet
+# sudo systemctl daemon-reload
+# sudo systemctl restart lif-coin-lifnet
+# sudo systemctl status lif-coin-lifnet
+
+[Unit]
+Description=lif-coin-lifnet server: connect electrum http 8432 to lifnet
+After=network.target
+
+[Service]
+Type=simple
+User=lif
+Group=lif
+WorkingDirectory=/home/lif/lif-kernel
+ExecStart=/usr/bin/node /home/lif/lif-kernel/net/lifcoin_s.js
+Restart=on-failure
+RestartSec=5
+
+# Optional hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/home/lif # adjust if your app needs write access elsewhere
+
+#Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+

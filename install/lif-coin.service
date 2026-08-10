@@ -1,0 +1,30 @@
+# lif-coin systemd control file: btc 8432 http 8433
+# sudo systemctl daemon-reload
+# sudo systemctl restart lif-coin
+# sudo systemctl status lif-coin
+
+[Unit]
+Description=lif-coin server: btc 8432 http 8433
+After=network.target
+
+[Service]
+Type=simple
+User=lif
+Group=lif
+WorkingDirectory=/home/lif/lif-coin
+ExecStart=/usr/bin/node /home/lif/lif-coin/bin/lif_node.js
+Restart=on-failure
+RestartSec=5
+
+# Optional hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/home/lif # adjust if your app needs write access elsewhere
+
+#Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+

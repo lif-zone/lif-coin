@@ -6,4 +6,8 @@ BIN_FILES="ffind g gitdiff gitup rgrep start-coin-lifnet.sh start-coin.sh start-
 for i in $BIN_FILES; do
   cp ./$i ~/bin/
 done
-sudo cp ./lif-kernel.service /etc/systemd/system/
+SERV_FILES="lif-kernel.service lif-coin.service lif-coin-lifnet.service"
+for i in $BIN_FILES; do
+  sudo cp ./$i /etc/systemd/system/
+done
+echo "completed install"
