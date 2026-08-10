@@ -193,6 +193,7 @@ For testnet release 21-Aug-2026
     so that can surf to them in https.
     lifcoin.com still cache not updated
   * Install and run on VPS1 and VPS2: lif_node.js, lif-kernel ssl, lifcoin_s.js
+    * add support for 1842 for local lif.net connection.
 - 21-Aug-2026 release day:
   - set networks.js:lifmain
     - lifmain.genesis.nonce = 0
@@ -248,6 +249,13 @@ Post mainnet release
 -------------------
 - support ns1 ns2 on different IPs: need acme ssl co-ordination in
   startup: proxy dns _acme-challenge from ns2 ns3... to ns1.
+  Also need to transport the cert and key from ns1 to ns2 ns3...
+  to do that need a challenge/response: opening http admin connection
+  ns1->ns2,ns3... and providing them the cert+key.
+  might need to first generate a self-signed SSL, and add a port/server
+  for ns2 to ask fron ns1 for the certificates. ns1 to validate will
+  connect back https, validate the self-signed cert match, and then submit
+  the key to ns2.
 - buy: lifnet-test.com lifocin-test.com
 - move old mainnet to testnet. add domains lifnet-test.com
 
