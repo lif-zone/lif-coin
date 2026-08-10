@@ -189,10 +189,10 @@ For testnet release 21-Aug-2026
   - create gen block: get from electrum block hash, mine lif,
     once completed submit electrum TX to bitcoin
 - Setup 2 lifnet and lifcoin servers:
-  * Install and run on VPS1 and VPS2: lif_node.js, lif-kernel ssl, lifcoin_s.js
-  * setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
+  + setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
     so that can surf to them in https.
     lifcoin.com still cache not updated
+  * Install and run on VPS1 and VPS2: lif_node.js, lif-kernel ssl, lifcoin_s.js
 - 21-Aug-2026 release day:
   - set networks.js:lifmain
     - lifmain.genesis.nonce = 0
@@ -246,6 +246,8 @@ For mainnet release 02-Oct-2026
 
 Post mainnet release
 -------------------
+- support ns1 ns2 on different IPs: need acme ssl co-ordination in
+  startup: proxy dns _acme-challenge from ns2 ns3... to ns1.
 - buy: lifnet-test.com lifocin-test.com
 - move old mainnet to testnet. add domains lifnet-test.com
 
