@@ -20,7 +20,7 @@ elif [ "$1" == reload ] ; then
   sudo systemctl status lif-coin
   sudo systemctl restart lif-coin-lifnet
   sudo systemctl status lif-coin-lifnet
-elif [ "$1" == status || "$1" == "" ] ; then
+elif [[ "$1" == status || "$1" == "" ]] ; then
   sudo systemctl status lif-kernel
   sudo systemctl status lif-coin
   sudo systemctl status lif-coin-lifnet
