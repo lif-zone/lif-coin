@@ -21,6 +21,9 @@ elif [ "$1" == reload ] ; then
   sudo systemctl restart lif-coin-lifnet
   sudo systemctl status lif-coin-lifnet
 elif [ "$1" == status || "$1" == "" ] ; then
+  sudo systemctl status lif-kernel
+  sudo systemctl status lif-coin
+  sudo systemctl status lif-coin-lifnet
 else
   echo "lif_service.sh start|stop|reload|status"
 fi
