@@ -316,7 +316,7 @@ async function do_mine(block){
   let bits = block.bits;
   // bits = 0x1f00ffff; // make it easier for testing
   let target = common.getTarget(bits);
-  console.log('difficulty:', int_to_hex(bits), int_to_hex(target));
+  console.log('difficulty:', int_to_hex(bits), buf_to_hex(target));
   let inc = 200000;
   let nonce = -1;
   let fixed_time = header.readUInt32LE(68);
@@ -517,10 +517,12 @@ async function test_and_create_gen(){
     console.log('missing coin fields');
     return {error: 'missing coin fields'};
   }
+  // XXX validate keypair can sign
+  //let btc_tx = await btc_create_kv({coin, change_addr, fee: 1842,
+  //  lif_timestamp: ret.hash});
   let tip = await btc_get_tip({test: true});
   if (tip.error)
     return tip;
-  // validate current genesis is correct
   Network.set('lifmain');
   if (error=await diff_block('lifmain', {mine: false}))
     return {error};
@@ -531,15 +533,25 @@ async function test_and_create_gen(){
   console.log('btc tip', tip);
   // mine new block with new TIP
   let block = gen_block('lifmain', {btc_timestamp: tip.id});
-  let ret = await do_mine(block);
-  if (ret.error)
-    return ret;
+  let found = await do_mine(block);
+  if (!found || found?.error)
+    return found;
   let block_hex = block.toRaw().toString('hex');
+  console.log('genesis header:\n', hex_lines(found.header));
   console.log('genesis block:\n', hex_lines(block_hex));
+  console.log('nonce', found.nonce, 'time', found.time);
+  // validate btc tip did not change
+  let tip2 = await btc_get_tip();
+  if (tip2?.error)
+    return tip2;
+  if (tip2.id!=tip.id){
+    console.log('btc tip changed after mining '+tip.id+' -> '+tip2.id);
+    return {error: 'tip changed after mining'};
+  }
   // create BTC KV transaction with lifocin/block_hash@0
   Network.set(); // return it to BTC to broadcast btc tx
   let btc_tx = await btc_create_kv({coin, change_addr, fee: 1842,
-    lif_timestamp: ret.hash});
+    lif_timestamp: found.hash});
   if (btc_tx?.error)
     return btc_tx;
   // submit new BTC transaction, using existing btc keypair and coin, as long
