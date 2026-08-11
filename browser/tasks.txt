@@ -439,11 +439,61 @@ Text source options
     VALH SMUT - *these* are the names (the naming action/process, like LSIM)
   - Torah letters 304805 words 79980, letters 5845
     lif_kv HTURH/wc {things: 504885, names: 79980, signs: 5845}
-  - Sefaria hebrew text
+  + Sefaria hebrew text
     Gideon's bible
     https://github.com/scrollmapper/bible_databases
     https://github.com/Sefaria/Sefaria-Data/tree/master/sources
     https://www.openbible.info/labs/browse-books/
+  - Although the words in the Torah, which is also known as the Five Books of
+    Moses, consists of exactly 304,805 letters, the great sages of Jewish tradition
+    teach that all the wisdom in the universe is hidden within these letters. Jewish
+    tradition looks carefully at these letters and at the words they form, and great
+    sages throughout history have provided — and continue to provide — the
+    proper instruction for analyzing the Torah text and revealing its divine messages.
+  - Although the 79,980 words in The Guide, which is also known as the Trilogy of Five Books,
+    consists of exactly 304,805 letters, the great sages teach that all
+    the the universe is hidden within these letters.
+    Tradition looks carefully at these letters and at the words they form, and great
+    sages throughout history have provided — and continue to provide — the
+    proper instruction for analyzing the Guide text and revealing its divine messages.
+    dropdown: 79,980<->42 304,805<->180 Trilogy of Five Books<->Ten Things
+    Everything you wanted to know about Six (and S*v*n), but were too afraid to ask!
+    Dropdown: S*x/Earth/Body/Work/S*x S*v*n/Heaven/Soul/Rest/Love.
+    SS/ARX/GUF/MLAKH/M*N SBO/SMIM/NSMH/SBT/AHBH
+    5 words 25 letters:
+    BRASIT SHUT VIQRA BMDBR DVRIM
+    BEGIN NAME CALL NOTHING THING
+  - WHATDOYOUGETIFYOUMULTIPLYSIXBYNINEFORTYTWO? TONGUE?
+    WHATDOYOUGETIFYOUMULTIPLYSIXBYEPTAFORTYTWO! GREEK!
+  - It is also the story of a book, a book called The Hitchhiker’s Guide to
+    the Galaxy—not an Earth book, never published on Earth, and until the
+    terrible catastrophe occurred, never seen or even heard of by any
+    Earthman.
+    Nevertheless, a wholly remarkable book.
+  - It is also the story of a book, a book called The Guide
+    —a book from haevan, published on Earth, and even though
+    terrible catastrophies occurred since, it was seen and heard of by all
+    Earthman.
+    A holy remarkable book.
+  - Adam<->Adama (ADM ADMH), Earth Aurther (Dance->Dancer: a man who dances)
+  - The Hitchhiker’s Guide to the Galaxy is a very unevenly edited book and
+    contains many passages that simply seemed to its editors like a good idea
+    at the time.
+    One of these (the one Arthur now came across) supposedly relates the
+    experiences of one Veet Voojagig, a quiet young student at the University
+    of Maximegalon, who pursued a brilliant academic career studying ancient
+    philology, transformational ethics and the wave harmonic theory of
+    historical perception, and then, after a night of drinking Pan Galactic
+    Gargle Blasters with Zaphod Beeblebrox, became increasingly obsessed
+    with the problem of what had happened to all the ballpoints he’d bought
+    over the past few years.
+  - The Guide is a very evenly edited book and
+    contains many good ideas.
+    One of these supposedly relates the
+    experiences of one Lawrence Kohlberg, a quiet young student at the University
+    of Chicago, who pursued a brilliant academic career studying ancient
+    philology, transformational ethics and the wave harmonic theory of
+    historical perception.
 
 coding conventions:
 -------------------
