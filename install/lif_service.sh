@@ -21,9 +21,9 @@ elif [ "$1" == restart ] ; then
   sudo systemctl restart lif-coin-lifnet
   sudo systemctl status lif-coin-lifnet
 elif [[ "$1" == status || "$1" == "" ]] ; then
-  sudo systemctl status lif-kernel
-  sudo systemctl status lif-coin
-  sudo systemctl status lif-coin-lifnet
+  sudo systemctl status lif-kernel || true
+  sudo systemctl status lif-coin || true
+  sudo systemctl status lif-coin-lifnet || true
 elif [ "$1" == enable ] ; then
   sudo systemctl enable lif-kernel
   sudo systemctl enable lif-coin
