@@ -35,11 +35,11 @@ elif [ "$1" == disable ] ; then
   sudo systemctl disable lif-coin
   sudo systemctl stop lif-coin-lifnet
   sudo systemctl disable lif-coin-lifnet
-elif [ "$1" == is-enable ] ; then
-  sudo systemctl is-enable lif-kernel
-  sudo systemctl is-enable lif-coin
-  sudo systemctl is-enable lif-coin-lifnet
+elif [ "$1" == is-enabled ] ; then
+  sudo systemctl is-enabled lif-kernel
+  sudo systemctl is-enabled lif-coin
+  sudo systemctl is-enabled lif-coin-lifnet
 else
-  echo "lif_service.sh start|stop|restart|status|enable|disable|is-enable"
+  echo "lif_service.sh start|stop|restart|status|enable|disable|is-enabled"
 fi
 
