@@ -9,9 +9,9 @@ if [ "$1" == start ] ; then
   sudo systemctl start lif-coin-lifnet
   sudo systemctl status lif-coin-lifnet
 elif [ "$1" == stop ] ; then
-  sudo systemctl stop lif-kernel
-  sudo systemctl stop lif-coin
-  sudo systemctl stop lif-coin-lifnet
+  sudo systemctl stop lif-kernel || true
+  sudo systemctl stop lif-coin || true
+  sudo systemctl stop lif-coin-lifnet || true
 elif [ "$1" == restart ] ; then
   sudo systemctl daemon-reload
   sudo systemctl restart lif-kernel
@@ -20,7 +20,7 @@ elif [ "$1" == restart ] ; then
   sudo systemctl status lif-coin
   sudo systemctl restart lif-coin-lifnet
   sudo systemctl status lif-coin-lifnet
-elif [[ "$1" == status || "$1" == "" ]] ; then
+elif [ "$1" == status ] ; then
   sudo systemctl status lif-kernel || true
   sudo systemctl status lif-coin || true
   sudo systemctl status lif-coin-lifnet || true
@@ -29,11 +29,11 @@ elif [ "$1" == enable ] ; then
   sudo systemctl enable lif-coin
   sudo systemctl enable lif-coin-lifnet
 elif [ "$1" == disable ] ; then
-  sudo systemctl stop lif-kernel
+  sudo systemctl stop lif-kernel || true
   sudo systemctl disable lif-kernel
-  sudo systemctl stop lif-coin
+  sudo systemctl stop lif-coin || true
   sudo systemctl disable lif-coin
-  sudo systemctl stop lif-coin-lifnet
+  sudo systemctl stop lif-coin-lifnet || true
   sudo systemctl disable lif-coin-lifnet
 elif [ "$1" == is-enabled ] ; then
   sudo systemctl is-enabled lif-kernel || true
