@@ -49,6 +49,16 @@ elif [ "$1" == is-enabled ] ; then
   sudo systemctl is-enabled lif-coin || true
   sudo systemctl is-enabled lif-coin-lifnet || true
   sudo systemctl is-enabled lif-explorer || true
+elif [ "$1" == install ] ; then
+  (cd ~/lif-kernel && git pull)
+  (cd ~/lif-coin && git pull)
+  (cd ~/lif-wallet && git pull)
+  (cd ~/lif-explorer && git pull)
+  (cd ~/lif-os && git pull)
+  ~/lif-coin/install/install_bin.sh
+  (cd ~/lif-kernel && npm install)
+  (cd ~/lif-coin && npm install)
+  (cd ~/lif-explorer && npm install)
 elif [ "$1" == update ] ; then
   (cd ~/lif-kernel && git pull)
   (cd ~/lif-coin && git pull)
@@ -58,6 +68,15 @@ elif [ "$1" == update ] ; then
   ~/lif-coin/install/install_bin.sh
   echo "now run: lif_service.sh restart"
 else
-  echo "lif_service.sh start|stop|restart|status|enable|disable|is-enabled|update"
+  echo "lif_service.sh start|stop|restart|status|..."
+  echo "  start: starts systemd services"
+  echo "  stop: stops systemd services"
+  echo "  restart - stop and starts systemd services"
+  echo "  status: shows status of systemd services"
+  echo "  disable: disable systemd services"
+  echo "  enable: enable systemd services (will run on reboot)"
+  echo "  is-enabled: shows services status: enabled/running/last log..."
+  echo "  update: updates git trees"
+  echo "  install: installs ~/bin, systemd, git pull and npm install"
 fi
 
