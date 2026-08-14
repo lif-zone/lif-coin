@@ -9,7 +9,7 @@ Type=simple
 User=lif
 Group=lif
 WorkingDirectory=/home/lif/lif-explorer
-ExecStart=/usr/bin/node /home/lif/lif-explorer/lif_server.js
+ExecStart=/home/lif/lif-explorer/lif_server.sh
 Restart=on-failure
 RestartSec=5
 
