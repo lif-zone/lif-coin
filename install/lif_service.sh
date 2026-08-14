@@ -50,7 +50,7 @@ elif [ "$1" == is-enabled ] ; then
   sudo systemctl is-enabled lif-coin-lifnet || true
   sudo systemctl is-enabled lif-explorer || true
 elif [ "$1" == update ] ; then
-  (cd lif-kerne; && git pull)
+  (cd lif-kerne && git pull)
   (cd lif-coin && git pull)
   (cd lif-wallet && git pull)
   (cd lif-explorer && git pull)
