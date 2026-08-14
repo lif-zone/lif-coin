@@ -12,4 +12,4 @@ SERV_FILES="lif-kernel.service lif-coin.service lif-coin-lifnet.service lif-expl
 for i in $SERV_FILES; do
   sudo cp ./$i /etc/systemd/system/
 done
-echo "completed install"
+echo "completed install ~/bin scripts and systemd"
