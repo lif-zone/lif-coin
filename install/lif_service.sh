@@ -56,7 +56,7 @@ elif [ "$1" == update ] ; then
   (cd ~/lif-explorer && git pull)
   (cd ~/lif-os && git pull)
   ~/lif-coin/install/install_bin.sh
-  echo "now run: ~/bin/lif_service.sh restart"
+  echo "now run: lif_service.sh restart"
 else
   echo "lif_service.sh start|stop|restart|status|enable|disable|is-enabled|update"
 fi
