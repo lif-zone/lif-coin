@@ -1,15 +1,15 @@
-# lif-coin-lifnet systemd control file: connect electrum http 8432 to lifnet
+# lif-explorer systemd control file: http://localhost:1806/lif-explorer/
 
 [Unit]
-Description=lif-coin-lifnet server: connect electrum http 8432 to lifnet
+Description=lif-explorer server: http://localhost:1806/lif-explorer
 After=network.target
 
 [Service]
 Type=simple
 User=lif
 Group=lif
-WorkingDirectory=/home/lif/lif-kernel
-ExecStart=/usr/bin/node /home/lif/lif-kernel/net/lifcoin_s.js
+WorkingDirectory=/home/lif/lif-explorer
+ExecStart=/usr/bin/node /home/lif/lif-explorer/lif_server.js
 Restart=on-failure
 RestartSec=5
 

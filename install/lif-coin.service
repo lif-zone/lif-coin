@@ -1,7 +1,4 @@
 # lif-coin systemd control file: btc 8432 http 8433
-# sudo systemctl daemon-reload
-# sudo systemctl restart lif-coin
-# sudo systemctl status lif-coin
 
 [Unit]
 Description=lif-coin server: btc 8432 http 8433
