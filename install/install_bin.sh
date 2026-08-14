@@ -8,7 +8,7 @@ BIN_FILES="ffind g gitdiff gitup rgrep start-coin-lifnet.sh start-coin.sh
 for i in $BIN_FILES; do
   cp ./$i ~/bin/
 done
-SERV_FILES="lif-kernel.service lif-coin.service lif-coin-lifnet.service"
+SERV_FILES="lif-kernel.service lif-coin.service lif-coin-lifnet.service lif-explorer.service"
 for i in $SERV_FILES; do
   sudo cp ./$i /etc/systemd/system/
 done
