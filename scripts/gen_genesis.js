@@ -537,7 +537,8 @@ async function test_and_create_gen(){
   if (!found || found?.error)
     return found;
   let block_hex = block.toRaw().toString('hex');
-  console.log('genesis header:\n', hex_lines(found.header));
+  let header = found.header.toString('hex');
+  console.log('genesis header:\n', hex_lines(header));
   console.log('genesis block:\n', hex_lines(block_hex));
   console.log('nonce', found.nonce, 'time', found.time);
   // validate btc tip did not change
