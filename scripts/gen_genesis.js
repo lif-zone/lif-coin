@@ -370,7 +370,7 @@ export async function do_test(){
   0 && await diff_block('simnet');
   0 && await do_mine(gen_block('main'));
   Network.set('lifmain');
-  1 && await do_mine(gen_block('lifmain'));
+  0 && await do_mine(gen_block('lifmain'));
   Network.set();
   return {error};
 }
