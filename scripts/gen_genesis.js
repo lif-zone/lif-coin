@@ -59,9 +59,9 @@ function createGenesisBlock(opt) {
     //flags = 'The Guide 18/Oct/1984 Permissionless read-write bible torah guide BBS';
     //flags = ' M.S. Ancient Philology: Justice Ethics Morals letter word count guide';
     //flags = 'The Guide 18/Oct/1984 DNA Ancient philology book - eternal publishing';
-    flags = 't1 The Guide KI TXA 08/ALU/5786 Ethernal Names Philology DNA/Shoshani';
-    //flags = 'The Guide 21/TSR/5787 SMhT TURA Ethernal Names Philology DNA/Shoshani';
-    //flags = 'The Happiness Guide 21/TSR/5787 Ethernal Names Philology DNA/Shoshani';
+    flags = 'The Guide KI TXA 08/ALU/5786 Ethernal ?? Words Philology DNA/Shoshani';
+    //flags = 'The Guide 21/TSR/5787 SMhT TURA Ethernal Words Philology DNA/Shoshani';
+    //flags = 'The Happiness Guide 21/TSR/5787 Ethernal Words Philology DNA/Shoshani';
   // MR SUSNI. 1 2*5 6*10 18 7
   // The Counter HSUPR
   // How many sentences? how many words? how many letters?
@@ -219,7 +219,8 @@ async function diff_block(name){
       console.log(err='ERR chainwork: pow.chainwork > genesis (genesis block fails minimum):', chainwork_hex);
   }
   if (is_lif){
-    let magic_calc = +('0x'+h_orig.slice(0, 8));
+    let magic_calc = +('0x'
+      +h_orig.slice(4, 6)+h_orig.slice(2, 4) +h_orig.slice(0, 2)+'7e');
     if (magic_calc != net.magic){
       console.log(err='ERR magic mismatch: orig '+int_to_hex(net.magic)+
         ' calc '+int_to_hex(magic_calc));
@@ -369,7 +370,7 @@ export async function do_test(){
   0 && await diff_block('simnet');
   0 && await do_mine(gen_block('main'));
   Network.set('lifmain');
-  0 && await do_mine(gen_block('lifmain'));
+  1 && await do_mine(gen_block('lifmain'));
   Network.set();
   return {error};
 }
@@ -473,9 +474,9 @@ async function btc_get_tip({test}={}){
   }
   return tip;
 }
-async function btc_create_kv({coin, change_addr, fee, lif_timestamp}){
-  let timestamp = JSON.stringify({lif_timestamp});
-  let kv_script = lif_kv_script({key: 'timestamp', val: timestamp});
+async function btc_create_kv({coin, change_addr, fee, lif_kv}){
+  let kv_val = JSON.stringify(lif_kv.val);
+  let kv_script = lif_kv_script({key: 'timestamp', val: kv_val});
   let {keypair, value, outi, txid} = coin;
   let {priv, addr} = keypair;
   let keyRing = new KeyRing({privateKey: Buffer.from(priv, 'hex'),
@@ -503,9 +504,26 @@ async function btc_create_kv({coin, change_addr, fee, lif_timestamp}){
   console.log('BTC TXID:', _txid);
   return {tx, tx_hex: hex, txid: _txid};
 }
+
+async function btc_get_addr_balance(addr){
+  let ret = await fetch_json('https://mempool.space/api/address/'+addr);
+  if (ret?.error)
+    return ret;
+  return ret.chain_stats.funded_txo_sum-ret.chain_stats.spend_txo_sum;
+}
+async function btc_check_tx_out_unspent(txid, outi){
+  let ret = await fetch_json(
+    'https://mempool.space/api/tx/'+txid+'/outspend/'+outi);
+  if (ret?.error)
+    return ret;
+  return ret.spent==false;
+}
+
 async function test_and_create_gen(){
   let broadcast_btc = false;
+  let main_or_test_chain = 'lifcoin_test_t1'; // 'lifcoin';
   let error;
+  let fee = 1842;
   // validate setup: btc tip and submit, coin for kv submission
   let _coin = await file_json(homedir()+'/btc_coin.json');
   if (_coin?.error)
@@ -514,14 +532,21 @@ async function test_and_create_gen(){
   if (coin.txid?.length!=64 || typeof coin.outi!='number' ||
     !coin.keypair.addr || !coin.keypair.priv)
   {
-    console.log('missing coin fields');
     return {error: 'missing coin fields'};
   }
-  // XXX validate keypair can sign
-  //let btc_tx = await btc_create_kv({coin, change_addr, fee: 1842,
-  //  lif_timestamp: ret.hash});
-  // XXX validate key has money in it
-  // XXX convert pubkey to scripthash, and query electrum server
+  // validate keypair can sign
+  let btc_tx_test = await btc_create_kv({coin, change_addr, fee,
+    lif_kv: {key: main_or_test_chain+'/block_hash0', val: {hash: 'f'.repeat(32)}}});
+  if (!btc_tx_test?.tx_hex || btc_tx_test?.error)
+    return btc_tx_test;
+  // validate unspent balance
+  let bal = btc_get_addr_balance(coin.keypair.addr);
+  if (!bal || bal<fee)
+    return {error: 'missing balance '+bal};
+  let unspent = btc_check_tx_out_unspent(coin.txid, outi);
+  if (unspent!=true)
+    return unspent;
+  // get updated tip
   let tip = await btc_get_tip({test: true});
   if (tip.error)
     return tip;
@@ -555,14 +580,14 @@ async function test_and_create_gen(){
   // XXX update lif/protocol/networks.js with new values
   // XXX git commit -m 'mined genesis block t1'
   // create BTC KV transaction with lifocin/block_hash@0
-  let btc_tx = await btc_create_kv({coin, change_addr, fee: 1842,
-    lif_timestamp: found.hash});
-  if (btc_tx?.error)
+  let btc_tx = await btc_create_kv({coin, change_addr, fee,
+    lif_kv: {key: main_or_test_chain+'/block_hash0', val: {hash: found.hash}}});
+  if (!btc_tx?.tx_hex || btc_tx?.error)
     return btc_tx;
   // submit new BTC transaction, using existing btc keypair and coin, as long
   // as no new btc tip has been created
   if (broadcast_btc){
-    ret = await btc_post_tx(btc_tx.tx_hex);
+    let ret = await btc_post_tx(btc_tx.tx_hex);
     if (ret.error)
       return ret;
   }
@@ -574,9 +599,15 @@ async function main(){
   let argv = process.argv;
   if (argv.includes('test'))
     await do_test({mine: true});
-  else if (argv.includes('gen'))
-    await test_and_create_gen();
-  else
+  else if (argv.includes('gen')){
+    let ret;
+    try {
+      ret = await test_and_create_gen();
+    } catch(error){
+      return console.log(error);
+    }
+    console.log(ret);
+  } else
     console.log('invalid command: test|gen');
   process.exit(0);
 }
