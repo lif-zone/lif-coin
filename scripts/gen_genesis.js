@@ -520,6 +520,8 @@ async function test_and_create_gen(){
   // XXX validate keypair can sign
   //let btc_tx = await btc_create_kv({coin, change_addr, fee: 1842,
   //  lif_timestamp: ret.hash});
+  // XXX validate key has money in it
+  // XXX convert pubkey to scripthash, and query electrum server
   let tip = await btc_get_tip({test: true});
   if (tip.error)
     return tip;
@@ -549,8 +551,10 @@ async function test_and_create_gen(){
     console.log('btc tip changed after mining '+tip.id+' -> '+tip2.id);
     return {error: 'tip changed after mining'};
   }
-  // create BTC KV transaction with lifocin/block_hash@0
   Network.set(); // return it to BTC to broadcast btc tx
+  // XXX update lif/protocol/networks.js with new values
+  // XXX git commit -m 'mined genesis block t1'
+  // create BTC KV transaction with lifocin/block_hash@0
   let btc_tx = await btc_create_kv({coin, change_addr, fee: 1842,
     lif_timestamp: found.hash});
   if (btc_tx?.error)
