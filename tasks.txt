@@ -151,6 +151,8 @@ c in Kv_edit_screen: add: Edit and Cancel buttons
   + add lifnet loopback support
   + use lif:bitcoin/electrum json rpc TCP/SSL leaf to bluewallet server
   + get electrum to work directly on lifnet_connect+call (not via websocket gw)
++ lif-wallet: hide test-nets, and show them only if developer tools enabled
+  and test-nets enabled
 
 For testnet release 21-Aug-2026
 -------------------------------
@@ -259,8 +261,6 @@ Post mainnet release
 -------------------
 - buy: lifnet-test.com lifocin-test.com
 - move old mainnet to testnet. add domains lifnet-test.com
-- lif-wallet: hide test-nets, and show them only if developer tools enabled
-  and test-nets enabled
 
 Post release:
 -------------

@@ -409,9 +409,10 @@ async function file_json(file){
 }
 async function fetch_json(url){
   try {
-    console.log('ret', url);
+    0 && console.log('url', url);
     let ret = await fetch(url);
     let json = await ret.json();
+    0 && console.log('res', json);
     return json;
   } catch(error){
     console.log('failed fetch '+url, error);
@@ -475,18 +476,17 @@ async function btc_get_tip({test}={}){
   }
   return tip;
 }
-async function btc_create_kv({coin, change_addr, fee, lif_kv}){
+async function btc_create_kv({coin, change_addr, fee, lif_kv, log=1}){
   let kv_val = JSON.stringify(lif_kv.val);
   let kv_script = lif_kv_script({key: 'timestamp', val: kv_val});
-  let {keypair, value, outi, txid} = coin;
+  let {keypair, value, vout, txid} = coin;
   let {priv, addr} = keypair;
   let keyRing = new KeyRing({privateKey: Buffer.from(priv, 'hex'),
     witness: true});
-  console.log(keyRing.getScriptAddress('base58'));
   let prevHash = Buffer.from(txid, 'hex').reverse();
   let c = Coin.fromOptions({
     hash: prevHash,
-    index: outi,
+    index: vout,
     value,
     script: Script.fromAddress(addr),
   });
@@ -496,35 +496,32 @@ async function btc_create_kv({coin, change_addr, fee, lif_kv}){
   mtx.addOutput({value: value - fee, script: change_script});
   mtx.changeIndex = 0;
   mtx.addOutput({value: 0, script: kv_script});
-  mtx.sign(keyRing);
+  let signed = mtx.sign(keyRing);
+  if (!signed)
+    return {error: 'keypair private key does not match coin address'};
   let tx = mtx.toTX();
   let hex = tx.toRaw().toString('hex');
   let _txid = tx.rhash();
-  0 && console.log('BTC TX:', mtx.toJSON());
-  console.log('BTC TX hex:', hex);
-  console.log('BTC TXID:', _txid);
+  log>1 && console.log('BTC TX:', mtx.toJSON());
+  log && console.log('BTC TX hex:', hex);
+  log && console.log('BTC TXID:', _txid);
   return {tx, tx_hex: hex, txid: _txid};
 }
 
-async function btc_get_addr_balance(addr){
-  let ret = await fetch_json('https://mempool.space/api/address/'+addr);
-  if (ret?.error)
-    return ret;
-  console.log('addr '+addr, ret);
-  return ret.chain_stats.funded_txo_sum-ret.chain_stats.spend_txo_sum;
-}
-async function btc_check_tx_out_unspent(txid, outi){
-  let ret = await fetch_json(
-    'https://mempool.space/api/tx/'+txid+'/outspend/'+outi);
-  console.log('tx', ret);
-  if (ret?.error)
-    return ret;
-  return ret.spent==false;
+async function btc_check_coin(txid, vout){
+  let outspend = await fetch_json(
+    'https://mempool.space/api/tx/'+txid+'/outspend/'+vout);
+  if (outspend?.error)
+    return outsepnd;
+  let tx = await fetch_json('https://mempool.space/api/tx/'+txid);
+  if (tx?.error)
+    return tx;
+  return {spent: outspend.spent, value: tx.vout[vout].value};
 }
 
 async function test_and_create_gen(){
   let broadcast_btc = false;
-  let main_or_test_chain = 'lifcoin_test_t1'; // 'lifcoin';
+  let main_or_test_chain = 'lifcoin_test'; // 'lifcoin';
   let error;
   let fee = 1842;
   console.log('validate setup: btc tip and submit, coin for kv submission');
@@ -532,25 +529,25 @@ async function test_and_create_gen(){
   if (_coin?.error)
     return _coin;
   let {coin, change_addr} = _coin;
-  if (coin.txid?.length!=64 || typeof coin.outi!='number' ||
+  if (coin.txid?.length!=64 || typeof coin.vout!='number' ||
     !coin.keypair.addr || !coin.keypair.priv)
   {
     return {error: 'missing coin fields'};
   }
   console.log('validate keypair can sign');
-  let btc_tx_test = await btc_create_kv({coin, change_addr, fee,
-    lif_kv: {key: main_or_test_chain+'/block_hash0', val: {hash: 'f'.repeat(32)}}});
+  let btc_tx_test = await btc_create_kv({coin, change_addr, fee, log: 0,
+    lif_kv: {key: main_or_test_chain+'/block_hash:0',
+    val: {hash: 'f'.repeat(32)}}});
   if (!btc_tx_test?.tx_hex || btc_tx_test?.error)
     return btc_tx_test;
   console.log('validate unspent balance');
-  /*
-  let bal = btc_get_addr_balance(coin.keypair.addr);
-  if (!bal || bal<fee)
-    return {error: 'missing balance '+bal};
-    */
-  let unspent = btc_check_tx_out_unspent(coin.txid, coin.outi);
-  if (unspent!=true)
-    return unspent;
+  let coin_v = await btc_check_coin(coin.txid, coin.vout);
+  if (coin_v?.error)
+    return coin_v;
+  if (coin_v.spen)
+    return {error: 'coin already spent'};
+  if (!coin_v.value || coin_v<fee)
+    return {error: 'not enought value in coin '+coin_v.value+' < fee '+fee};
   console.log('get updated tip')
   let tip = await btc_get_tip({test: true});
   if (tip.error)
