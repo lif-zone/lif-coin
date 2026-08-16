@@ -409,7 +409,8 @@ async function file_json(file){
 }
 async function fetch_json(url){
   try {
-    let ret = await fetch('https://mempool.space/api/v1/blocks');
+    console.log('ret', url);
+    let ret = await fetch(url);
     let json = await ret.json();
     return json;
   } catch(error){
@@ -509,11 +510,13 @@ async function btc_get_addr_balance(addr){
   let ret = await fetch_json('https://mempool.space/api/address/'+addr);
   if (ret?.error)
     return ret;
+  console.log('addr '+addr, ret);
   return ret.chain_stats.funded_txo_sum-ret.chain_stats.spend_txo_sum;
 }
 async function btc_check_tx_out_unspent(txid, outi){
   let ret = await fetch_json(
     'https://mempool.space/api/tx/'+txid+'/outspend/'+outi);
+  console.log('tx', ret);
   if (ret?.error)
     return ret;
   return ret.spent==false;
@@ -524,41 +527,43 @@ async function test_and_create_gen(){
   let main_or_test_chain = 'lifcoin_test_t1'; // 'lifcoin';
   let error;
   let fee = 1842;
-  // validate setup: btc tip and submit, coin for kv submission
+  console.log('validate setup: btc tip and submit, coin for kv submission');
   let _coin = await file_json(homedir()+'/btc_coin.json');
   if (_coin?.error)
     return _coin;
-  let {coin, change_addr, txid, outi} = _coin;
+  let {coin, change_addr} = _coin;
   if (coin.txid?.length!=64 || typeof coin.outi!='number' ||
     !coin.keypair.addr || !coin.keypair.priv)
   {
     return {error: 'missing coin fields'};
   }
-  // validate keypair can sign
+  console.log('validate keypair can sign');
   let btc_tx_test = await btc_create_kv({coin, change_addr, fee,
     lif_kv: {key: main_or_test_chain+'/block_hash0', val: {hash: 'f'.repeat(32)}}});
   if (!btc_tx_test?.tx_hex || btc_tx_test?.error)
     return btc_tx_test;
-  // validate unspent balance
+  console.log('validate unspent balance');
+  /*
   let bal = btc_get_addr_balance(coin.keypair.addr);
   if (!bal || bal<fee)
     return {error: 'missing balance '+bal};
-  let unspent = btc_check_tx_out_unspent(coin.txid, outi);
+    */
+  let unspent = btc_check_tx_out_unspent(coin.txid, coin.outi);
   if (unspent!=true)
     return unspent;
-  // get updated tip
+  console.log('get updated tip')
   let tip = await btc_get_tip({test: true});
   if (tip.error)
     return tip;
   Network.set('lifmain');
   if (error=await diff_block('lifmain', {mine: false}))
     return {error};
-  // get new btc TIP
+  console.log('get new btc TIP');
   tip = await btc_get_tip();
   if (tip?.error)
     return tip;
   console.log('btc tip', tip);
-  // mine new block with new TIP
+  console.log('mine new block with new TIP');
   let block = gen_block('lifmain', {btc_timestamp: tip.id});
   let found = await do_mine(block);
   if (!found || found?.error)
@@ -568,7 +573,7 @@ async function test_and_create_gen(){
   console.log('genesis header:\n', hex_lines(header));
   console.log('genesis block:\n', hex_lines(block_hex));
   console.log('nonce', found.nonce, 'time', found.time);
-  // validate btc tip did not change
+  console.log('validate btc tip did not change');
   let tip2 = await btc_get_tip();
   if (tip2?.error)
     return tip2;
@@ -579,18 +584,18 @@ async function test_and_create_gen(){
   Network.set(); // return it to BTC to broadcast btc tx
   // XXX update lif/protocol/networks.js with new values
   // XXX git commit -m 'mined genesis block t1'
-  // create BTC KV transaction with lifocin/block_hash@0
+  console.log('create BTC KV transaction with lifocin/block_hash@0');
   let btc_tx = await btc_create_kv({coin, change_addr, fee,
     lif_kv: {key: main_or_test_chain+'/block_hash0', val: {hash: found.hash}}});
   if (!btc_tx?.tx_hex || btc_tx?.error)
     return btc_tx;
-  // submit new BTC transaction, using existing btc keypair and coin, as long
-  // as no new btc tip has been created
   if (broadcast_btc){
+    console.log('submit new BTC tx');
     let ret = await btc_post_tx(btc_tx.tx_hex);
     if (ret.error)
       return ret;
-  }
+  } else
+    console.log('disabled submit: didnt submit new BTC tx');
   console.log('broadcast txid', btc_tx.tx.rhash());
   console.log('SUCCESS');
 }

@@ -208,11 +208,12 @@ For testnet release 21-Aug-2026
     - get current btc head
     - run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
       wait for find winner.
-    - copy 'found nonce' and 'time' to networks.js:lifmain.genesis.nonce/time
-      in XXX 02
-    - run node ~/lif-coin/scripts/gen_genesis.js test
-    - copy lifmain.genesis.hash XXX 03
-    - copy lifmain.genesisBlock XXX 03
+    - copy SET 01 SET_merkleRoot SET 01
+    - copy SET 02 SET_time SET 02 found time
+    - copy SET 02 SET_nonce SET 02 found nonce
+    - copy SET 03 SET_hash SET 03 lifmain.genesis.hash
+    - copy SET 03 SET_genesisBlock SET 03 lifmain.genesisBlock
+    - copy SET 04 SET_magic SET 04 lifmain.magic
     - run node ~/lif-coin/scripts/gen_genesis.js test
     - copy magic to lifmain.magic
     - run node ~/lif-coin/scripts/gen_genesis.js test
@@ -258,6 +259,8 @@ Post mainnet release
 -------------------
 - buy: lifnet-test.com lifocin-test.com
 - move old mainnet to testnet. add domains lifnet-test.com
+- lif-wallet: hide test-nets, and show them only if developer tools enabled
+  and test-nets enabled
 
 Post release:
 -------------
@@ -308,10 +311,17 @@ kernel.js
 - add unit-tests for pkg_browser_lookup(). Move it to util.js
   - See whats the right places to put it.
   - do a proper correct implementation
+- add support for SPA providing 404/200 according to lif: {spa: true}
 
 Low priority:
 -------------
-- make lif-coin browser blockchain work
+- lif-wallet: improve ease of use of "send":
+  - Add 'send max' (send all coin, send all funds in wallet)
+  - When sending all money, deduct fees for amount, and warn user
+  - show while writing in amount the "live" balance will be left after transfer
+- lif-explorer: make a lif app:
+  - make lif-explorer a 'lif app browser blockchain work'
+  - make lif-explorer use lifnet for requests
 - UI solution to update version: instead of
   Devtools->Application->Service Worker->Update->Unregister
 - instant mine: funding payouts for multiple wins
