@@ -592,7 +592,7 @@ async function update_networks_js({nonce, time, merkleRoot, magic, hash, genesis
   gb = gb.split('\n');
   gb = gb.map(l=>'  '+l+' // SET_genesisBlock');
   set('SET_genesisBlock', gb);
-  await file_write_lines(cwd+'/lib/protocol/networks.js', lines);
+  return await file_write_lines(cwd+'/../lib/protocol/networks.js', lines);
 }
 
 async function git_orig_networks_js(){
@@ -608,7 +608,9 @@ async function git_commit_networks_js(hash){
 }
 async function git_commitid(){
   let ret = await sys_get(`cd ${cwd}/.. && git rev-parse HEAD`);
-  ret = ret.trim();
+  if (ret?.error)
+    return ret;
+  ret = ret.allout.trim();
   if (ret.length!=40)
     return {error: 'invalid commitid'};
   return ret;
@@ -662,10 +664,6 @@ function test_and_create_gen(){ return etask(function*(){
   console.log('get updated tip');
   let tip;
   Network.set('lifmain');
-  /*
-  if (error=yield diff_block('lifmain', {mine: false}))
-    return {error};
-    */
   let block_hex;
   let header;
   let found;
