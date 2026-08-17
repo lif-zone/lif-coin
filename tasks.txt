@@ -449,6 +449,11 @@ Text source options
     VALH SMUT - *these* are the names (the naming action/process, like LSIM)
   - Torah letters 304805 words 79980, letters 5845
     lif_kv HTURH/wc {things: 504885, names: 79980, signs: 5845}
+  - wc WHATDOYOUGETIFYOUMULTIPLYSIXBYEPTAFORTYTWO => 42
+    SIX BY NINE? TIHS
+  - burning bush of testing -> moshe only needed a bush
+    burning mountain of testing -> the people needed a mountain
+    harm less, dont panic, shalom shalom
   + Sefaria hebrew text
     Gideon's bible
     https://github.com/scrollmapper/bible_databases

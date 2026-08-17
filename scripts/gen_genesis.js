@@ -145,7 +145,7 @@ function createGenesisBlock(opt) {
     height: 0,
   });
   block.txs.push(tx);
-  return {block, merkleRoot};
+  return block;
 }
 
 function gen_block(name, opt={}){
@@ -168,14 +168,18 @@ function str_diff(a, b){
   return i;
 }
 
-// fixing sequence of lif/protocol/networks.js
+function magic_from_hash(hash){
+  return +('0x'+hash.slice(4, 6)+hash.slice(2, 4) +hash.slice(0, 2)+'7e');
+}
+
+// fixing sequence of lib/protocol/networks.js
 // helps edit and validate lib/protocol/networks.js
 function hex_lines(hex){ return "'"+hex.match(/.{1,70}/g).join("'\n+'")+"'"; }
 function date_time(){ return Math.floor(Date.now()/1000); }
 async function diff_block(name){
   let net = Networks[name];
   let g = net.genesis;
-  let {block} = gen_block(name);
+  let block = gen_block(name);
   let err, is_lif = name.startsWith('lif');
   console.log('--------- '+name+' ---------------');
   // complete block
@@ -245,8 +249,7 @@ async function diff_block(name){
       console.log(err='ERR chainwork: pow.chainwork > genesis (genesis block fails minimum):', chainwork_hex);
   }
   if (is_lif){
-    let magic_calc = +('0x'
-      +h_orig.slice(4, 6)+h_orig.slice(2, 4) +h_orig.slice(0, 2)+'7e');
+    let magic_calc = magic_from_hash(h_orig);
     if (magic_calc != net.magic){
       console.log(err='ERR magic mismatch: orig '+int_to_hex(net.magic)+
         ' calc '+int_to_hex(magic_calc));
@@ -329,7 +332,7 @@ function mine_slave({header, min, max, target}){ return etask(function*(){
 }); }
 
 let enable_slave = process.env.MINE_SLAVE;
-async function do_mine(block){
+function do_mine(block){ return etask(function*(){
   // $ speed -bytes 80 sha256
   // Doing sha256 for 3s on 80 size blocks: 4368155 sha256's in 2.98s
   // so does 1.3M/sec (nodeJS native).
@@ -341,7 +344,7 @@ async function do_mine(block){
   let min = 0; // nonce bitcoin genesis 2083236893
   let max = 0x100000000;
   let bits = block.bits;
-  // bits = 0x1f00ffff; // make it easier for testing
+  bits = 0x1f00ffff; // make it easier for testing
   let target = common.getTarget(bits);
   console.log('difficulty:', int_to_hex(bits), buf_to_hex(target));
   let inc = 200000;
@@ -358,7 +361,7 @@ async function do_mine(block){
     }
     let _max = Math.min(max, i+inc-1);
     if (enable_slave){
-      let ret = await mine_slave({header, target: bits, min: i, max: _max, time});
+      let ret = yield mine_slave({header, target: bits, min: i, max: _max, time});
       if (ret?.error)
         return void console.log('mine_slave ERR', ret.error);
       if (ret.found){
@@ -382,7 +385,7 @@ async function do_mine(block){
   console.log('SUCCESS: nonce '+nonce, 'time '+time,
     'header ', header.toString('hex'), 'hash', hash);
   return {nonce, time, header, hash};
-}
+}); }
 
 export async function do_test(){
   let error;
@@ -394,9 +397,9 @@ export async function do_test(){
   0 && await diff_block('liftest');
   0 && await diff_block('regtest');
   0 && await diff_block('simnet');
-  0 && await do_mine(gen_block('main').block);
+  0 && await do_mine(gen_block('main'));
   Network.set('lifmain');
-  0 && await do_mine(gen_block('lifmain').block);
+  0 && await do_mine(gen_block('lifmain'));
   Network.set();
   return {error};
 }
@@ -436,7 +439,7 @@ async function file_lines(file){
 async function file_write_lines(file, lines){
   let f;
   try {
-    await writeFile(file, lines.join('\n'));
+    await writeFile(file, lines.join('\n'), 'utf-8');
   } catch(error){
     console.error(error);
     console.log('failed file_lines '+file);
@@ -556,7 +559,9 @@ async function btc_create_kv({coin, change_addr, fee, lif_kv, log=1}){
 }
 
 async function update_networks_js({nonce, time, merkleRoot, magic, hash, genesisBlock}){
-  let lines = file_lines(cwd+'/lif/protocol/networks.js');
+  let lines = await file_lines(cwd+'/../lib/protocol/networks.js');
+  let _error;
+  console.log('lines', lines);
   if (lines?.error)
     return lines;
   function set(token, replace){
@@ -568,10 +573,12 @@ async function update_networks_js({nonce, time, merkleRoot, magic, hash, genesis
       if (!l.includes(token))
         continue;
       found ??= i;
-      i--;
       lines = [...lines.slice(0, i), ...lines.slice(i+1)];
+      i--;
     }
-    lines = [lines.slice(0, found), ...replace, lines.slice(found)];
+    if (!found)
+      return _error = {error: 'networks.js token not found: '+token};
+    lines = [...lines.slice(0, found), ...replace, ...lines.slice(found)];
   }
   set('SET_merkleRoot',
     `  merkleRoot: b('${merkleRoot}'), // SET_merkleRoot`);
@@ -583,13 +590,16 @@ async function update_networks_js({nonce, time, merkleRoot, magic, hash, genesis
     `  nonce: ${nonce}, // SET_nonce`);
   set('SET_hash',
     `  hash: b('${hash}'), // SET_hash`);
-  set('SET_hash',
-    `  hash: b('${hash}'), // SET_hash`);
+  if (_error)
+    return _error;
   let gb = hex_lines(genesisBlock)+';';
   gb = gb.split('\n');
   gb = gb.map(l=>'  '+l+' // SET_genesisBlock');
   set('SET_genesisBlock', gb);
-  file_write_lines(lines);
+  await file_write_lines(cwd+'/new_networks.js', lines);
+  console.log('XXX result');
+  console.log(lines);
+  process.exit(0);
 }
 
 async function git_orig_networks_js(){
@@ -624,14 +634,14 @@ async function btc_check_coin(txid, vout){
   return {spent: outspend.spent, value: tx.vout[vout].value};
 }
 
-async function test_and_create_gen(){
+function test_and_create_gen(){ return etask(function*(){
   let broadcast_btc = false;
   let main_or_test_chain = 'lifcoin_test'; // 'lifcoin';
   let error;
   let ret;
   let fee = 1842;
   console.log('validate setup: btc tip and submit, coin for kv submission');
-  let _coin = await file_json(cwd+'/../../btc_coin.json');
+  let _coin = yield file_json(cwd+'/../../btc_coin.json');
   if (_coin?.error)
     return _coin;
   let {coin, change_addr} = _coin;
@@ -641,81 +651,108 @@ async function test_and_create_gen(){
     return {error: 'missing coin fields'};
   }
   console.log('validate keypair can sign');
-  let btc_tx_test = await btc_create_kv({coin, change_addr, fee, log: 0,
+  let btc_tx_test = yield btc_create_kv({coin, change_addr, fee, log: 0,
     lif_kv: {key: main_or_test_chain+'/block_hash:0',
     val: {hash: 'f'.repeat(32)}}});
   if (!btc_tx_test?.tx_hex || btc_tx_test?.error)
     return btc_tx_test;
   console.log('validate unspent balance');
-  let coin_v = await btc_check_coin(coin.txid, coin.vout);
+  let coin_v = yield btc_check_coin(coin.txid, coin.vout);
   if (coin_v?.error)
     return coin_v;
   if (coin_v.spen)
     return {error: 'coin already spent'};
   if (!coin_v.value || coin_v<fee)
     return {error: 'not enought value in coin '+coin_v.value+' < fee '+fee};
-  ret = await git_orig_networks_js();
+  ret = yield git_orig_networks_js();
   if (ret?.error)
     return ret;
   console.log('get updated tip');
-  let tip = await btc_get_tip({test: true});
-  if (tip.error)
-    return tip;
+  let tip;
   Network.set('lifmain');
-  if (error=await diff_block('lifmain', {mine: false}))
+  /*
+  if (error=yield diff_block('lifmain', {mine: false}))
     return {error};
-  console.log('get new btc TIP');
-  tip = await btc_get_tip();
-  if (tip?.error)
-    return tip;
-  console.log('btc tip', tip);
-  console.log('mine new block with new TIP');
-  let {block, merkleRoot} = gen_block('lifmain', {btc_timestamp: tip.id});
-  let found = await do_mine(block);
-  if (!found || found?.error)
-    return found;
-  let block_hex = block.toRaw().toString('hex');
-  let header = found.header.toString('hex');
-  console.log('genesis header:\n', hex_lines(header));
-  console.log('genesis block:\n', hex_lines(block_hex));
-  console.log('nonce', found.nonce, 'time', found.time);
-  console.log('validate btc tip did not change');
-  let tip2 = await btc_get_tip();
-  if (tip2?.error)
-    return tip2;
-  if (tip2.id!=tip.id){
-    console.log('btc tip changed after mining '+tip.id+' -> '+tip2.id);
-    return {error: 'tip changed after mining'};
+    */
+  let block_hex;
+  let header;
+  let found;
+  let block;
+  for (;;){
+    console.log('get updated btc tip');
+    tip = yield btc_get_tip();
+    if (tip?.error)
+      return tip;
+    console.log('btc tip', tip);
+    console.log('mine new block with new tip');
+    block = gen_block('lifmain', {btc_timestamp: tip.id});
+    let mine_et = do_mine(block);
+    let check_tip_et = etask(function*(){
+      for (;;){
+        let _tip = yield btc_get_tip();
+        if (_tip?.error)
+          continue; // ignore
+        if (_tip.id!=tip.id){
+          console.log('tip changed '+tip.id+' -> '+_tip.id);
+          mine_et.return({retry: true});
+          return;
+        }
+      }
+    });
+    found = yield mine_et;
+    check_tip_et.return();
+    if (found?.retry)
+      continue;
+    if (!found || found?.error)
+      return found;
+    block_hex = block.toRaw().toString('hex');
+    header = found.header.toString('hex');
+    console.log('genesis header:\n', hex_lines(header));
+    console.log('genesis block:\n', hex_lines(block_hex));
+    console.log('nonce', found.nonce, 'time', found.time);
+    console.log('validate btc tip did not change');
+    let tip2 = yield btc_get_tip();
+    if (tip2?.error)
+      return tip2;
+    if (tip2.id==tip.id)
+      break;
+    if (tip2.id!=tip.id){
+      console.log('btc tip changed after mining '+tip.id+' -> '+tip2.id);
+      return {error: 'tip changed after mining'};
+    }
   }
   Network.set(); // return it to BTC to broadcast btc tx
-  console.log('update lif/protocol/networks.js with new values');
-  ret = await update_networks_js({genesisBlock: block_hex,
-    time: found.time, nonce: found.nonce, merkleRoot, hash: found.hash});
+  console.log('update lib/protocol/networks.js with new values');
+  let magic = magic_from_hash(found.hash);
+  let merkleRoot_hex = buf_to_hex(block.merkleRoot);
+  ret = yield update_networks_js({genesisBlock: block_hex,
+    time: found.time, nonce: found.nonce,
+    merkleRoot: merkleRoot_hex, hash: found.hash, magic});
   if (ret?.error)
     return ret;
   /*
   console.log('commit new genesis block');
-  ret = await git_commit_networks_js(hash);
+  ret = yield git_commit_networks_js(hash);
   if (ret?.error)
     return ret;
   console.log('get git commitid to include in BTC KV')
-  ret = await git_commitid(cwd+'/..');
+  ret = yield git_commitid(cwd+'/..');
   */
-  console.log('create BTC KV transaction with lifocin/block_hash@0');
-  let btc_tx = await btc_create_kv({coin, change_addr, fee,
+  console.log('create BTC KV transaction with lifocin/block_hash:0');
+  let btc_tx = yield btc_create_kv({coin, change_addr, fee,
     lif_kv: {key: main_or_test_chain+'/block_hash0', val: {hash: found.hash}}});
   if (!btc_tx?.tx_hex || btc_tx?.error)
     return btc_tx;
   if (broadcast_btc){
     console.log('submit new BTC tx');
-    let ret = await btc_post_tx(btc_tx.tx_hex);
+    let ret = yield btc_post_tx(btc_tx.tx_hex);
     if (ret.error)
       return ret;
   } else
     console.log('disabled submit: didnt submit new BTC tx');
   console.log('broadcast txid', btc_tx.tx.rhash());
   console.log('SUCCESS');
-}
+}); }
 
 async function main(){
   let argv = process.argv;
