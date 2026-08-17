@@ -592,7 +592,7 @@ async function update_networks_js({nonce, time, merkleRoot, magic, hash, genesis
   gb = gb.split('\n');
   gb = gb.map(l=>'  '+l+' // SET_genesisBlock');
   set('SET_genesisBlock', gb);
-  await file_write_lines(cwd+'/new_networks.js', lines);
+  await file_write_lines(cwd+'/lib/protocol/networks.js', lines);
 }
 
 async function git_orig_networks_js(){
