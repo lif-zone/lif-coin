@@ -661,6 +661,10 @@ function test_and_create_gen(){ return etask(function*(){
   ret = yield git_orig_networks_js();
   if (ret?.error)
     return ret;
+  console.log('validate can commit');
+  let commitid0 = yield git_commitid(cwd+'/..');
+  if (commitid0?.error)
+    return commitid0;
   console.log('get updated tip');
   let tip;
   Network.set('lifmain');
@@ -733,9 +737,15 @@ function test_and_create_gen(){ return etask(function*(){
       return commitid;
     console.log('commitid: '+commitid);
   }
-  console.log('create BTC KV transaction with lifocin/block_hash:0');
+  console.log('create BTC KV transaction with lifocin/block_hash@0');
   let btc_tx = yield btc_create_kv({coin, change_addr, fee,
-    lif_kv: {key: main_or_test_chain+'/block_hash0', val: {hash: found.hash}}});
+    lif_kv: {
+      key: main_or_test_chain+'/block_hash@0',
+      val: {
+        hash: found.hash,
+        miner_app: 'lif:git/github/lif-zone/lif-coin@'+commitid,
+      },
+    }});
   if (!btc_tx?.tx_hex || btc_tx?.error)
     return btc_tx;
   if (do_broadcast_btc){
