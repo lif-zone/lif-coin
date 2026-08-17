@@ -628,12 +628,12 @@ async function btc_check_coin(txid, vout){
 }
 
 function test_and_create_gen(){ return etask(function*(){
-  let do_broadcast_btc = false; // production: true
+  let do_broadcast_btc = true; // production: true
   let do_commit = true; // production true
   let main_or_test_chain = 'lifcoin_test'; // production: 'lifcoin'
   let error;
   let ret;
-  let fee = 732; // product: 1842
+  let fee = 732; // 7*(3*2)=7*6=42, 0x732=1842
   console.log('validate setup: btc tip and submit, coin for kv submission');
   let _coin = yield file_json(cwd+'/../../btc_coin.json');
   if (_coin?.error)
