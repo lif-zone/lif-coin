@@ -16,12 +16,37 @@ import KeyRing from '../lib/primitives/keyring.js';
 import Coin from '../lib/primitives/coin.js';
 import Address from '../lib/primitives/address.js';
 import {opcodes} from '../lib/script/common.js';
-import {readFile} from 'fs/promises';
+import {readFile, writeFile} from 'fs/promises';
 import {homedir} from 'os';
+import {spawn} from 'node:child_process';
 import etask from 'lif-kernel/etask';
 const {wait: ewait} = etask;
 import {lifnet_connect} from 'lif-kernel/lifnet';
 
+let cwd = import.meta.dirname;
+
+async function system(command){
+  let wait = ewait();
+  const child = spawn(command, {
+    shell: true, // so you can write "ls -la | grep foo"
+    stdio: 'inherit' // output goes straight to your terminal
+  });
+  child.on('close', code=>wait.return(code)); // 0 = success
+  child.on('error', wait.return(-1));
+  return await wait;
+}
+
+async function sys_get(args){
+  let wait = ewait();
+  const child = spawn(args, [], {shell: true}); // shell: true ≈ system()
+  let allout = '';
+  let stdout = '';
+  let stderr = '';
+  child.stdout.on('data', d=>{ stdout+=d; allout+=d; });
+  child.stderr.on('data', d=>{ stderr+=d; allout+=d; });
+  child.on('close', code=>wait.return({code, allout, stdout, stderr}));
+  return await wait;
+}
 function buf_from_hex(b){
   if (Buffer.isBuffer(b))
     return Buffer.from(b);
@@ -59,7 +84,7 @@ function createGenesisBlock(opt) {
     //flags = 'The Guide 18/Oct/1984 Permissionless read-write bible torah guide BBS';
     //flags = ' M.S. Ancient Philology: Justice Ethics Morals letter word count guide';
     //flags = 'The Guide 18/Oct/1984 DNA Ancient philology book - eternal publishing';
-    flags = 'The Guide KI TXA 08/ALU/5786 Ethernal ?? Words Philology DNA/Shoshani';
+    flags = 'The Guide KI TXA 08/ALU/5786 Ethernal MB Words Philology DNA/Shoshani';
     //flags = 'The Guide 21/TSR/5787 SMhT TURA Ethernal Words Philology DNA/Shoshani';
     //flags = 'The Happiness Guide 21/TSR/5787 Ethernal Words Philology DNA/Shoshani';
   // MR SUSNI. 1 2*5 6*10 18 7
@@ -109,23 +134,24 @@ function createGenesisBlock(opt) {
     }
   }
   const tx = new TX({version: 1, inputs, outputs, locktime: 0});
+  const merkleRoot = tx.hash();
   const block = new Block({
     version: opt.version,
     prevBlock: consensus.ZERO_HASH,
-    merkleRoot: tx.hash(),
+    merkleRoot,
     time: opt.time,
     bits: opt.bits,
     nonce: opt.nonce,
     height: 0,
   });
   block.txs.push(tx);
-  return block;
+  return {block, merkleRoot};
 }
 
 function gen_block(name, opt={}){
   let net = Networks[name];
   let gen = net.genesis;
-  return net.genesis_block = createGenesisBlock(
+  return createGenesisBlock(
     {version: 1, time: gen.time, bits: gen.bits, nonce: gen.nonce,
     net_type: name, btc_timestamp: opt.btc_timestamp});
 }
@@ -149,7 +175,7 @@ function date_time(){ return Math.floor(Date.now()/1000); }
 async function diff_block(name){
   let net = Networks[name];
   let g = net.genesis;
-  let block = gen_block(name);
+  let {block} = gen_block(name);
   let err, is_lif = name.startsWith('lif');
   console.log('--------- '+name+' ---------------');
   // complete block
@@ -368,9 +394,9 @@ export async function do_test(){
   0 && await diff_block('liftest');
   0 && await diff_block('regtest');
   0 && await diff_block('simnet');
-  0 && await do_mine(gen_block('main'));
+  0 && await do_mine(gen_block('main').block);
   Network.set('lifmain');
-  0 && await do_mine(gen_block('lifmain'));
+  0 && await do_mine(gen_block('lifmain').block);
   Network.set();
   return {error};
 }
@@ -396,6 +422,27 @@ let wallet1_a = bech32(wallet1);
 let wallet2 = 'morning like hello gym core stage wood deposit artefact monster turn absorb';
 let wallet2_a = bech32(wallet1);
 
+async function file_lines(file){
+  let f;
+  try {
+    f = await readFile(file, 'utf8');
+    return f.split('\n');
+  } catch(error){
+    console.error(error);
+    console.log('failed file_lines '+file);
+    return {error};
+  }
+}
+async function file_write_lines(file, lines){
+  let f;
+  try {
+    await writeFile(file, lines.join('\n'));
+  } catch(error){
+    console.error(error);
+    console.log('failed file_lines '+file);
+    return {error};
+  }
+}
 async function file_json(file){
   let f;
   try {
@@ -508,11 +555,69 @@ async function btc_create_kv({coin, change_addr, fee, lif_kv, log=1}){
   return {tx, tx_hex: hex, txid: _txid};
 }
 
+async function update_networks_js({nonce, time, merkleRoot, magic, hash, genesisBlock}){
+  let lines = file_lines(cwd+'/lif/protocol/networks.js');
+  if (lines?.error)
+    return lines;
+  function set(token, replace){
+    if (typeof replace=='string')
+      replace = [replace];
+    let found;
+    for (let i=0; i<lines.length; i++){
+      let l = lines[i];
+      if (!l.includes(token))
+        continue;
+      found ??= i;
+      i--;
+      lines = [...lines.slice(0, i), ...lines.slice(i+1)];
+    }
+    lines = [lines.slice(0, found), ...replace, lines.slice(found)];
+  }
+  set('SET_merkleRoot',
+    `  merkleRoot: b('${merkleRoot}'), // SET_merkleRoot`);
+  set('SET_magic',
+    `lifmain.magic = 0x${magic.toString(16)}; // SET_magic`);
+  set('SET_time',
+    `  time: ${time}, // SET_time`);
+  set('SET_nonce',
+    `  nonce: ${nonce}, // SET_nonce`);
+  set('SET_hash',
+    `  hash: b('${hash}'), // SET_hash`);
+  set('SET_hash',
+    `  hash: b('${hash}'), // SET_hash`);
+  let gb = hex_lines(genesisBlock)+';';
+  gb = gb.split('\n');
+  gb = gb.map(l=>'  '+l+' // SET_genesisBlock');
+  set('SET_genesisBlock', gb);
+  file_write_lines(lines);
+}
+
+async function git_orig_networks_js(){
+  return;
+  let ret = await sys_get(`cd ${cwd}/.. && git diff lib/protocols/networks.js`);
+  if (ret.str!==''|| ret.code)
+    return {error: 'diff in lib/protocol/networks.js: '+ret};
+}
+async function git_commit_networks_js(hash){
+  return;
+  let ret = await sys_get(`cd ${cwd}/.. && git commit -m "mined genesis block ${hash}" lib/protocol/networks.js`);
+  if (!ret.str.includes('1 file changed') || ret.code)
+    return {error: 'commit failed lib/protocol/networks.js: '+ret};
+}
+async function git_commitid(){
+  return;
+  let ret = await sys_get(`cd ${cwd}/.. && git rev-parse HEAD`);
+  ret = ret.trim();
+  if (ret.length!=40)
+    return {error: 'invalid commitid'};
+  return ret;
+}
+
 async function btc_check_coin(txid, vout){
   let outspend = await fetch_json(
     'https://mempool.space/api/tx/'+txid+'/outspend/'+vout);
   if (outspend?.error)
-    return outsepnd;
+    return outspend;
   let tx = await fetch_json('https://mempool.space/api/tx/'+txid);
   if (tx?.error)
     return tx;
@@ -523,9 +628,10 @@ async function test_and_create_gen(){
   let broadcast_btc = false;
   let main_or_test_chain = 'lifcoin_test'; // 'lifcoin';
   let error;
+  let ret;
   let fee = 1842;
   console.log('validate setup: btc tip and submit, coin for kv submission');
-  let _coin = await file_json(homedir()+'/btc_coin.json');
+  let _coin = await file_json(cwd+'/../../btc_coin.json');
   if (_coin?.error)
     return _coin;
   let {coin, change_addr} = _coin;
@@ -548,7 +654,10 @@ async function test_and_create_gen(){
     return {error: 'coin already spent'};
   if (!coin_v.value || coin_v<fee)
     return {error: 'not enought value in coin '+coin_v.value+' < fee '+fee};
-  console.log('get updated tip')
+  ret = await git_orig_networks_js();
+  if (ret?.error)
+    return ret;
+  console.log('get updated tip');
   let tip = await btc_get_tip({test: true});
   if (tip.error)
     return tip;
@@ -561,7 +670,7 @@ async function test_and_create_gen(){
     return tip;
   console.log('btc tip', tip);
   console.log('mine new block with new TIP');
-  let block = gen_block('lifmain', {btc_timestamp: tip.id});
+  let {block, merkleRoot} = gen_block('lifmain', {btc_timestamp: tip.id});
   let found = await do_mine(block);
   if (!found || found?.error)
     return found;
@@ -579,8 +688,19 @@ async function test_and_create_gen(){
     return {error: 'tip changed after mining'};
   }
   Network.set(); // return it to BTC to broadcast btc tx
-  // XXX update lif/protocol/networks.js with new values
-  // XXX git commit -m 'mined genesis block t1'
+  console.log('update lif/protocol/networks.js with new values');
+  ret = await update_networks_js({genesisBlock: block_hex,
+    time: found.time, nonce: found.nonce, merkleRoot, hash: found.hash});
+  if (ret?.error)
+    return ret;
+  /*
+  console.log('commit new genesis block');
+  ret = await git_commit_networks_js(hash);
+  if (ret?.error)
+    return ret;
+  console.log('get git commitid to include in BTC KV')
+  ret = await git_commitid(cwd+'/..');
+  */
   console.log('create BTC KV transaction with lifocin/block_hash@0');
   let btc_tx = await btc_create_kv({coin, change_addr, fee,
     lif_kv: {key: main_or_test_chain+'/block_hash0', val: {hash: found.hash}}});
