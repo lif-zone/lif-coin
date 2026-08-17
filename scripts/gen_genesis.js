@@ -482,8 +482,8 @@ async function btc_post_tx(tx){
       headers: {'Content-Type': 'text/plain'},
       body: tx,
     });
-    let json = await ret.json();
-    return json;
+    let text = await ret.text();
+    return text;
   } catch(error){
     console.log('failed fetch '+url);
     return {error};
@@ -753,6 +753,7 @@ function test_and_create_gen(){ return etask(function*(){
     let ret = yield btc_post_tx(btc_tx.tx_hex);
     if (ret.error)
       return ret;
+    console.log('submit ret:', ret);
   } else
     console.log('disabled submit: didnt submit new BTC tx');
   console.log('broadcast txid', btc_tx.tx.rhash());
