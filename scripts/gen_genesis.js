@@ -344,7 +344,7 @@ function do_mine(block){ return etask(function*(){
   let min = 0; // nonce bitcoin genesis 2083236893
   let max = 0x100000000;
   let bits = block.bits;
-  bits = 0x1f00ffff; // make it easier for testing
+  //bits = 0x1f00ffff; // make it easier for testing
   let target = common.getTarget(bits);
   console.log('difficulty:', int_to_hex(bits), buf_to_hex(target));
   let inc = 200000;
