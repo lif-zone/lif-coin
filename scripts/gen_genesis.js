@@ -344,7 +344,7 @@ function do_mine(block){ return etask(function*(){
   let min = 0; // nonce bitcoin genesis 2083236893
   let max = 0x100000000;
   let bits = block.bits;
-  //bits = 0x1f00ffff; // make it easier for testing
+  bits = 0x1f00ffff; // make it easier for testing
   let target = common.getTarget(bits);
   console.log('difficulty:', int_to_hex(bits), buf_to_hex(target));
   let inc = 200000;
@@ -469,17 +469,7 @@ async function fetch_json(url){
     return {error};
   }
 }
-async function btc_fetch_tip(url, cmp){
-  let _tip = await fetch_json('https://mempool.space/api/v1/blocks');
-  let tip = {id: _tip[0].id, height: _tip[0].height};
-  if (!tip.id || !tip.height)
-    return {error: 'failed fetch'};
-  if (cmp && (cmp.id!=tip.id || cmp.height!=tip.height)){
-    console.log('tip mismatch btcscan', tip, 'orig', cmp);
-    return {error: 'tip mismatch'};
-  }
-  return tip;
-}
+
 async function btc_post_tx(tx){
   assert(typeof tx=='string' && tx.length>20);
   let url = 'https://mempool.space/api/tx';
@@ -499,10 +489,30 @@ async function btc_post_tx(tx){
     return {error};
   }
 }
-async function btc_get_tip({test}={}){
-  let tip = await btc_fetch_tip('https://mempool.space/api/v1/blocks');
+
+async function btc_fetch_tip(){
+  // https://btcscan.org/api/blocks/tip
+  // https://blockchain.info/latestblock
+  // https://api.blockcypher.com/v1/btc/main
+  let tip = await fetch_json('https://mempool.space/api/v1/blocks/tip');
+  tip = tip?.[0];
+  if (tip?.id?.length==64 && typeof tip?.height=='number')
+    return tip;
+  tip = await fetch_json('https://btcscan.org/api/blocks/tip');
+  tip = tip?.[0];
+  if (tip?.id?.length==64 && typeof tip?.height=='number')
+    return tip;
+  tip = await fetch_json('https://api.blockcypher.com/v1/btc/main');
+  if (tip?.id?.length==64 && typeof tip?.height=='number')
+    return tip;
+  return {error: 'all fetch failed for tip'};
+}
+async function btc_get_tip(){
+  let tip = await btc_fetch_tip();
   if (tip.error)
     return tip;
+  if (!tip)
+    return {error: 'invalid result of json tip'};
   if (typeof tip.height!='number' || tip<900000 || tip.height>1100000){
     console.log('invalid tip height', tip.height);
     return {error: 'invalid tip height'};
@@ -510,19 +520,6 @@ async function btc_get_tip({test}={}){
   if (tip.id?.length!=64){
     console.log('invalid tip id', tip.id);
     return {error: 'invalid tip id'};
-  }
-  if (test){
-    let tip2;
-    tip2 = await btc_fetch_tip('https://btcscan.org/api/blocks/tip');
-    if (tip2.error)
-      return tip2;
-    // ?cors=true only needed for browsers
-    tip2 = await btc_fetch_tip('https://blockchain.info/latestblock?cors=true');
-    if (tip2.error)
-      return tip2;
-    tip2 = await btc_fetch_tip('https://api.blockcypher.com/v1/btc/main');
-    if (tip2.error)
-      return tip2;
   }
   return tip;
 }
@@ -561,7 +558,6 @@ async function btc_create_kv({coin, change_addr, fee, lif_kv, log=1}){
 async function update_networks_js({nonce, time, merkleRoot, magic, hash, genesisBlock}){
   let lines = await file_lines(cwd+'/../lib/protocol/networks.js');
   let _error;
-  console.log('lines', lines);
   if (lines?.error)
     return lines;
   function set(token, replace){
@@ -597,9 +593,6 @@ async function update_networks_js({nonce, time, merkleRoot, magic, hash, genesis
   gb = gb.map(l=>'  '+l+' // SET_genesisBlock');
   set('SET_genesisBlock', gb);
   await file_write_lines(cwd+'/new_networks.js', lines);
-  console.log('XXX result');
-  console.log(lines);
-  process.exit(0);
 }
 
 async function git_orig_networks_js(){
@@ -609,13 +602,11 @@ async function git_orig_networks_js(){
     return {error: 'diff in lib/protocol/networks.js: '+ret};
 }
 async function git_commit_networks_js(hash){
-  return;
   let ret = await sys_get(`cd ${cwd}/.. && git commit -m "mined genesis block ${hash}" lib/protocol/networks.js`);
-  if (!ret.str.includes('1 file changed') || ret.code)
-    return {error: 'commit failed lib/protocol/networks.js: '+ret};
+  if (!ret.allout.includes('1 file changed') || ret.code)
+    return {error: 'commit failed lib/protocol/networks.js: '+ret.allout};
 }
 async function git_commitid(){
-  return;
   let ret = await sys_get(`cd ${cwd}/.. && git rev-parse HEAD`);
   ret = ret.trim();
   if (ret.length!=40)
@@ -635,11 +626,12 @@ async function btc_check_coin(txid, vout){
 }
 
 function test_and_create_gen(){ return etask(function*(){
-  let broadcast_btc = false;
-  let main_or_test_chain = 'lifcoin_test'; // 'lifcoin';
+  let do_broadcast_btc = false; // production: true
+  let do_commit = true; // production true
+  let main_or_test_chain = 'lifcoin_test'; // production: 'lifcoin'
   let error;
   let ret;
-  let fee = 1842;
+  let fee = 732; // product: 1842
   console.log('validate setup: btc tip and submit, coin for kv submission');
   let _coin = yield file_json(cwd+'/../../btc_coin.json');
   if (_coin?.error)
@@ -697,6 +689,7 @@ function test_and_create_gen(){ return etask(function*(){
           mine_et.return({retry: true});
           return;
         }
+        yield etask.sleep(2000);
       }
     });
     found = yield mine_et;
@@ -730,20 +723,24 @@ function test_and_create_gen(){ return etask(function*(){
     merkleRoot: merkleRoot_hex, hash: found.hash, magic});
   if (ret?.error)
     return ret;
-  /*
-  console.log('commit new genesis block');
-  ret = yield git_commit_networks_js(hash);
-  if (ret?.error)
-    return ret;
-  console.log('get git commitid to include in BTC KV')
-  ret = yield git_commitid(cwd+'/..');
-  */
+  let commitid;
+  if (do_commit){
+    console.log('commit new genesis block');
+    ret = yield git_commit_networks_js(found.hash);
+    if (ret?.error)
+      return ret;
+    console.log('get git commitid to include in BTC KV');
+    commitid = yield git_commitid(cwd+'/..');
+    if (commitid?.error)
+      return commitid;
+    console.log('commitid: '+commitid);
+  }
   console.log('create BTC KV transaction with lifocin/block_hash:0');
   let btc_tx = yield btc_create_kv({coin, change_addr, fee,
     lif_kv: {key: main_or_test_chain+'/block_hash0', val: {hash: found.hash}}});
   if (!btc_tx?.tx_hex || btc_tx?.error)
     return btc_tx;
-  if (broadcast_btc){
+  if (do_broadcast_btc){
     console.log('submit new BTC tx');
     let ret = yield btc_post_tx(btc_tx.tx_hex);
     if (ret.error)
