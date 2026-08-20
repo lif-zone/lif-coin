@@ -646,7 +646,7 @@ function test_and_create_gen(){ return etask(function*(){
   }
   console.log('validate keypair can sign');
   let btc_tx_test = yield btc_create_kv({coin, change_addr, fee, log: 0,
-    lif_kv: {key: main_or_test_chain+'/block_hash:0',
+    lif_kv: {key: main_or_test_chain+'/block_hash@0',
     val: {hash: 'f'.repeat(32)}}});
   if (!btc_tx_test?.tx_hex || btc_tx_test?.error)
     return btc_tx_test;
