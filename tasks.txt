@@ -232,24 +232,19 @@ For mainnet release 02-Oct-2026
   for ns2 to ask fron ns1 for the certificates. ns1 to validate will
   connect back https, validate the self-signed cert match, and then submit
   the key to ns2.
-- prep genesis block
-  - update flags: gen_genesis.js: update flags=21/TSR/5787
-  - update magic: lib/protocol/networks.js:lifmain.magic = 02-Oct-2026
-  - run automated mining:
-    - fetch bitcoin height+hash
-    - update coinbase: node scripts/gen_genesis.js test
-      - ignore: ERR genesis.hash calc
-      - update ERR merkel in networks.js
-    - mine block
-    - create bitcoin tx with new block
-    - update networks.js: nonce, time, hash, genesisBlock
-    - commit lif-zone/lif-coin
 - 02-Oct-2026 release day:
-  - backup mainnet->testnet to other directory
-  - delete existing mainnet
-  - update lif-coin/lib/protocol/networks.js:
-    lifmain.magic = 0x0eca929b; // LIF(10 things).LE32() // select
-    and enable gen_genesis.js:magic_calc()
+  - create new genesis block, and timestamp on BTC
+    - update flags: gen_genesis.js: update flags=21/TSR/5787
+    - start Windows mining slave pool server: wallet.bright.life
+      in Windows open wallet.lifcoin.com, enable Developer tools,
+      enable slave mining, in LIF wallet, enable Advanced,
+      then start Mining Pool
+    - run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
+      wait for find winner.
+  - update to servers new chain
+    - backup lifmain->liftest to other directory
+    - delete existing lifmain: rm -rf ~/lif.store/lifmain
+    - vps1-3: lif_server.js update, lif_server.js restart
 
 Post mainnet release
 -------------------
@@ -259,6 +254,7 @@ Post mainnet release
 Post release:
 -------------
 - respond hi.html with any request. add support for /.lif.local/lif-kernel
+  add support for SPA providing 404/200 according to lif: {spa: true}
   - add pass through to kernel.js
   - add server.js mapping
   - add support for esplora: compile rxjs *.js via jsx, add index.html
@@ -305,17 +301,21 @@ kernel.js
 - add unit-tests for pkg_browser_lookup(). Move it to util.js
   - See whats the right places to put it.
   - do a proper correct implementation
-- add support for SPA providing 404/200 according to lif: {spa: true}
 
 Low priority:
 -------------
-- lif-wallet: improve ease of use of "send":
-  - Add 'send max' (send all coin, send all funds in wallet)
-  - When sending all money, deduct fees for amount, and warn user
-  - show while writing in amount the "live" balance will be left after transfer
++ lif-wallet: improve ease of use of "send":
+  + Add 'send max' (send all coin, send all funds in wallet)
+  + When sending all money, deduct fees for amount, and warn user
+  + show while writing in amount the "live" balance will be left after transfer
 - lif-explorer: make a lif app:
   - make lif-explorer a 'lif app browser blockchain work'
   - make lif-explorer use lifnet for requests
+  - make esplora load from LIF:
+    - fork it into a new tree
+    - add to lif kernel support for answeing index.html for any URL, and
+      supporting SPA, and 'virtual 404'.
+    - support lif kernel JsRx and make esplora run on it
 - UI solution to update version: instead of
   Devtools->Application->Service Worker->Update->Unregister
 - instant mine: funding payouts for multiple wins
@@ -335,11 +335,6 @@ Low priority:
 - add ipc keep alive: every 100ms update a place in memory. On the waiting
   side, if for 1000ms no update - it starts giving error messages
 - move the boot_worker web worker to the service worker.
-- make esplora load from LIF:
-  - fork it into a new tree
-  - add to lif kernel support for answeing index.html for any URL, and
-    supporting SPA, and 'virtual 404'.
-  - support lif kernel JsRx and make esplora run on it
 - add support for lif no-cors via out servers routing requests in return
   to mining or tx with money.
 - tx broadcast that fails should show a message that it failed
