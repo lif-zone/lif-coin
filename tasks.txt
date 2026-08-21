@@ -173,7 +173,7 @@ For testnet release 21-Aug-2026
     lifcoin.com still cache not updated
   + Install and run on VPS1: lif_node.js, lif-kernel ssl, lifcoin_s.js
     + add support for 1842 for local lif.net connection.
-* add LIF production network with production target (4G hash).
++ add LIF production network with production target (4G hash).
   + automate the process: providing private addr for bitcoin transaction,
     getting btc tip hash, inserting to lif genesis template, mining a lif
     template, periodic test and update if new bitcoin hash to lif coinbase,
@@ -192,32 +192,32 @@ For testnet release 21-Aug-2026
       free mining, given a header. Periodically monitor bitcoin tip,
       and update mining pool.
     + setup full mining cycle and actually mine a test block
-  - generate bitcoin TX to mark the new block with lif_kv
+  + generate bitcoin TX to mark the new block with lif_kv
     key=lifcoin/block@0/hash val={hash: '<32 bytes hex>'}
-  - create gen block: get from electrum block hash, mine lif,
+  + create gen block: get from electrum block hash, mine lif,
     once completed submit electrum TX to bitcoin
-- 21-Aug-2026 release day:
-  - btc mine loop run:
-    - get current btc head
-    - start Windows mining slave pool server: wallet.bright.life
++ 21-Aug-2026 release day:
+  + btc mine loop run:
+    + get current btc head
+    + start Windows mining slave pool server: wallet.bright.life
       in Windows open wallet.lifcoin.com, enable Developer tools,
       enable slave mining, in LIF wallet, enable Advanced,
       then start Mining Pool
-    - run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
+    + run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
       wait for find winner.
-    - copy SET 01 SET_merkleRoot SET 01
-    - copy SET 02 SET_time SET 02 found time
-    - copy SET 02 SET_nonce SET 02 found nonce
-    - copy SET 03 SET_hash SET 03 lifmain.genesis.hash
-    - copy SET 03 SET_genesisBlock SET 03 lifmain.genesisBlock
-    - copy SET 04 SET_magic SET 04 lifmain.magic
-    - run node ~/lif-coin/scripts/gen_genesis.js test
-    - copy magic to lifmain.magic
-    - run node ~/lif-coin/scripts/gen_genesis.js test
+    + copy SET 01 SET_merkleRoot SET 01
+    + copy SET 02 SET_time SET 02 found time
+    + copy SET 02 SET_nonce SET 02 found nonce
+    + copy SET 03 SET_hash SET 03 lifmain.genesis.hash
+    + copy SET 03 SET_genesisBlock SET 03 lifmain.genesisBlock
+    + copy SET 04 SET_magic SET 04 lifmain.magic
+    + run node ~/lif-coin/scripts/gen_genesis.js test
+    + copy magic to lifmain.magic
+    + run node ~/lif-coin/scripts/gen_genesis.js test
       make sure its SUCCESS
-    - commit networks.js
-  - delete existing mainnet (vps1-3): rm -rf ~/lif.store/lifmain
-  - restart mainnet vps1-3:
+    + commit networks.js
+  + delete existing mainnet (vps1-3): rm -rf ~/lif.store/lifmain
+  + restart mainnet vps1-3:
     $ lif_service.sh update
     $ lif-service.sh restart
 
