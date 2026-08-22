@@ -253,16 +253,27 @@ Post mainnet release
 
 Post release:
 -------------
-- respond hi.html with any request. add support for /.lif.local/lif-kernel
+* lif-explorer: SPA respond hi.html with any request.
+  add support for /.lif.local/lif-kernel
   add support for SPA providing 404/200 according to lif: {spa: true}
-  - add pass through to kernel.js
-  - add server.js mapping
-  - add support for esplora: compile rxjs *.js via jsx, add index.html
-  - upload to github.com/lif-zone/lif-explorer
+  + add server.js mapping
+  + add pass through to kernel.js
+  - add handling (redirect) to hi.js in kernel.js, when {spa: true}
+  * add support for esplora: compile rxjs *.js via jsx, add index.html
+  + upload to github.com/lif-zone/lif-explorer
   - support bitcoin esplora CORS vis lif_net
+  - support self reference "name": "lif-explorer" when looking up packages.
+    remove hack in lif-explorer/package.json
+  - add support for html webapp in lif-kernel/boot.js:
+    lif-explorer/client/package.json: "webapp": "index.html"
+  - add support for "^2.0.0" in npm deps to use newest version of "^2.x.x"
+    and remove overrides overrides: {has-symbols: "^1.1.0",
+    which-typed-array: "^1.1.22", is-typed-array: "^1.1.15"}
+    in lif-explorer/client/package.json
+- update version 26.X.X to 2026.8.23
 - improve performance via react@18.3.1/.lif.modules/
   the equivalent of node_modules.
-- add a complete SPV model:
+- lif-wallet: add a complete SPV model:
   - store TXes (with/witout proofs)
   - block headers (must always have connection, even if only to checkpoints)
   - ask electrum only for what is missing
@@ -398,6 +409,8 @@ Text source options
     M.S.: Ancient Philology: Justice Ethics Morals - counting letters and words
     (M. Ben Shoshan 1952, JEM Pub. 1969, DNA Pub. 18-Oct-1984): the study of Justice, Ethcs and Morals 
     LCPUR AUT UMILH
+    MBS LK RBS DNA SYC/MMS
+    Hebrew Ancient Philology Publishing (H. Publishing)
   - My Ford scribe helper: Babel Baba Buba Bob is real right priest
   - Everything you wanted to know about SIX, but were too afraid to ask!
   - 42 words, The 42 of 18: The Meaning of Lif
