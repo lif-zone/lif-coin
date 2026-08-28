@@ -409,8 +409,17 @@ Text source options
     M.S.: Ancient Philology: Justice Ethics Morals - counting letters and words
     (M. Ben Shoshan 1952, JEM Pub. 1969, DNA Pub. 18-Oct-1984): the study of Justice, Ethcs and Morals 
     LCPUR AUT UMILH
-    MBS LK RBS DNA SYC/MMS
+    MBS LK RBS DNA SYC VEF/MMS
+    MURDKI BN SuSN, Mordechai Ben Shoshan
+    Lourance Kohlberg
+    RBKA BT SLUM, Rivka Bat Shalom
+    Douglas Noel Adams
+    MNhM MNDL SNIAURCUN, Mehahem Mendel Shniorson
+    SAR IAUB KHN, Shar Yashuv Cohen
+    Viktor Emil Frankl
     Hebrew Ancient Philology Publishing (H. Publishing)
+  - Thank You. Harm Less. TUDH YQUM. TPGO PhUT. Be Happy. Dont Panic.
+    TUDA LK. LT TZIQ.
   - My Ford scribe helper: Babel Baba Buba Bob is real right priest
   - Everything you wanted to know about SIX, but were too afraid to ask!
   - 42 words, The 42 of 18: The Meaning of Lif
@@ -449,6 +458,7 @@ Text source options
     Verb (beginning) Gerund (naming) Gerund (calling) Gerund (meaning) Noum (things)
     A Homer: to pull a homer
     VALH SMUT - *these* are the names (the naming action/process, like LSIM)
+  - LIFE=12 SMUT/MZLUT 22 ATIUT/CIMNIM 32 NTIBUT 42 MILIM/MCOUT=10 DVRIM
   - Torah letters 304805 words 79980, letters 5845
     lif_kv HTURH/wc {things: 504885, names: 79980, signs: 5845}
   - wc WHATDOYOUGETIFYOUMULTIPLYSIXBYEPTAFORTYTWO => 42

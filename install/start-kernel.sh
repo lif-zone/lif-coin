@@ -2,7 +2,7 @@
 cd ~/lif-wallet
 git pull
 cd ~/lif-kernel
-rm package-lock.json
+rm -f package-lock.json
 git pull
 npm install
 #sudo npm run serve-prod 
