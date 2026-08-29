@@ -253,26 +253,27 @@ Post mainnet release
 
 Post release:
 -------------
++ update version 26.X.X to 2026.8.23
 * lif-explorer: SPA respond hi.html with any request.
-  add support for /.lif.local/lif-kernel
-  add support for SPA providing 404/200 according to lif: {spa: true}
   + add server.js mapping
   + add pass through to kernel.js
-  * add support for esplora: compile rxjs *.js via jsx, add index.html
   + upload to github.com/lif-zone/lif-explorer
   + add web_exports support npm:module reading (without redirect)
   + add exports support npm:module redirect
+  * add support for esplora: compile rxjs *.js via jsx, add index.html
   - support bitcoin esplora CORS vis lif_net
-  - support self reference "name": "lif-explorer" when looking up packages.
-    remove hack in lif-explorer/package.json
-  - add support for html webapp in lif-kernel/boot.js:
-    lif-explorer/client/package.json: "webapp": "index.html"
-  - add support for "^2.0.0" in npm deps to use newest version of "^2.x.x"
-    and remove overrides overrides: {has-symbols: "^1.1.0",
-    which-typed-array: "^1.1.22", is-typed-array: "^1.1.15"}
-    in lif-explorer/client/package.json
-    dependencies: {"@cycle/http": "npm:@cycle/fetch@^4.0.0"}
-- update version 26.X.X to 2026.8.23
+  - future:
+    - support self reference "name": "lif-explorer" when looking up packages.
+      remove hack in lif-explorer/package.json
+    - add support for html webapp in lif-kernel/boot.js:
+      lif-explorer/client/package.json: "webapp": "index.html"
+    - add support for "^2.0.0" in npm deps to use newest version of "^2.x.x"
+      and remove overrides overrides: {has-symbols: "^1.1.0",
+      which-typed-array: "^1.1.22", is-typed-array: "^1.1.15"}
+      in lif-explorer/client/package.json
+      dependencies: {"@cycle/http": "npm:@cycle/fetch@^4.0.0"}
+    - maybe: add support for /.lif.local/lif-kernel
+    - maybe: add support for SPA providing 404/200 according to lif {spa: true}
 - improve performance via react@18.3.1/.lif.modules/
   the equivalent of node_modules.
 - lif-wallet: add a complete SPV model:
