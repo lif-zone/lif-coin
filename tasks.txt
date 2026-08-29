@@ -258,9 +258,10 @@ Post release:
   add support for SPA providing 404/200 according to lif: {spa: true}
   + add server.js mapping
   + add pass through to kernel.js
-  - add handling (redirect) to hi.js in kernel.js, when {spa: true}
   * add support for esplora: compile rxjs *.js via jsx, add index.html
   + upload to github.com/lif-zone/lif-explorer
+  + add web_exports support npm:module reading (without redirect)
+  + add exports support npm:module redirect
   - support bitcoin esplora CORS vis lif_net
   - support self reference "name": "lif-explorer" when looking up packages.
     remove hack in lif-explorer/package.json
@@ -270,6 +271,7 @@ Post release:
     and remove overrides overrides: {has-symbols: "^1.1.0",
     which-typed-array: "^1.1.22", is-typed-array: "^1.1.15"}
     in lif-explorer/client/package.json
+    dependencies: {"@cycle/http": "npm:@cycle/fetch@^4.0.0"}
 - update version 26.X.X to 2026.8.23
 - improve performance via react@18.3.1/.lif.modules/
   the equivalent of node_modules.
@@ -290,11 +292,13 @@ Post release:
     server remembers its IP<->rg_id mapping. once finished - reuse oldest.
   - add lif-kernel outgoing connections to github lif:net/ip_bridge/http_out.
     and lif_fetch('https://github.com/lif-zone/lif-kernel.git/info/refs?...')
-- F5 reload sw: detect refresh in boot.js
+- fix caching and F5 reload sw: detect refresh in boot.js
   performance.getEntriesByType('navigation') reload back forward navigate
   prerender and load sw?revalidate=1, which tells kernel.js fetch() to
   use revalidate options to revalidate etag/lmod
   mayne move part of kernel to sw_boot.js
+  check that in DB and caches only cachable stuff is there
+- add caching of hi.js in kernel.js, when {spa: true}
 - improve perf of npm version list: https://registry.npmjs.org/express
   make sure to use ETag/LMod on request, and make sure 304 response.
 - add support for npm package listing: (quick 'neg', and sha256 to compare
