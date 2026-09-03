@@ -308,7 +308,7 @@ Post release:
   https://data.jsdelivr.com/v1/packages/npm/react@18.3.1
 - add livecodes.io support
 - add LIF storage (instead of github), for immediate site setup like WIX,
-- add git API, and a website developme with WYSIWIG
+- add git API, and a website development with WYSIWIG
 - use lif:bitcoin/electrum json rpc WS leaf to nimiq server: add CORS
 
 kernel.js
