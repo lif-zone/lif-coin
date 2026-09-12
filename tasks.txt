@@ -254,6 +254,11 @@ Post mainnet release
 Post release:
 -------------
 + update version 26.X.X to 2026.8.23
++ lif-os: new /.lif.imp/ support do_imp=1
+  + import /.lif/npm/public/.index/iniIcons.json fails
+    should be .lif.imp/public/.index/iniIcons.json
+  + enable do_imp. check perf. if works OK - rm obsolete
+  + add wallpaper_hola.jpg to be default wallpaper
 * lif-explorer: SPA respond hi.html with any request.
   + add server.js mapping
   + add pass through to kernel.js
@@ -282,6 +287,7 @@ Post release:
   - ask electrum only for what is missing
   - handle multi-version chains (re-orgs). define 'safe' distance, to be
     3 blocks in bitcoin. 6 blocks in lif (amount of time to show conflicts)
+- fix basic.pub.site
 * lif-net
   - add jsonrpc over tcp/tls support
   - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
@@ -406,6 +412,11 @@ Text source options
   - Mine. Your Name. ANUKI HSM ALUHK.
     Lord Perfect Godspell Joseph
     Harm Less
+    Dont Harm
+  - SLUM So-long
+    Hello Goodbye
+    YGR-SHDUTA GL-OD
+    Beach Bug
   a brilliant academic career studying ancient
   philology, transformational ethics and the wave harmonic theory of
   historical perception, and then, after a nigh
