@@ -266,7 +266,7 @@ Post release:
   which-typed-array: "^1.1.22", is-typed-array: "^1.1.15"}
   in lif-explorer/client/package.json
   dependencies: {"@cycle/http": "npm:@cycle/fetch@^4.0.0"}
-* support self reference "name": "lif-explorer" when looking up packages.
++ support self reference "name": "lif-explorer" when looking up packages.
   remove hack in lif-explorer/package.json
 * lif-explorer: SPA respond hi.html with any request.
   + add server.js mapping
