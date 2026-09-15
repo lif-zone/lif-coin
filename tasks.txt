@@ -259,6 +259,15 @@ Post release:
     should be .lif.imp/public/.index/iniIcons.json
   + enable do_imp. check perf. if works OK - rm obsolete
   + add wallpaper_hola.jpg to be default wallpaper
++ improve performance via react@18.3.1/.lif.imp/
+  the equivalent of node_modules.
++ add support for "^2.0.0" in npm deps to use newest version of "^2.x.x"
+  and remove overrides overrides: {has-symbols: "^1.1.0",
+  which-typed-array: "^1.1.22", is-typed-array: "^1.1.15"}
+  in lif-explorer/client/package.json
+  dependencies: {"@cycle/http": "npm:@cycle/fetch@^4.0.0"}
+* support self reference "name": "lif-explorer" when looking up packages.
+  remove hack in lif-explorer/package.json
 * lif-explorer: SPA respond hi.html with any request.
   + add server.js mapping
   + add pass through to kernel.js
@@ -268,19 +277,10 @@ Post release:
   * add support for esplora: compile rxjs *.js via jsx, add index.html
   - support bitcoin esplora CORS vis lif_net
   - future:
-    - support self reference "name": "lif-explorer" when looking up packages.
-      remove hack in lif-explorer/package.json
     - add support for html webapp in lif-kernel/boot.js:
       lif-explorer/client/package.json: "webapp": "index.html"
-    - add support for "^2.0.0" in npm deps to use newest version of "^2.x.x"
-      and remove overrides overrides: {has-symbols: "^1.1.0",
-      which-typed-array: "^1.1.22", is-typed-array: "^1.1.15"}
-      in lif-explorer/client/package.json
-      dependencies: {"@cycle/http": "npm:@cycle/fetch@^4.0.0"}
     - maybe: add support for /.lif.local/lif-kernel
     - maybe: add support for SPA providing 404/200 according to lif {spa: true}
-- improve performance via react@18.3.1/.lif.modules/
-  the equivalent of node_modules.
 - lif-wallet: add a complete SPV model:
   - store TXes (with/witout proofs)
   - block headers (must always have connection, even if only to checkpoints)
@@ -350,6 +350,7 @@ Low priority:
 - add support for WebGPU and WASM, and in NodeJS for native SHA instructions
 - show in wallet tx list ALL txs with lif_kv. today it shows only the last
   tx per value.
+- remove semver_full.js
 - add support for kv_lif with only key and no val (missing 'val'):
   this allows "passing" existing keys from inputs to different
   specific outputs in same transaction, without modifing values.
@@ -440,6 +441,11 @@ Text source options
   - Everything you wanted to know about SIX, but were too afraid to ask!
   - 42 words, The 42 of 18: The Meaning of Lif
     The Meaning of Rich Life: The 42 of 10 18: 6-7
+    The question: how many words create rich life?
+    How many words bach number six? seven! it has 14 bars in first cycle.
+    The Guide is consists of one hundred and eighty godly spelt signs, and colorfull dreams.
+    If you can count something - one, two, three - then you ask how many do you see?
+    What kind of happiness is measured out in miles? smile!
     Hamavdil ben kodesh lehol. Separating the 7 from 6.
   - Is Real Truth Priest
     Getting the right 42 words needed for revival into every hotel room
