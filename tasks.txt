@@ -223,15 +223,7 @@ For testnet release 21-Aug-2026
 
 For mainnet release 02-Oct-2026
 -------------------------------
-- support 2 VPS: support ns1 ns2 on different IPs: need acme ssl co-ordination in
-  startup: proxy dns _acme-challenge from ns2 ns3... to ns1.
-  Also need to transport the cert and key from ns1 to ns2 ns3...
-  to do that need a challenge/response: opening http admin connection
-  ns1->ns2,ns3... and providing them the cert+key.
-  might need to first generate a self-signed SSL, and add a port/server
-  for ns2 to ask fron ns1 for the certificates. ns1 to validate will
-  connect back https, validate the self-signed cert match, and then submit
-  the key to ns2.
+- fix lif-coin/bin/lif_node.js:mine_address
 - 02-Oct-2026 release day:
   - create new genesis block, and timestamp on BTC
     - update flags: gen_genesis.js: update flags=21/TSR/5787
@@ -299,6 +291,15 @@ Post release:
     server remembers its IP<->rg_id mapping. once finished - reuse oldest.
   - add lif-kernel outgoing connections to github lif:net/ip_bridge/http_out.
     and lif_fetch('https://github.com/lif-zone/lif-kernel.git/info/refs?...')
+- support 2 VPS: support ns1 ns2 on different IPs: need acme ssl co-ordination in
+  startup: proxy dns _acme-challenge from ns2 ns3... to ns1.
+  Also need to transport the cert and key from ns1 to ns2 ns3...
+  to do that need a challenge/response: opening http admin connection
+  ns1->ns2,ns3... and providing them the cert+key.
+  might need to first generate a self-signed SSL, and add a port/server
+  for ns2 to ask fron ns1 for the certificates. ns1 to validate will
+  connect back https, validate the self-signed cert match, and then submit
+  the key to ns2.
 - fix caching and F5 reload sw: detect refresh in boot.js
   performance.getEntriesByType('navigation') reload back forward navigate
   prerender and load sw?revalidate=1, which tells kernel.js fetch() to
