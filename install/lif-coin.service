@@ -9,7 +9,7 @@ Type=simple
 User=lif
 Group=lif
 WorkingDirectory=/home/lif/lif-coin
-ExecStart=/usr/bin/node /home/lif/lif-coin/bin/lif_node.js
+ExecStart=/usr/bin/node /home/lif/lif-coin/bin/lif_node.js --address-file /home/lif/lif-coin/bin/lif_node_env.json
 Restart=on-failure
 RestartSec=5
 

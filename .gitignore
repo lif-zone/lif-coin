@@ -4,3 +4,4 @@ webpack.*.js
 test/results.xml
 coverage/
 .nyc_output/
+bin/lif_node_env.json
