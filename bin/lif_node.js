@@ -96,10 +96,9 @@ export async function main(){
       mine_address = addr.address;
     } else if (a=='--address-test')
       mine_address = default_all_address;
-    else if (a=='--address-file'){
-      let file = argv[i++].slice(5);
-      mine_address = JSON.parse(readFileSync(file, 'utf8')).mine_address;
-    } else
+    else if (a=='--address-file')
+      mine_address = JSON.parse(readFileSync(argv[i++], 'utf8')).mine_address;
+    else
       return usage();
   }
   if (argv.length!=i)
