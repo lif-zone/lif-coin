@@ -71,7 +71,7 @@ function test(){
 test();
 
 let dna = 'DNAINDIVIDUALTRANSPARENTEFFECTIVEIMMEDIATEAUTONOMOUSINCREMENTALRESPONSIBLEACTIONTRUTHFUL';
-let mine_address = wallet3.address;
+let mine_address = wallet3.address; // XXX set for launch
 console.log(`Mining address calculated: ${mine_address}`);
 
 let node = new FullNode({
