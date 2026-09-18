@@ -483,7 +483,7 @@ Text source options
     VALH SMUT - *these* are the names (the naming action/process, like LSIM)
   - LIFE=12 SMUT/MZLUT 22 ATIUT/CIMNIM 32 NTIBUT 42 MILIM/MCOUT=10 DVRIM
   - Torah letters 304805 words 79980, letters 5845
-    lif_kv HTURH/wc {things: 504885, names: 79980, signs: 5845}
+    lif_kv HTURH/wc {things: 304885, names: 79980, signs: 5845}
   - wc WHATDOYOUGETIFYOUMULTIPLYSIXBYEPTAFORTYTWO => 42
     SIX BY NINE? TIHS
   - burning bush of testing -> moshe only needed a bush
