@@ -11,7 +11,9 @@ import assert from 'bsert';
 import {readFileSync} from 'fs';
 
 let dna = 'DNAINDIVIDUALTRANSPARENTEFFECTIVEIMMEDIATEAUTONOMOUSINCREMENTALRESPONSIBLEACTIONTRUTHFUL';
-let default_all_address = 'lif1qt59xsv4dwu2pwqkyxxcwrc3atlwwcjajhzhvze';
+// test address: all all all all all all all all all all all all
+let test_address = 'lif1qt59xsv4dwu2pwqkyxxcwrc3atlwwcjajhzhvze';
+let default_address = 'lif1qpxrahj5ca4dwhk3jt9hlrlmudzn4anj287mjr4';
 let mine_address;
 
 let node = new FullNode({
@@ -74,10 +76,11 @@ function exit(err){
   process.exit(1);
 }
 function usage(err){
-  console.log('node lif_node.js --address|--address-test|--address-file');
+  console.log('node lif_node.js [OPTS]');
   console.log('');
   console.log('--address ADDRESS: the mining address to get 10% of block reward');
-  console.log('--address-test: will use the "all all all.." mnemonic');
+  console.log('--address-test: mnemonic all all all all all all all all all all all all');
+  console.log('--address-default: default donation address');
   console.log('--address-file FILE: json file: field: mine_address');
   process.exit(1);
 }
@@ -94,8 +97,10 @@ export async function main(){
       if (!addr)
         exit('invalid addr');
       mine_address = addr.address;
-    } else if (a=='--address-test')
-      mine_address = default_all_address;
+    } else if (a=='--address-default')
+      mine_address = default_address;
+    else if (a=='--address-test')
+      mine_address = test_address;
     else if (a=='--address-file')
       mine_address = JSON.parse(readFileSync(argv[i++], 'utf8')).mine_address;
     else
@@ -103,8 +108,7 @@ export async function main(){
   }
   if (argv.length!=i)
     return usage();
-  if (!mine_address)
-    usage();
+  mine_address ||= default_address;
   await start();
 }
 if (!process.browser)
