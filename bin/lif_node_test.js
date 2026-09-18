@@ -72,34 +72,8 @@ test();
 
 let dna = 'DNAINDIVIDUALTRANSPARENTEFFECTIVEIMMEDIATEAUTONOMOUSINCREMENTALRESPONSIBLEACTIONTRUTHFUL';
 let mine_address = wallet3.address; // XXX set for launch
+let node;
 console.log(`Mining address calculated: ${mine_address}`);
-
-let node = new FullNode({
-  network: 'lifmain', // 'main'
-  file: false,
-  argv: [],
-  env: true,
-  logFile: true,
-  logConsole: true,
-  logLevel: 'info',
-  memory: false,
-  workers: true,
-  listen: true,
-  //loader: require,
-  prefix: '~/lif.store',
-  coinbaseFlags: 'mined by lif-coin',
-  'index-tx': true,
-  'index-address': true,
-  'index-addrsh': true,
-  lif_kv_idx: true,
-  'reject-absurd-fees': false,
-  cors: true,
-  'coinbase-address': [mine_address],
-  'persistent-mempool': true,
-  'require-standard': false,
-  incoming_sync: true,
-  assist_before_sync: true,
-});
 
 async function mine_blocks(n){
   let chain = node.chain, mempool = node.mempool;
@@ -140,6 +114,32 @@ async function wait_for_sync_full(){
   console.log('got full');
 }
 async function start(){
+  node = new FullNode({
+    network: 'lifmain', // 'main'
+    file: false,
+    argv: [],
+    env: true,
+    logFile: true,
+    logConsole: true,
+    logLevel: 'info',
+    memory: false,
+    workers: true,
+    listen: true,
+    //loader: require,
+    prefix: '~/lif.store',
+    coinbaseFlags: 'mined by lif-coin',
+    'index-tx': true,
+    'index-address': true,
+    'index-addrsh': true,
+    lif_kv_idx: true,
+    'reject-absurd-fees': false,
+    cors: true,
+    'coinbase-address': [mine_address],
+    'persistent-mempool': true,
+    'require-standard': false,
+    incoming_sync: true,
+    assist_before_sync: true,
+  });
   await node.ensure();
   await node.open({addr_rescan: false});
   await node.connect();

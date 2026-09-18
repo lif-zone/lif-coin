@@ -16,33 +16,6 @@ let test_address = 'lif1qt59xsv4dwu2pwqkyxxcwrc3atlwwcjajhzhvze';
 let default_address = 'lif1qpxrahj5ca4dwhk3jt9hlrlmudzn4anj287mjr4';
 let mine_address;
 
-let node = new FullNode({
-  network: 'lifmain', // 'main'
-  file: false,
-  argv: [],
-  env: true,
-  logFile: true,
-  logConsole: true,
-  logLevel: 'info',
-  memory: false,
-  workers: true,
-  listen: true,
-  //loader: require,
-  prefix: '~/lif.store',
-  coinbaseFlags: 'mined by lif-coin',
-  'index-tx': true,
-  'index-address': true,
-  'index-addrsh': true,
-  lif_kv_idx: true,
-  'reject-absurd-fees': false,
-  cors: true,
-  'coinbase-address': [mine_address],
-  'persistent-mempool': true,
-  'require-standard': false,
-  incoming_sync: true,
-  assist_before_sync: true,
-});
-
 process.on('unhandledRejection', (err, promise)=>{
   console.error(err);
   throw err;
@@ -62,8 +35,35 @@ async function wait_for_sync_full(){
   let ret = await Ewait(node, 'full');
   console.log('got full');
 }
+let node;
 async function start(){
   console.log(`Mining address: ${mine_address}`);
+  node = new FullNode({
+    network: 'lifmain', // 'main'
+    file: false,
+    argv: [],
+    env: true,
+    logFile: true,
+    logConsole: true,
+    logLevel: 'info',
+    memory: false,
+    workers: true,
+    listen: true,
+    //loader: require,
+    prefix: '~/lif.store',
+    coinbaseFlags: 'mined by lif-coin',
+    'index-tx': true,
+    'index-address': true,
+    'index-addrsh': true,
+    lif_kv_idx: true,
+    'reject-absurd-fees': false,
+    cors: true,
+    'coinbase-address': [mine_address],
+    'persistent-mempool': true,
+    'require-standard': false,
+    incoming_sync: true,
+    assist_before_sync: true,
+  });
   await node.ensure();
   await node.open({addr_rescan: false});
   await node.connect();
