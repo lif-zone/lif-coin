@@ -94,3 +94,14 @@ In gen_genesis.js:btc_create_kv - does mtx.sign(keyRing) fail if private key is 
 CLAUDE:
 No - mtx.sign() returns 0 silently on failure. Added check: if (!signed) return {error: 'keypair private key does not match coin address'}.
 ---
+
+---
+USER: Fix import * as X from 'mod' dynamic access in lif-kernel — design and implement import_cjs_namespace solution.
+
+CLAUDE: Designed and implemented a fix for `import * as superagent from 'superagent'` breaking in @cycle/http ESM build when served by LIF (namespace object instead of request function).
+
+Solution:
+- ast.js: detect dynamic computed member access (X[key]) on namespace imports; X['str'] still treated as static; record ns_dyn={local_start, local_end, stmt_end} when has_dyn
+- kernel.js tr_mjs_import: when d.ns_dyn, rename binding X→__lif_X and inject `const X = $lif.boot.import_cjs_namespace(__lif_X);` after the import statement
+- boot.js: user added `import_cjs_namespace(module_ns)` — returns module_ns.default if __es_lif_cjs, else module_ns as-is; exported it
+- mjs_import_cjs already had `export const __es_lif_cjs = true;`
