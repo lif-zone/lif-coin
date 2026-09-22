@@ -266,9 +266,10 @@ Post release:
   + upload to github.com/lif-zone/lif-explorer
   + add web_exports support npm:module reading (without redirect)
   + add exports support npm:module redirect
-  * add support for esplora: compile rxjs *.js via jsx, add index.html
-  - support bitcoin esplora CORS vis lif_net
+  + add support for esplora: compile rxjs *.js via jsx, add index.html
+  c support bitcoin esplora CORS vis lif_net
   - future:
+    - modify package.json patches, and just F5 fails to update it.
     - add support for html webapp in lif-kernel/boot.js:
       lif-explorer/client/package.json: "webapp": "index.html"
     - maybe: add support for /.lif.local/lif-kernel
