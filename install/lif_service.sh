@@ -58,7 +58,6 @@ elif [ "$1" == install ] ; then
   ~/lif-coin/install/install_bin.sh
   (cd ~/lif-kernel && npm install)
   (cd ~/lif-coin && npm install)
-  (cd ~/lif-explorer && npm install)
 elif [ "$1" == update ] ; then
   (cd ~/lif-kernel && git pull)
   (cd ~/lif-coin && git pull)
