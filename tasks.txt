@@ -269,7 +269,14 @@ Post release:
   + add support for esplora: compile rxjs *.js via jsx, add index.html
   c support bitcoin esplora CORS vis lif_net
   - future:
-    - modify package.json patches, and just F5 fails to update it.
+    - when modifing package.json patches, and just F5 fails to update it.
+    - cdn failure: check for a 'good' (well known) file.
+      also ping a good CORS service (like google.com). So that it will
+      know what kind of cdn fail it is.
+    - add --file cdn support: get directory file listing and whole tgz
+      file listings. When available - do the alt lookups on it.
+    - new npm/git version check: only on service restart, or 2 forced fetch
+      in 10 seconds. but dont wait for it if there is a version in cache
     - add support for html webapp in lif-kernel/boot.js:
       lif-explorer/client/package.json: "webapp": "index.html"
     - maybe: add support for /.lif.local/lif-kernel

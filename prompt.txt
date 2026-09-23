@@ -105,3 +105,6 @@ Solution:
 - kernel.js tr_mjs_import: when d.ns_dyn, rename binding X→__lif_X and inject `const X = $lif.boot.import_cjs_namespace(__lif_X);` after the import statement
 - boot.js: user added `import_cjs_namespace(module_ns)` — returns module_ns.default if __es_lif_cjs, else module_ns as-is; exported it
 - mjs_import_cjs already had `export const __es_lif_cjs = true;`
+---
+USER: Add Lifcoin logo and name to lif-explorer2 header on the top left. "Lifcoin" text followed by lif.svg image, mirroring the Blockstream logo style on the right.
+CLAUDE: Added `.lif-brand` element to `lif-explorer2/client/src/views/navbar.js` before the existing Blockstream `.navbar-brand`. Shows "Lifcoin" text + `img/lif.svg` image. Added CSS styles in `www/style.css` for `.lif-brand` (flex layout, 32px image, 20px bold font, 50px height).
