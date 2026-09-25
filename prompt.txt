@@ -108,3 +108,6 @@ Solution:
 ---
 USER: Add Lifcoin logo and name to lif-explorer2 header on the top left. "Lifcoin" text followed by lif.svg image, mirroring the Blockstream logo style on the right.
 CLAUDE: Added `.lif-brand` element to `lif-explorer2/client/src/views/navbar.js` before the existing Blockstream `.navbar-brand`. Shows "Lifcoin" text + `img/lif.svg` image. Added CSS styles in `www/style.css` for `.lif-brand` (flex layout, 32px image, 20px bold font, 50px height).
+---
+USER: Create lif-start app - a simple start menu with cards for LIF sites (like iOS/Android home screen or puter.com). Import sites from sites.js, show cards with icon and name, clicking navigates to the site URL.
+CLAUDE: Rewrote main.jsx to import sites.js and render a grid of cards. Each card shows a 64px rounded icon (or gradient placeholder with first letter if no icon), title below, click navigates via window.location. Updated style.css with dark theme grid layout matching app-launcher style.
