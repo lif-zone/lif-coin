@@ -283,6 +283,8 @@ Post release:
   - make ?raw default. in our require/import add ?mjs. Also detect it
     from the request headers. (clean lif-start/style.css)
   - do alt (.js .ts .mjs /index.js...) only for ?mjs ?cjs ?amd imports
+  - allow fetching /.lif/git/... (non npm) resources that dont have
+    package.json (need to add validation that the repository exists)
   - when modifing package.json patches, and just F5 fails to update it.
     check in lif-explorer
   - cdn failure: check for a 'good' (well known) file.
