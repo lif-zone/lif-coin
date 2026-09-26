@@ -250,8 +250,8 @@ work between testnet and mainnet release
 For mainnet release 02-Oct-2026
 -------------------------------
 + fix lif-coin/bin/lif_node.js:mine_address
-* redirect lifcoin.com -> start.lifcoin.com
-* add start.lifcoin.com lif-kernel/start
++ redirect lifcoin.com -> start.lifcoin.com
++ add start.lifcoin.com lif-kernel/start
   lif-explorer explorer, lif-wallet wallet, lif-os os, lif-basic
 - add lif-kernel loader
 - write announce email

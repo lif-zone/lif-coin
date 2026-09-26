@@ -111,3 +111,9 @@ CLAUDE: Added `.lif-brand` element to `lif-explorer2/client/src/views/navbar.js`
 ---
 USER: Create lif-start app - a simple start menu with cards for LIF sites (like iOS/Android home screen or puter.com). Import sites from sites.js, show cards with icon and name, clicking navigates to the site URL.
 CLAUDE: Rewrote main.jsx to import sites.js and render a grid of cards. Each card shows a 64px rounded icon (or gradient placeholder with first letter if no icon), title below, click navigates via window.location. Updated style.css with dark theme grid layout matching app-launcher style.
+---
+USER: Add ?mine=1 URL parameter support to lif-wallet to jump directly to Mine_screen.
+CLAUDE: Added mine=1 query parameter handling in wallet.jsx useEffect (alongside existing get_domain). When ?mine=1 is present, selects best LIF wallet, sets mineStart=true, and sets screen to 'wallet_mine'.
+---
+USER: Make lif-wallet mobile friendly (everything looks tiny on mobile).
+CLAUDE: Added viewport meta tag to lif-wallet/main.tsx using html_elm_frag_append. Also consolidated the favicon link into the same html fragment.
