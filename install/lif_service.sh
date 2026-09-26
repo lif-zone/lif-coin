@@ -66,6 +66,9 @@ elif [ "$1" == update ] ; then
   (cd ~/lif-os && git pull)
   ~/lif-coin/install/install_bin.sh
   echo "now run: lif_service.sh restart"
+elif [ "$1" == install_restart ] ; then
+  $0 install
+  $0 restart
 else
   echo "lif_service.sh start|stop|restart|status|..."
   echo "  start: starts systemd services"
