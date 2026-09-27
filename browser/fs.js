@@ -12,3 +12,4 @@ await configure({
 });
 
 export default fs;
+export const readFileSync = fs.readFileSync;

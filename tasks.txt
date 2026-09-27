@@ -294,6 +294,7 @@ Post release:
     know what kind of cdn fail it is.
   - add --file cdn support: get directory file listing and whole tgz
     file listings. When available - do the alt lookups on it.
+  - add semver support for git (XXX in kernel.js): read all refs.
   - new npm/git version check: only on service restart, or 2 forced fetch
     in 10 seconds. but dont wait for it if there is a version in cache
   - add support for html webapp in lif-kernel/boot.js:
