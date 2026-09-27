@@ -19,9 +19,9 @@ async function start_btc_node(){
 
 async function start_lif_node(){
   console.log('loading lif-chain app');
-  let {do_start, do_mine} = await import('../bin/lif_node.js');
-  await do_start();
-  await do_mine();
+  let {main, do_mine} = await import('../bin/lif_node.js');
+  await main(['node', 'lif_node.js']);
+  //await do_mine();
 }
 
 async function start_lif_gen_run_test(){
