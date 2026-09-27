@@ -258,7 +258,6 @@ c add lif-kernel loader
 * add lif-zone/the-guide
 - write announce email
 - release lif-kernel npm
-- potential: run node in browser
 - 02-Oct-2026 release day:
   - create new genesis block, and timestamp on BTC
     - update flags: gen_genesis.js: update flags=21/TSR/5787
@@ -301,6 +300,9 @@ Post release:
     lif-explorer/client/package.json: "webapp": "index.html"
   - maybe: rename /lif-kernel/ to /.lif.local/lif-kernel
   - maybe: kernel.js cache SPA index.html result set by {lif: {spa: true}}
+- run node in browser
+  - make it work with lifnet (node<->browser will communicate of lifnet)
+  - make it work with sockets over lifnet (tcp_out server)
 - lif-wallet: add a complete SPV model:
   - store TXes (with/witout proofs)
   - block headers (must always have connection, even if only to checkpoints)
