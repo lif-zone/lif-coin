@@ -1,4 +1,3 @@
-import util from 'lif-kernel/util.js';
 import {configure, InMemory, fs} from '@zenfs/core';
 import {IndexedDB} from '@zenfs/dom';
 
