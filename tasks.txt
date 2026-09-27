@@ -301,6 +301,7 @@ Post release:
   - maybe: rename /lif-kernel/ to /.lif.local/lif-kernel
   - maybe: kernel.js cache SPA index.html result set by {lif: {spa: true}}
 - run node in browser
+  - fork all bcoin-org modules imported in lif-coin
   - make it work with lifnet (node<->browser will communicate of lifnet)
   - make it work with sockets over lifnet (tcp_out server)
 - lif-wallet: add a complete SPV model:
