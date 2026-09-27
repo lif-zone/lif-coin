@@ -11,7 +11,7 @@ async function start_btc_node(){
   if (app)
     return console.error('already started');
   console.log('loading btc-chain app');
-  app = (await import('./btc_node.js')).default;
+  app = (await import('../bin/btc_node.js')).default;
   console.log('starting btc-chain app');
   await app();
   console.log('completed btc-chain app');
@@ -19,7 +19,7 @@ async function start_btc_node(){
 
 async function start_lif_node(){
   console.log('loading lif-chain app');
-  let {do_start, do_mine} = await import('./lif_node.js');
+  let {do_start, do_mine} = await import('../bin/lif_node.js');
   await do_start();
   await do_mine();
 }
