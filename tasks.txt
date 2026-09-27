@@ -253,9 +253,10 @@ For mainnet release 02-Oct-2026
 + redirect lifcoin.com -> start.lifcoin.com
 + add start.lifcoin.com lif-kernel/start
   lif-explorer explorer, lif-wallet wallet, lif-os os, lif-basic
-- add lif-kernel loader
++ make wallet.lifcoin.com mobile friendly
+c add lif-kernel loader
+- add lif-zone/the-guide
 - write announce email
-- make wallet.lifcoin.com mobile friendly
 - release lif-kernel npm
 - 02-Oct-2026 release day:
   - create new genesis block, and timestamp on BTC
