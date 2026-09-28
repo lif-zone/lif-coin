@@ -63,6 +63,7 @@ async function start(){
     'require-standard': false,
     incoming_sync: true,
     assist_before_sync: true,
+    bip37: true,
   });
   await node.ensure();
   await node.open({addr_rescan: false});
