@@ -254,10 +254,10 @@ For mainnet release 02-Oct-2026
 + add start.lifcoin.com lif-kernel/start
   lif-explorer explorer, lif-wallet wallet, lif-os os, lif-basic
 + make wallet.lifcoin.com mobile friendly
++ release lif-kernel npm
 c add lif-kernel loader
 * add lif-zone/the-guide
 * write announce email
-- release lif-kernel npm
 - 02-Oct-2026 release day:
   - create new genesis block, and timestamp on BTC
     - update flags: gen_genesis.js: update flags=21/TSR/5787
