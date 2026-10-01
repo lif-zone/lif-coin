@@ -21,7 +21,7 @@ import {homedir} from 'os';
 import {spawn} from 'node:child_process';
 import etask from 'lif-kernel/etask';
 const {wait: ewait} = etask;
-import {lifnet_connect} from 'lif-kernel/lifnet';
+import {lifnet_connect, lifnet_set} from 'lif-kernel/lifnet';
 
 let cwd = import.meta.dirname;
 
@@ -92,6 +92,9 @@ function createGenesisBlock(opt) {
   // The Counter HSUPR
   // How many sentences? how many words? how many letters?
   // with JPG: Ben Shoshan on Counter Helpers work
+  let journeys = Buffer.from(
+    "T{shkxz&nurj&{nk&gty~kxy@&m|ojky5hvuqy2&zootmy5yltzktikz2&tgskz5}uxjy'gtj&yonty5rkz{kxy\u0010<&TROS&Q(H&:&G[Z3&IQ&G[[&QR&SRO&C&QIQ'SR[Z&NWI[W\u0010G&{xorum'ul&lo|l&huuqyA&Hkmotuotm2&Thsky2&Ihrr2&\\upj2&Znoumy\u00109>:>>;&=???6&;>:;';\u0010Pu{xuky&ul'znk&j{hr&yixoikj&murkkt&iuxl&}uxjyA&Nkrru3&Muujhk\u00107>6&;8&76&8\u0011",
+    'ascii');
   if (!flags)
     flags = 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks';
   if (typeof flags=='string')
@@ -109,6 +112,10 @@ function createGenesisBlock(opt) {
   // 1st genesis 2009: 4, 2nd genesis 2026 2.
   .pushPush(Buffer.from([is_lif ? 2 : 4]))
   .pushData(flags);
+  if (is_lif && journeys){
+    assert(journeys.length==0x126);
+    input.pushData(journeys);
+  }
   let outputs = [{
     value: reward,
     script: Script.fromPubkey(key)
@@ -308,6 +315,7 @@ function mine_range({header, target, min, max, time}){
 }
 
 function mine_slave({header, min, max, target}){ return etask(function*(){
+  lifnet_set({client_name: 'gen_genesis', uplink: 'default'});
   // copied as-is from lif-wallet/mine_pool.js. not yet tested here
   const net = Network.get();
   let pow = net.pow_hash256_name;
@@ -471,10 +479,13 @@ async function fetch_json(url){
   }
 }
 
+//let api_base = 'https://mempool.space/api/';
+let api_base = 'https://blockstream.info/api/';
 async function btc_post_tx(tx){
   assert(typeof tx=='string' && tx.length>20);
-  let url = 'https://mempool.space/api/tx';
+  let url = api_base+'tx';
   try {
+    // https://mempool.space/api/tx
     // https://btcscan.org/api/tx
     // https://blockstream.info/api/tx
     // https://blockchain.info/pushtx?cors=true
@@ -492,6 +503,7 @@ async function btc_post_tx(tx){
 }
 
 async function btc_fetch_tip(){
+  // https://mempool.space/api/blocks/tip
   // https://btcscan.org/api/blocks/tip
   // https://blockchain.info/latestblock
   // https://api.blockcypher.com/v1/btc/main
@@ -618,20 +630,19 @@ async function git_commitid(){
 }
 
 async function btc_check_coin(txid, vout){
-  let outspend = await fetch_json(
-    'https://mempool.space/api/tx/'+txid+'/outspend/'+vout);
+  let outspend = await fetch_json(api_base+'tx/'+txid+'/outspend/'+vout);
   if (outspend?.error)
     return outspend;
-  let tx = await fetch_json('https://mempool.space/api/tx/'+txid);
+  let tx = await fetch_json(api_base+'tx/'+txid);
   if (tx?.error)
     return tx;
   return {spent: outspend.spent, value: tx.vout[vout].value};
 }
 
 function test_and_create_gen(){ return etask(function*(){
-  let do_broadcast_btc = true; // production: true
+  let do_broadcast_btc = false; // production: true
   let do_commit = true; // production true
-  let main_or_test_chain = 'lifcoin_test'; // production: 'lifcoin'
+  let main_or_test_chain = 'lifcoin'; // not production: 'lifcoin_test';
   let error;
   let ret;
   let fee = 1842; // 7*(3*2)=7*6=42, 0x732=1842. production: 1842
