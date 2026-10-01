@@ -92,9 +92,9 @@ function createGenesisBlock(opt) {
   // The Counter HSUPR
   // How many sentences? how many words? how many letters?
   // with JPG: Ben Shoshan on Counter Helpers work
-  let journeys = Buffer.from(
-    "T{shkxz&nurj&{nk&gty~kxy@&m|ojky5hvuqy2&zootmy5yltzktikz2&tgskz5}uxjy'gtj&yonty5rkz{kxy\u0010<&TROS&Q(H&:&G[Z3&IQ&G[[&QR&SRO&C&QIQ'SR[Z&NWI[W\u0010G&{xorum'ul&lo|l&huuqyA&Hkmotuotm2&Thsky2&Ihrr2&\\upj2&Znoumy\u00109>:>>;&=???6&;>:;';\u0010Pu{xuky&ul'znk&j{hr&yixoikj&murkkt&iuxl&}uxjyA&Nkrru3&Muujhk\u00107>6&;8&76&8\u0011",
-    'ascii');
+  let journeys = buf_from_hex(
+     '547b73686b78d1266e75726a26c36e6b26677479bf6b787940266dd06f6a6b793568ba75717932267abe6f746d793579c5747a6b74696bc932267467736bcf357d75786a796e67746a26796fb3747935726b7acf6b7879103c269d524f532651288e263a26475b5a8c26495126475baa265152265352a42643265149517453525b5a264eac495b57104726c7786f72756d7f7b756c266c6f7cb52668757571799126486b6d6f74c16f746d322654c1736b79322649bb727232265c75b96a32265a6e6fcd6d7910393e3a803e3b263d3f3f9836263b3e3a3b6c3b1050757b78c56b7f7926756c7b7a6e6b266a7ba972267969786faf6b6a266d7572ba6b7426697578be267d75786a7995264e6b7272758c264d75756a68d46b10373e36269238263736263860'
+  );
   if (!flags)
     flags = 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks';
   if (typeof flags=='string')
