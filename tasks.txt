@@ -485,6 +485,16 @@ Text source options
   - add marking in genesis block of bitcoin block hash.
   - 5 book names: beginning, names, calling, talking, things.
     begin, name, call, talk, thing.
+    Rot1 transpilation: OL PI SNI ODIM IQUM DBR
+    Beach six meets heaven
+Numbers hold the answers: guides/books, things/sentences, names/words and signs/letters
+6 MLIM K"A 4 AUT, CK AUT KL MLH = KCK MLUT HPCUQ
+A trilogy of five books: Beginning, Names, Call, Void, Things
+384785 79980 5845 5
+Journeys of the scribed dual golden core disks: Hello, Goodbye
+180 42 10 2
+    Six names each four signs. Number signs each name = as number of names of the thing
+    Dont Panic, Harm Less:
   - the GUIDE, the BIBLE, the TORAH. HHUMS HTORA MDRIH
   - creating basecoin TX: adding 'kv' bitcoin/block/2323' val
     {"hash": "112233..."}. info will be collected via electrum, and checked it
