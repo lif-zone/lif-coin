@@ -117,3 +117,6 @@ CLAUDE: Added mine=1 query parameter handling in wallet.jsx useEffect (alongside
 ---
 USER: Make lif-wallet mobile friendly (everything looks tiny on mobile).
 CLAUDE: Added viewport meta tag to lif-wallet/main.tsx using html_elm_frag_append. Also consolidated the favicon link into the same html fragment.
+---
+USER: Show default mining estimates in progress bar before network stats arrive. "1 minute = 0.02 LIF" for instant, "6 hours = 45 LIF" for solo. Format time as "1 minute" (<60s), "X minutes" (<1h), "X hours" (>=1h). Per-type stats when switching instant/solo.
+CLAUDE: Added mine_defaults object, fmt_mine_time function, and updated Mine_progress to accept mode prop. Falls back to defaults when stats.reward/win_time are 0. Always shows "time = reward" in the bar. Passed current mode from Mine_screen to Mine_progress.

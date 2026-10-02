@@ -260,7 +260,7 @@ c add lif-kernel loader
 * write announce email
 - adjust avg block 10m
 - fix instant mining
-- give clear status messages in mining progress
++ give clear status messages in mining progress
 - 02-Oct-2026 release day:
   - create new genesis block, and timestamp on BTC
     - update flags: gen_genesis.js: update flags=21/TSR/5787
