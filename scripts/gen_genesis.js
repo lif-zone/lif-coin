@@ -87,7 +87,8 @@ function createGenesisBlock(opt) {
     //flags = 'The Guide KI TXA 08/ALU/5786 Ethernal MB Words Philology DNA/Shoshani';
     //flags = 'The Guide 21/TSR/5787 SMhT TURH Ethernal Words Philology DNA/Shoshani';
     //flags = 'The Happiness Guide 21/TSR/5787 Ethernal Words Philology DNA/Shoshani';
-    flags = 'Happiness Guide 21/TSR/5787 Ethernal M"B words philology DNA/Shoshani';
+    //flags = 'Happiness Guide 21/TSR/5787 Ethernal M"B words philology DNA/Shoshani';
+    flags = 'Happiness Guide KA TSRI HTSPZ Eternal MB words philology DNA/Shoshani';
   // MR SUSNI. 1 2*5 6*10 18 7
   // The Counter HSUPR
   // How many sentences? how many words? how many letters?
