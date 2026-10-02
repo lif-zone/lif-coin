@@ -507,7 +507,7 @@ async function btc_fetch_tip(){
   // https://btcscan.org/api/blocks/tip
   // https://blockchain.info/latestblock
   // https://api.blockcypher.com/v1/btc/main
-  let tip = await fetch_json('https://mempool.space/api/v1/blocks/tip');
+  let tip = 0 && await fetch_json('https://mempool.space/api/v1/blocks/tip');
   tip = tip?.[0];
   if (tip?.id?.length==64 && typeof tip?.height=='number')
     return tip;
