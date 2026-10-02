@@ -360,6 +360,7 @@ function do_mine(block){ return etask(function*(){
   let nonce = -1;
   let fixed_time = header.readUInt32LE(68);
   let time = fixed_time, time_last;
+  let ret;
   for (let i=min; i<=max; i+=inc){
     let start = Date.now();
     if (!fixed_time){
@@ -370,35 +371,46 @@ function do_mine(block){ return etask(function*(){
     }
     let _max = Math.min(max, i+inc-1);
     if (enable_slave){
-      let ret = yield mine_slave({header, target: bits, min: i, max: _max, time});
+      ret = yield mine_slave({header, target: bits, min: i, max: _max, time});
       if (ret?.error)
         return void console.log('mine_slave ERR', ret.error);
       if (ret.found){
-        nonce = ret.nonce;
+        header = ret.header;
         time = ret.time;
-      } else
-        nonce = -1;
-    } else
+        nonce = ret.nonce;
+        break;
+      }
+    } else {
       nonce = mine_range({header, target, min: i, max: _max, time});
-    if (nonce>=0)
-      break;
+      if (nonce>=0){
+        ret = {found: true, header, time, nonce};
+        break;
+      }
+    }
     let tm = Date.now()-start;
     console.log(tm+'ms at '+i+' '+(inc/tm/1000)+'M/sec');
   }
-  if (nonce<0){
+  if (!ret.found){
     console.log('failed mining');
     return;
   }
   const net = Network.get();
   let hash = net.pow_hash256.digest(header).reverse().toString('hex');
+  ret.hash = hash;
+  if (mine_range({header, target, min: nonce, max: nonce, time})<0
+    || hash.slice(0, 2)!='00')
+  {
+    console.error('failed mining sanity test', hash, header.toString('hex'));
+    return;
+  }
   console.log('SUCCESS: nonce '+nonce, 'time '+time,
     'header ', header.toString('hex'), 'hash', hash);
-  return {nonce, time, header, hash};
+  return ret;
 }); }
 
 export async function do_test(){
   let error;
-  await diff_block('main');
+  0 && await diff_block('main');
   Network.set('lifmain');
   error ||= await diff_block('lifmain');
   Network.set();
@@ -640,8 +652,8 @@ async function btc_check_coin(txid, vout){
 }
 
 function test_and_create_gen(){ return etask(function*(){
-  let do_broadcast_btc = true; // production: true
-  let do_commit = true; // production true
+  let do_broadcast_btc = false; // production: true
+  let do_commit = false; // production true
   let main_or_test_chain = 'lifcoin'; // not production: 'lifcoin_test';
   let error;
   let ret;
