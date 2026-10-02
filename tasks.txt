@@ -262,16 +262,16 @@ c add lif-zone/the-guide
 + fix instant mining
 + get_domain mining widget problems
 * 02-Oct-2026 release day:
-  - create new genesis block, and timestamp on BTC
-    - update flags: gen_genesis.js: update flags=21/TSR/5787
-    - start Windows mining slave pool server: wallet.bright.life
+  * create new genesis block, and timestamp on BTC
+    + update flags: gen_genesis.js: update flags=21/TSR/5787
+    + start Windows mining slave pool server: wallet.bright.life
       in Windows open wallet.lifcoin.com, enable Developer tools,
       enable slave mining, in LIF wallet, enable Advanced,
       then start Mining Pool
-    - run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
+    * run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
       wait for find winner.
   - update to servers new chain
-    - backup lifmain->liftest to other directory
+    + backup lifmain->liftest to other directory
     - delete existing lifmain: rm -rf ~/lif.store/lifmain
     - vps1-3: lif_server.js update, lif_server.js restart
 * write announce email
