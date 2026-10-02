@@ -640,7 +640,7 @@ async function btc_check_coin(txid, vout){
 }
 
 function test_and_create_gen(){ return etask(function*(){
-  let do_broadcast_btc = false; // production: true
+  let do_broadcast_btc = true; // production: true
   let do_commit = true; // production true
   let main_or_test_chain = 'lifcoin'; // not production: 'lifcoin_test';
   let error;
