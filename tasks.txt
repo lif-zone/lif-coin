@@ -260,7 +260,7 @@ c add lif-zone/the-guide
 + adjust avg block 10m
 + give clear status messages in mining progress
 + fix instant mining
-- get_domain mining widget problems
++ get_domain mining widget problems
 * write announce email
 - 02-Oct-2026 release day:
   - create new genesis block, and timestamp on BTC

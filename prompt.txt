@@ -120,3 +120,6 @@ CLAUDE: Added viewport meta tag to lif-wallet/main.tsx using html_elm_frag_appen
 ---
 USER: Show default mining estimates in progress bar before network stats arrive. "1 minute = 0.02 LIF" for instant, "6 hours = 45 LIF" for solo. Format time as "1 minute" (<60s), "X minutes" (<1h), "X hours" (>=1h). Per-type stats when switching instant/solo.
 CLAUDE: Added mine_defaults object, fmt_mine_time function, and updated Mine_progress to accept mode prop. Falls back to defaults when stats.reward/win_time are 0. Always shows "time = reward" in the bar. Passed current mode from Mine_screen to Mine_progress.
+---
+USER: Fix $NaN in Get_domain_screen Cost display, and add per-mode mining stats and default estimates in progress bar.
+CLAUDE: Fixed Amount component call in Get_domain_screen: changed `value={fee} netconf={netconf}` to `sat={fee} symbol={netconf.symbol}`. Added mine_defaults, fmt_mine_time, per-mode stats_by_mode storage with save_stats helper, and Mine_progress now shows defaults before network data arrives.
