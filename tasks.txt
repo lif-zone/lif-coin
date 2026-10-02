@@ -283,6 +283,8 @@ Post mainnet release
 
 Post release:
 -------------
+- add lif-kernel loader
+- add lif-zone/the-guide
 - lif-kernel improvements
   - clean up ?mjs=1 ?cjs=1 ?raw=1 -> ?mjs ?cjs ?raw
   - make ?raw default. in our require/import add ?mjs. Also detect it
