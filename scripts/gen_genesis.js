@@ -159,7 +159,7 @@ function createGenesisBlock(opt) {
 
 function gen_block(name, opt={}){
   let net = Networks[name];
-  let gen = net.genesis;
+  let gen = {...net.genesis, ...opt};
   return createGenesisBlock(
     {version: 1, time: gen.time, bits: gen.bits, nonce: gen.nonce,
     net_type: name, btc_timestamp: opt.btc_timestamp});
@@ -725,6 +725,8 @@ function test_and_create_gen(){ return etask(function*(){
       continue;
     if (!found || found?.error)
       return found;
+    block = gen_block('lifmain', {btc_timestamp: tip.id,
+      time: found.time, nonce: found.nonce});
     block_hex = block.toRaw().toString('hex');
     header = found.header.toString('hex');
     console.log('genesis header:\n', hex_lines(header));
