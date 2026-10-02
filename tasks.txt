@@ -261,8 +261,7 @@ c add lif-zone/the-guide
 + give clear status messages in mining progress
 + fix instant mining
 + get_domain mining widget problems
-* write announce email
-- 02-Oct-2026 release day:
+* 02-Oct-2026 release day:
   - create new genesis block, and timestamp on BTC
     - update flags: gen_genesis.js: update flags=21/TSR/5787
     - start Windows mining slave pool server: wallet.bright.life
@@ -275,6 +274,7 @@ c add lif-zone/the-guide
     - backup lifmain->liftest to other directory
     - delete existing lifmain: rm -rf ~/lif.store/lifmain
     - vps1-3: lif_server.js update, lif_server.js restart
+* write announce email
 
 Post mainnet release
 -------------------
