@@ -261,19 +261,19 @@ c add lif-zone/the-guide
 + give clear status messages in mining progress
 + fix instant mining
 + get_domain mining widget problems
-* 02-Oct-2026 release day:
-  * create new genesis block, and timestamp on BTC
++ 02-Oct-2026 release day:
+  + create new genesis block, and timestamp on BTC
     + update flags: gen_genesis.js: update flags=21/TSR/5787
     + start Windows mining slave pool server: wallet.bright.life
       in Windows open wallet.lifcoin.com, enable Developer tools,
       enable slave mining, in LIF wallet, enable Advanced,
       then start Mining Pool
-    * run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
+    + run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
       wait for find winner.
-  - update to servers new chain
+  + update to servers new chain
     + backup lifmain->liftest to other directory
-    - delete existing lifmain: rm -rf ~/lif.store/lifmain
-    - vps1-3: lif_server.js update, lif_server.js restart
+    + delete existing lifmain: rm -rf ~/lif.store/lifmain
+    + vps1-3: lif_server.js update, lif_server.js restart
 * write announce email
 
 Post mainnet release
@@ -286,8 +286,8 @@ Post release:
 - add lif-kernel loader
 - add lif-zone/the-guide
 - lif-kernel improvements
-  - clean up ?mjs=1 ?cjs=1 ?raw=1 -> ?mjs ?cjs ?raw
-  - make ?raw default. in our require/import add ?mjs. Also detect it
+  + clean up ?mjs=1 ?cjs=1 ?raw=1 -> ?mjs ?cjs ?raw
+  * make ?raw default. in our require/import add ?mjs. Also detect it
     from the request headers. (clean lif-start/style.css)
   - do alt (.js .ts .mjs /index.js...) only for ?mjs ?cjs ?amd imports
   - allow fetching /.lif/git/... (non npm) resources that dont have
