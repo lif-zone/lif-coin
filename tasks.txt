@@ -283,6 +283,7 @@ Post mainnet release
 
 Post release:
 -------------
++ rename 'globDependencies' to 'override'
 + add lif-kernel loader
 - add lif-zone/the-guide
 - lif-kernel improvements
@@ -355,13 +356,6 @@ Post release:
 - add git API, and a website development with WYSIWIG
 - use lif:bitcoin/electrum json rpc WS leaf to nimiq server: add CORS
 
-kernel.js
----------
-+ rename 'globDependencies' to 'override'
-- add unit-tests for pkg_browser_lookup(). Move it to util.js
-  - See whats the right places to put it.
-  - do a proper correct implementation
-
 Low priority:
 -------------
 + lif-wallet: improve ease of use of "send":
@@ -389,6 +383,8 @@ Low priority:
 - show in wallet tx list ALL txs with lif_kv. today it shows only the last
   tx per value.
 - remove semver_full.js
+- add unit-tests pkg_transform_lookup
+  - fix up glob_match
 - add support for kv_lif with only key and no val (missing 'val'):
   this allows "passing" existing keys from inputs to different
   specific outputs in same transaction, without modifing values.
