@@ -308,6 +308,7 @@ Post release:
     lif-explorer/client/package.json: "webapp": "index.html"
   - maybe: rename /lif-kernel/ to /.lif.local/lif-kernel
   - maybe: kernel.js cache SPA index.html result set by {lif: {spa: true}}
+  - move ipc_fetch worker thread to kernel.js 
 - run node in browser
   - fork all bcoin-org modules imported in lif-coin
   - make it work with lifnet (node<->browser will communicate of lifnet)
