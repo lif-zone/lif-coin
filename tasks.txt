@@ -285,13 +285,14 @@ Post release:
 -------------
 + rename 'globDependencies' to 'override'
 + add lif-kernel loader
++ fix basic.pub.site
 - add lif-zone/the-guide
-- lif-kernel improvements
+* lif-kernel improvements
   + clean up ?mjs=1 ?cjs=1 ?raw=1 -> ?mjs ?cjs ?raw
-  * make ?raw default. in our require/import add ?mjs. Also detect it
+  + make ?raw default. in our require/import add ?mjs. Also detect it
     from the request headers. (clean lif-start/style.css)
-  - do alt (.js .ts .mjs /index.js...) only for ?mjs ?cjs ?amd imports
-  - allow fetching /.lif/git/... (non npm) resources that dont have
+  + do alt (.js .ts .mjs /index.js...) only for ?mjs ?cjs ?amd imports
+  + allow fetching /.lif/git/... (non npm) resources that dont have
     package.json (need to add validation that the repository exists)
   - when modifing package.json patches, and just F5 fails to update it.
     check in lif-explorer
@@ -317,8 +318,7 @@ Post release:
   - ask electrum only for what is missing
   - handle multi-version chains (re-orgs). define 'safe' distance, to be
     3 blocks in bitcoin. 6 blocks in lif (amount of time to show conflicts)
-- fix basic.pub.site
-* lif-net
+- lif-net
   - add jsonrpc over tcp/tls support
   - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
     or lif:bitcoin/electrum
