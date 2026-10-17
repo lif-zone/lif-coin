@@ -296,7 +296,7 @@ Post release:
     package.json (need to add validation that the repository exists)
   + enable_follow for ?imp ?mjs: recirect+import in same result
   + enable_follow for ?meta: redirect+requie meta in same result
-  * fix ieek lurking bug
+  + fix ieek lurking bug
   - when modifing package.json patches, and just F5 fails to update it.
     check in lif-explorer
   - cdn failure: check for a 'good' (well known) file.
