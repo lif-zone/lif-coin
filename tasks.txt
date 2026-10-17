@@ -274,7 +274,7 @@ c add lif-zone/the-guide
     + backup lifmain->liftest to other directory
     + delete existing lifmain: rm -rf ~/lif.store/lifmain
     + vps1-3: lif_server.js update, lif_server.js restart
-* write announce email
++ write announce email
 
 Post mainnet release
 -------------------
