@@ -294,8 +294,8 @@ Post release:
   + do alt (.js .ts .mjs /index.js...) only for ?mjs ?cjs ?amd imports
   + allow fetching /.lif/git/... (non npm) resources that dont have
     package.json (need to add validation that the repository exists)
-  * enable_follow for ?imp
-  - enable_follow for ?meta
+  + enable_follow for ?imp ?mjs: recirect+import in same result
+  + enable_follow for ?meta: redirect+requie meta in same result
   - when modifing package.json patches, and just F5 fails to update it.
     check in lif-explorer
   - cdn failure: check for a 'good' (well known) file.
@@ -366,7 +366,6 @@ Low priority:
   + When sending all money, deduct fees for amount, and warn user
   + show while writing in amount the "live" balance will be left after transfer
 - lif-explorer: make a lif app:
-  - make lif-explorer a 'lif app browser blockchain work'
   - make lif-explorer use lifnet for requests
   - make esplora load from LIF:
     - fork it into a new tree
