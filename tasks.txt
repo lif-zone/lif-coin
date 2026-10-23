@@ -373,6 +373,8 @@ Low priority:
     - add to lif kernel support for answeing index.html for any URL, and
       supporting SPA, and 'virtual 404'.
     - support lif kernel JsRx and make esplora run on it
+- inscriptions:
+  http://start.localhost:1842/.lif/bitcoin/inscription/c6040c06144c8c95276e34b889cd28cc916425525ec7711a969f17f2c8ef9bd9i0
 - UI solution to update version: instead of
   Devtools->Application->Service Worker->Update->Unregister
 - instant mine: funding payouts for multiple wins
