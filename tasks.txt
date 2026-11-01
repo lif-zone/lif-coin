@@ -302,8 +302,9 @@ Post release:
   - cdn failure: check for a 'good' (well known) file.
     also ping a good CORS service (like google.com). So that it will
     know what kind of cdn fail it is.
-  - add --file cdn support: get directory file listing and whole tgz
+  + add npm --file cdn support: get directory file listing and whole tgz
     file listings. When available - do the alt lookups on it.
+  * add git --file cdn support
   - add semver support for git (XXX in kernel.js): read all refs.
   - new npm/git version check: only on service restart, or 2 forced fetch
     in 10 seconds. but dont wait for it if there is a version in cache
