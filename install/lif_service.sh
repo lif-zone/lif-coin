@@ -66,5 +66,6 @@ else
   echo "  is-enabled: shows services status: enabled/running/last log..."
   echo "  update: updates git trees"
   echo "  install: installs ~/bin, systemd, git pull and npm install"
+  echo "  install_restart: install+restart"
 fi
 
