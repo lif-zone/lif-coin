@@ -129,3 +129,9 @@ CLAUDE: Added PoW verification (`block.verifyPOW()`) and body check (`block.chec
 ---
 USER: Add thorough genesis validation - check all bytes, prevBlock is zeros, witness commitment
 CLAUDE: Enhanced `saveGenesis()` in `lib/blockchain/chaindb.js` with comprehensive validation: prevBlock is all zeros, block hash matches genesis.hash byte-for-byte, merkleRoot matches, time/nonce match, PoW verified, checkBody() for merkle/coinbase/tx sanity/sigops, and witness commitment verification (nonce + commitment hash) if present.
+---
+USER: Write scripts/magic_mod.js to migrate DB from old magic to new magic
+CLAUDE: Created `scripts/magic_mod.js` that patches network magic bytes in all on-disk locations: chain LevelDB (key O), indexer LevelDBs (tx, addr, filter/BASIC, lif_kv key O), blocks/index LevelDB (key O), and block flat files (blk/blu/blf/blm*.dat scan-and-replace). Hardcoded to lifmain network with prefix ~/lif.store.
+---
+USER: Fix magic_mod.js - blind scan corrupts block data when magic bytes appear inside blocks
+CLAUDE: Replaced blind scan-and-replace in `patch_block_files()` with frame-by-frame walking using `[magic:4][length:4]` structure. For blu/blf files accounts for extra 32-byte hash header. Only replaces magic at actual frame boundaries, preserving block data integrity.
