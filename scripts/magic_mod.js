@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict';
 
 const path = require('path');
@@ -6,7 +7,7 @@ const bdb = require('bdb');
 const bio = require('bufio');
 
 const network = 'lifmain';
-const prefix = path.join(require('os').homedir(), 'lif.store');
+const prefix = path.join(require('os').homedir(), 'lif.store', 'lifmain');
 const magic_old = 0x7e;
 const magic_now = 0x4b7c6b7e;
 
@@ -52,7 +53,7 @@ async function patch_leveldb(location, label){
   await db.close();
 }
 
-// Replace all occurrences of old magic in block flat files
+// Walk block flat files frame-by-frame, only replacing magic at frame boundaries
 async function patch_block_files(blocks_dir){
   console.log(`Patching block files: ${blocks_dir}`);
   const files = fs.readdirSync(blocks_dir)
@@ -62,16 +63,26 @@ async function patch_block_files(blocks_dir){
   for (const file of files){
     const filepath = path.join(blocks_dir, file);
     const data = fs.readFileSync(filepath);
+    const is_hash = /^(blu|blf)/.test(file);
     let count = 0;
-    for (let i = 0; i <= data.length-4; i++){
-      if (data[i]===magic_old_buf[0]
-        && data[i+1]===magic_old_buf[1]
-        && data[i+2]===magic_old_buf[2]
-        && data[i+3]===magic_old_buf[3])
-      {
-        magic_now_buf.copy(data, i);
-        count++;
+    let pos = 0;
+    while (pos+8 <= data.length){
+      const magic = data.readUInt32LE(pos);
+      if (magic!==magic_old){
+        // scan forward 1 byte like _index() does
+        pos++;
+        continue;
       }
+      const length = data.readUInt32LE(pos+4);
+      // header size: magic(4) + length(4) + optional hash(32)
+      const hdr = is_hash ? 40 : 8;
+      if (pos+hdr+length > data.length){
+        console.log(`  ${file}: bad frame at offset ${pos}, stopping`);
+        break;
+      }
+      magic_now_buf.copy(data, pos);
+      count++;
+      pos += hdr+length;
     }
     if (count>0){
       fs.writeFileSync(filepath, data);
