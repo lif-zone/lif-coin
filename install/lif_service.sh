@@ -67,5 +67,7 @@ else
   echo "  update: updates git trees"
   echo "  install: installs ~/bin, systemd, git pull and npm install"
   echo "  install_restart: install+restart"
+  echo "view log (lif-coin lif-kernel lif-coin-lifnet)"
+  echo "  journalctl -u  lif-coin -e"
 fi
 
