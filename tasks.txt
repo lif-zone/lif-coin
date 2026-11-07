@@ -287,7 +287,7 @@ Post release:
 + add lif-kernel loader
 + fix basic.pub.site
 - add lif-zone/the-guide
-* fixup magic
++ fixup magic
 * lif-kernel improvements
   + clean up ?mjs=1 ?cjs=1 ?raw=1 -> ?mjs ?cjs ?raw
   + make ?raw default. in our require/import add ?mjs. Also detect it
