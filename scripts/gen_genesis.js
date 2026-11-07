@@ -126,20 +126,23 @@ function createGenesisBlock(opt) {
     script: input.compile(),
     sequence: 0xffffffff,
   }];
-  if (is_lif && opt.btc_timestamp){
+  let btc_timestamp = opt.btc_timestamp;
+  if (!btc_timestamp && opt.net_type=='lifmain' && opt.defaults)
+    btc_timestamp = '000000000000000000005360f837e72f49d5b8add5f8398f194bc7e811593d12';
+  if (is_lif && btc_timestamp){
     let push_output = true;
     if (push_output){
       // push in output script
-      let timestamp = {btc_timestamp: opt.btc_timestamp};
+      let timestamp = {btc_timestamp};
       let script = lif_kv_script({key: 'timestamp',
         val: JSON.stringify(timestamp)});
       outputs.push({value: 0, script});
     } else {
       // push in input script
       input.pushData('btc_timestamp');
-      let btc_timestamp = buf_from_hex(opt.btc_timestamp).reverse();
-      assert(btc_timestamp.length==32, 'invalid btc_timestamp');
-      input.pushData(btc_timestamp);
+      let _btc_timestamp = buf_from_hex(btc_timestamp).reverse();
+      assert(_btc_timestamp.length==32, 'invalid btc_timestamp');
+      input.pushData(_btc_timestamp);
     }
   }
   const tx = new TX({version: 1, inputs, outputs, locktime: 0});
@@ -157,12 +160,15 @@ function createGenesisBlock(opt) {
   return block;
 }
 
-function gen_block(name, opt={}){
+function gen_block(name, opt){
+  if (!opt)
+    opt = {defaults: true};
   let net = Networks[name];
   let gen = {...net.genesis, ...opt};
   return createGenesisBlock(
     {version: 1, time: gen.time, bits: gen.bits, nonce: gen.nonce,
-    net_type: name, btc_timestamp: opt.btc_timestamp});
+    net_type: name, btc_timestamp: opt.btc_timestamp,
+    defaults: opt.defaults});
 }
 
 function str_diff(a, b){
@@ -396,16 +402,18 @@ function do_mine(block){ return etask(function*(){
     return;
   }
   const net = Network.get();
-  let hash = net.pow_hash256.digest(header).reverse().toString('hex');
-  ret.hash = hash;
+  ret._hash = net.pow_hash256.digest(header);
+  ret.hash = ret._hash.toString(16);
+  ret.rhash = ret._hash.reverse().toString(16);
   if (mine_range({header, target, min: nonce, max: nonce, time})<0
-    || hash.slice(0, 2)!='00')
+    || ret.rhash.slice(0, 4)!='0000')
   {
-    console.error('failed mining sanity test', hash, header.toString('hex'));
+    console.error('failed mining sanity test', ret.rhash,
+      header.toString('hex'));
     return;
   }
   console.log('SUCCESS: nonce '+nonce, 'time '+time,
-    'header ', header.toString('hex'), 'hash', hash);
+    'header ', header.toString('hex'), 'hash', ret.rhash);
   return ret;
 }); }
 
@@ -627,8 +635,8 @@ async function git_orig_networks_js(){
   if (ret.str!==''|| ret.code)
     return {error: 'diff in lib/protocol/networks.js: '+ret};
 }
-async function git_commit_networks_js(hash){
-  let ret = await sys_get(`cd ${cwd}/.. && git commit -m "mined genesis block ${hash}" lib/protocol/networks.js`);
+async function git_commit_networks_js(rhash){
+  let ret = await sys_get(`cd ${cwd}/.. && git commit -m "mined genesis block ${rhash}" lib/protocol/networks.js`);
   if (!ret.allout.includes('1 file changed') || ret.code)
     return {error: 'commit failed lib/protocol/networks.js: '+ret.allout};
 }
@@ -755,7 +763,7 @@ function test_and_create_gen(){ return etask(function*(){
   let commitid;
   if (do_commit){
     console.log('commit new genesis block');
-    ret = yield git_commit_networks_js(found.hash);
+    ret = yield git_commit_networks_js(found.rhash);
     if (ret?.error)
       return ret;
     console.log('get git commitid to include in BTC KV');
@@ -769,7 +777,7 @@ function test_and_create_gen(){ return etask(function*(){
     lif_kv: {
       key: main_or_test_chain+'/block_hash@0',
       val: {
-        hash: found.hash,
+        hash: found.rhash,
         miner_app: 'lif:git/github/lif-zone/lif-coin@'+commitid,
       },
     }});
