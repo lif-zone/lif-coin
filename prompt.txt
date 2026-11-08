@@ -135,3 +135,6 @@ CLAUDE: Created `scripts/magic_mod.js` that patches network magic bytes in all o
 ---
 USER: Fix magic_mod.js - blind scan corrupts block data when magic bytes appear inside blocks
 CLAUDE: Replaced blind scan-and-replace in `patch_block_files()` with frame-by-frame walking using `[magic:4][length:4]` structure. For blu/blf files accounts for extra 32-byte hash header. Only replaces magic at actual frame boundaries, preserving block data integrity.
+---
+USER: implement missing electrum server methods: blockchain.headers.subscribe and blockchain.transaction.get_merkle
+CLAUDE: Added hash256 require. Added blockchain.headers.subscribe: returns {height, hex} from chain.tip. Added blockchain.transaction.get_merkle: fetches block at height, finds tx position, builds merkle proof by walking the tree level by level collecting siblings, returns {merkle, block_height, pos} matching standard ElectrumX format.
