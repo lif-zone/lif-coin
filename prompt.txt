@@ -138,3 +138,6 @@ CLAUDE: Replaced blind scan-and-replace in `patch_block_files()` with frame-by-f
 ---
 USER: implement missing electrum server methods: blockchain.headers.subscribe and blockchain.transaction.get_merkle
 CLAUDE: Added hash256 require. Added blockchain.headers.subscribe: returns {height, hex} from chain.tip. Added blockchain.transaction.get_merkle: fetches block at height, finds tx position, builds merkle proof by walking the tree level by level collecting siblings, returns {merkle, block_height, pos} matching standard ElectrumX format.
+---
+USER: implement blockchain.block.headers (batch) in electrum server
+CLAUDE: Added blockchain.block.headers method to lib/node/http.js: takes [start, count], caps at 2016, concatenates raw header hex for each height, returns {hex, count, max}. Updated wallet_chain.js wc_sync_headers() to use batch fetching (block_headers) instead of one-at-a-time, parsing concatenated hex in HEADER_SIZE*2 slices.
