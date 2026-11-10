@@ -368,6 +368,12 @@ Post release:
 - add caching of hi.js in kernel.js, when {spa: true}
 - improve perf of npm version list: https://registry.npmjs.org/express
   make sure to use ETag/LMod on request, and make sure 304 response.
+- UI solution to update version: instead of
+  Devtools->Application->Service Worker->Update->Unregister
+
+Features
+--------
+- add an video conf site
 - add livecodes.io support
 - add LIF storage (instead of github), for immediate site setup like WIX,
 - add git API, and a website development with WYSIWIG
@@ -376,16 +382,13 @@ Low priority:
 -------------
 - inscriptions:
   http://start.localhost:1842/.lif/bitcoin/inscription/c6040c06144c8c95276e34b889cd28cc916425525ec7711a969f17f2c8ef9bd9i0
-- UI solution to update version: instead of
-  Devtools->Application->Service Worker->Update->Unregister
-- instant mine: funding payouts for multiple wins
 - add support for websocket subscription on new transactions, and updating
   accordingly. including tx from mempool (for instant mining win feedback).
+- instant mine: funding payouts for multiple wins
 - instant mining: add request for reduced fees, by providing prev tx, and
   asking to update it.
 - add mining control CPU 5% - 100%, in drop down.
 - in CPU usage, it continues adding more mining threads - up to 4.
-- add support for WebGPU and WASM, and in NodeJS for native SHA instructions
 - show in wallet tx list ALL txs with lif_kv. today it shows only the last
   tx per value.
 - remove semver_full.js
@@ -397,13 +400,13 @@ Low priority:
 - add support for any str (not only utf8/json) in lif kv server.
 - add ipc keep alive: every 100ms update a place in memory. On the waiting
   side, if for 1000ms no update - it starts giving error messages
-- move the boot_worker web worker to the service worker.
+c move the boot_worker web worker to the service worker.
 - add support for lif no-cors via out servers routing requests in return
   to mining or tx with money.
 - tx broadcast that fails should show a message that it failed
 - in wallet domain operations: change to default just DNS and site, and
   clicking advanced will allow full JSON edit, and full key edit
-- add support for additional bitcoin test networks.
+c add support for additional bitcoin test networks.
 
 React rewrite
 -------------
