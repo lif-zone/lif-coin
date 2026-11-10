@@ -305,6 +305,10 @@ Post release:
     know what kind of cdn fail it is.
   + add npm --file cdn support: get directory file listing and whole tgz
     file listings. When available - do the alt lookups on it.
+    add support for npm package listing: (quick 'neg', and sha256 to compare
+    download)
+    https://unpkg.com/react@18.3.1/?meta
+  https://data.jsdelivr.com/v1/packages/npm/react@18.3.1
   * add git --file cdn support
   - add semver support for git (XXX in kernel.js): read all refs.
   - new npm/git version check: only on service restart, or 2 forced fetch
@@ -353,14 +357,9 @@ Post release:
 - add caching of hi.js in kernel.js, when {spa: true}
 - improve perf of npm version list: https://registry.npmjs.org/express
   make sure to use ETag/LMod on request, and make sure 304 response.
-- add support for npm package listing: (quick 'neg', and sha256 to compare
-  download)
-  https://unpkg.com/react@18.3.1/?meta
-  https://data.jsdelivr.com/v1/packages/npm/react@18.3.1
 - add livecodes.io support
 - add LIF storage (instead of github), for immediate site setup like WIX,
 - add git API, and a website development with WYSIWIG
-- use lif:bitcoin/electrum json rpc WS leaf to nimiq server: add CORS
 
 Low priority:
 -------------
