@@ -286,8 +286,18 @@ Post release:
 + rename 'globDependencies' to 'override'
 + add lif-kernel loader
 + fix basic.pub.site
-- add lif-zone/the-guide
 + fixup magic
++ lif-wallet: improve ease of use of "send":
+  + Add 'send max' (send all coin, send all funds in wallet)
+  + When sending all money, deduct fees for amount, and warn user
+  + show while writing in amount the "live" balance will be left after transfer
++ lif-explorer: make a lif app:
+  c make lif-explorer use lifnet for requests
+  + make esplora load from LIF:
+    + fork it into a new tree
+    + add to lif kernel support for answeing index.html for any URL, and
+      supporting SPA, and 'virtual 404'.
+    + support lif kernel JsRx and make esplora run on it
 * lif-kernel improvements
   + clean up ?mjs=1 ?cjs=1 ?raw=1 -> ?mjs ?cjs ?raw
   + make ?raw default. in our require/import add ?mjs. Also detect it
@@ -318,6 +328,7 @@ Post release:
   - maybe: rename /lif-kernel/ to /.lif.local/lif-kernel
   - maybe: kernel.js cache SPA index.html result set by {lif: {spa: true}}
   - move ipc_fetch worker thread to kernel.js 
+- add lif-zone/the-guide
 - run node in browser
   - fork all bcoin-org modules imported in lif-coin
   - make it work with lifnet (node<->browser will communicate of lifnet)
@@ -363,17 +374,6 @@ Post release:
 
 Low priority:
 -------------
-+ lif-wallet: improve ease of use of "send":
-  + Add 'send max' (send all coin, send all funds in wallet)
-  + When sending all money, deduct fees for amount, and warn user
-  + show while writing in amount the "live" balance will be left after transfer
-- lif-explorer: make a lif app:
-  - make lif-explorer use lifnet for requests
-  - make esplora load from LIF:
-    - fork it into a new tree
-    - add to lif kernel support for answeing index.html for any URL, and
-      supporting SPA, and 'virtual 404'.
-    - support lif kernel JsRx and make esplora run on it
 - inscriptions:
   http://start.localhost:1842/.lif/bitcoin/inscription/c6040c06144c8c95276e34b889cd28cc916425525ec7711a969f17f2c8ef9bd9i0
 - UI solution to update version: instead of
