@@ -400,13 +400,11 @@ Low priority:
 - add support for any str (not only utf8/json) in lif kv server.
 - add ipc keep alive: every 100ms update a place in memory. On the waiting
   side, if for 1000ms no update - it starts giving error messages
-c move the boot_worker web worker to the service worker.
 - add support for lif no-cors via out servers routing requests in return
   to mining or tx with money.
 - tx broadcast that fails should show a message that it failed
 - in wallet domain operations: change to default just DNS and site, and
   clicking advanced will allow full JSON edit, and full key edit
-c add support for additional bitcoin test networks.
 
 React rewrite
 -------------
