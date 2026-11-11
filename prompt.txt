@@ -141,3 +141,7 @@ CLAUDE: Added hash256 require. Added blockchain.headers.subscribe: returns {heig
 ---
 USER: implement blockchain.block.headers (batch) in electrum server
 CLAUDE: Added blockchain.block.headers method to lib/node/http.js: takes [start, count], caps at 2016, concatenates raw header hex for each height, returns {hex, count, max}. Updated wallet_chain.js wc_sync_headers() to use batch fetching (block_headers) instead of one-at-a-time, parsing concatenated hex in HEADER_SIZE*2 slices.
+---
+USER: implement step 4 (background sync with subscriptions)
+CLAUDE: Implemented electrum subscription-based background sync (Step 4 of SPV plan):
+Server (lib/node/http.js): Added per-connection subscription tracking in on_electrum(). blockchain.headers.subscribe now registers for push notifications on new blocks. Added blockchain.scripthash.subscribe that registers scripthash for notifications and returns status hash. On chain 'connect' event, notifies header subscribers with new tip and checks block TX outputs against subscribed scripthashes. On pool 'tx' event (mempool), checks TX outputs against subscribed scripthashes. Computes status as sha256 of concatenated tx_hash:height pairs. Cleans up event listeners on WebSocket close.
