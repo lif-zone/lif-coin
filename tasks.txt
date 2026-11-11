@@ -298,6 +298,12 @@ Post release:
     + add to lif kernel support for answeing index.html for any URL, and
       supporting SPA, and 'virtual 404'.
     + support lif kernel JsRx and make esplora run on it
++ lif-wallet: add a complete SPV model:
+  + store TXes (with/witout proofs)
+  + block headers (must always have connection, even if only to checkpoints)
+  + ask electrum only for what is missing
+  + handle multi-version chains (re-orgs). define 'safe' distance, to be
+    3 blocks in bitcoin. 6 blocks in lif (amount of time to show conflicts)
 * lif-kernel improvements
   + clean up ?mjs=1 ?cjs=1 ?raw=1 -> ?mjs ?cjs ?raw
   + make ?raw default. in our require/import add ?mjs. Also detect it
@@ -333,12 +339,6 @@ Post release:
   - fork all bcoin-org modules imported in lif-coin
   - make it work with lifnet (node<->browser will communicate of lifnet)
   - make it work with sockets over lifnet (tcp_out server)
-- lif-wallet: add a complete SPV model:
-  - store TXes (with/witout proofs)
-  - block headers (must always have connection, even if only to checkpoints)
-  - ask electrum only for what is missing
-  - handle multi-version chains (re-orgs). define 'safe' distance, to be
-    3 blocks in bitcoin. 6 blocks in lif (amount of time to show conflicts)
 - lif-net
   - add jsonrpc over tcp/tls support
   - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
