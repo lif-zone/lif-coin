@@ -1,0 +1,668 @@
+Task list
+=========
+
+make wallet.jsx support multiple wallets
+----------------------------------------
++ today it is just a single wallet. It should be "boxes" of wallets,
+  and a box for "New wallet". So when starting it first time it only has
+  "New wallet" box. clicking on it - adds a new wallet, where you select
+  all the things you sellect in today's wallet.jsx implementation:
+  Network (Bitcoin, Bitcoin testnet, Lif), the wallet key etc...
++ Once a wallet is added, in its box is the amount of unspent coins it has,
+  and amount of BTC/LIF it has.
++ clicking on it - opens up the wallet's transactions, and allows you to
+  delete the wallet, and to send and receive from this wallet.
++ in the global settings, you can set the electrumx server for the different
+  networks (Bitcoin, Bitcoin testnet, Lif...)
++ cache (c) and cache store (cs) for instant statup and screen switching
++ Settings screen: move Developer tools to separate screen.
++ in dev tools screen: Add a Memopool delete button /reset_mempool
++ move BTC test network into "Developer tools"
++ in Network options, put LIF by default, and first, BTC second. via Radio
+  button.
++ dont show in BTC wallets the lif kv options
++ fees are not working: click Send.
++ never use lif_kv outputs for regular Send tx. Need to do a kv transfer tx
+  and then the change will get "separated" back to us. Dust>1 protects this.
++ create tx with kv_lif controlling outputs with 1 value (like runs)
+  (inscribe/edit/transfer). Dust>1 protects from transering kv by mistake.
++ fees are not working: click Send: dont throw Error() on fees - give a
+  funding specific error (on no funds, or not enough funds, telling how much
+  is missing. Should already appear on the page itself the missing funds,
+  not as a surprise.
++ add click to mine
++ bug in edit/transfer domain: tx not appearing immediatly.
++ bug in transfer domain: transfer to self, TX is found in mempool.
+  click "Mine", and then URL gets 400 Bad request on tx.
++ fees and funding error improvement: give clear warning when trying to
+  create transactions with insufficient funding. separate problems between
+  funding and fees, and show the total available balance. (after removing
+  dust)
++ add refresh button on main page, and on wallet page to force fetch again
++ unconfirmed tx first in wallet, not last
++ show in wallet tx list txs with lif_kv: that they have lif kv in them,
+  both in the tx list, and in tx detail list
++ add Mine button in TX page when there is unconfirmed TXs for that wallet,
+  and when in Devtools mode
++ add qr for receive address
++ add qr for send address
++ replace alert() windows, with JS.
++ add Mine button on LIF wallets, to collect funds.
+  + add JSON RPC getblocktemplate
++ calculate how many HPS needed to get on avarage a share of sats.
++ fix UI for aruk.localhost:4000 error msg
++ open new users in github, and re-import the projects, but with different
+  login names/emails
++ separate lif-kernel from lif-os: create a new tree, and re-create commits.
++ run lif_node.js on VPS
++ lif-kernel: support nice git: webapp URLs
+  + fix hi.js demo_index to have nice domain names.
+  + fix all "site" in wallets to have nice domain names
++ sync VPS lif_node with local lif_node (GETBLOCKS fail/timeout response)
++ add rpc.on(), and do rpc.emit('close')
++ load qrcode dynamically, only when needed
++ add $ value: 1LIF==1USD. BTC - get dynamic. a click on the value changes
+  the display. in USD - show up to the cent $40.41 LIF, $1500.00 BTC
+  anything under a cent, show as a cent.
++ instant P2P mining: add to wallet ability offer instant mining.
+  use lif-kernel server do websocket connection between peers on same
+  subject ('mine_instant'). Some register as mine_instant servers, and others
+  request mine_instant servers, and get mining offers.
+  + add websocket /.lif.rg
+  + add websocket json rpc bridging, and topic locating
+  + connect browser/wallet_db.js to /.lif.rg, finding topic 'mine_instant'
+  + add to wallet a instant mining server. it publicizes to mine_instant.
+  + add to wallet an instant mining page (client). it requests blocks heades
+    to mine. once receiving it - it mines, and sends results, and waits to
+    get resulting TX to his address. Must take no more than 10 seconds.
+  + rpc no result/error
+  + instant_pool_server update total_h to count hashs so far
+  + add simple reward UI of estimations how much will be earned,
+    and how much expected per day
+    of mining, and how much expected per month of mining.
+    move existing UI to 'advanced'
++ UI for 404 domain not found: to create wallet, and mine, and put content
+  on wallet. Ask for email, and when purchasing domain, register it as
+  'owner' and when arriving to that domain, put it as "this domain is owned
+  by xxx@gmail.com. If you would like to purchase this domain - contact
+  xxx@gmail.com.
+  + backup wallet widget: if wallet was not backed up: display words,
+    and click <I wrote it down>. Then the words turn to ***, and another box
+    appears: write the words. below it <I forgot the words> (left).
+    Below: <OK>. if clicking OK and words do not match - it tells you cannot
+    continue until you backup your wallet words.
+    And tell "If forgot" if you for
+    if you click Register domain without correct words - it will
+  + if wallet does not have sufficient funds:
+    instant mining progress bar % widget
++ UI bugs: instant mine progress: need to make first 50% - 50% of speed, then
+  slow down from there (25%
++ instant mine: when success: should fill up progress bar, and show how much
+  $ you won.
++ instant mine bug: not stopping mining after winning.
++ create 'My first LIF wallet' when starting the app with no wallets
++ UI bugs: when creating new wallet - need to go into wallet after creation
++ In wallets with 0 TX, add "start mining to get some $ LIF for free"
++ add support for npm imports not package.json
++ lpm refresh: lif/local - always check.
++ lpm refresh: git - when no-cache request sent
++ wallet.lif.zone - fix github to lif-zone/lif-wallet - crash in TX fini
++ get wallet.lif.zone it work again from Windows (externally)
++ make F5 refresh work
++ add generic support for git: hosts, and make order in util npm<->lpm API
+  + add support for git #version <=> lpm @version
+  + correct KV from git/github/... to git/github.com/...
++ remove obsolete .npm etc. just use .lif/<lpm path>. add support for local:
++ add support to locate git short-hand URLs and expand them
++ git refresh: locate github latest releases, and releases by tags
++ in Kv_edit_screen: do JSON validation, and dont allow to continue
+c in Kv_edit_screen: add: Edit and Cancel buttons
++ Mining widget progress in Mine screen, and Mine_pool.
++ tun: add rpc.rconnect()- remote connection. Gives a rpc_sock() object.
++ move xderry/bfile -> lif-zone/bfile
++ unit tests: github actions: lint+tests
+  + lif-coin: node test, lint
+  + lif-kernel: kernel, node test, lint
+  + lif-kernel: browser pupperteer
+  + lif-net: README, node test, lint
+  + lif-net: browser: node ./server.js -l localhost:4001 - run puppeteer
+  + lif-net: based on lif-kernel
+  + lif-wallet
+  + lif-os
++ register 1842 coin with SLIP
++ lif-net
+  + add tcp outgoing connections
+  + add http/https outgoing connection
+  + add websocket outgoing connection
+  + add lif:net/lifcoin/node to localhost:8433
+  + add http out to localhost:8432 KV: leaf at server, emtry point at GW
+  + add jsonrpc outgoing connection
+  + use lif:lifcoin/electrum json rpc leaf to localhost:8432
+  + auto-reconnect lifnet - retry every 1s
+  + add 1 sec retry on leaf_s.js: permanent topics (auto re-register)
+  + get mine_instant working on lifnet_connect/lifnet_listen
+  + if no mine_instant servers found: mine solo
+  + implement lifnet only between nodejs servers. allow address targets to
+    connect to rg_id, "light nodes". all nodes connect to all nodes,
+    pub/unpub: flood all
+    connect rg_id: is self? is in mem table (last connected)? flood all.
+  + leaf->trunk disconnect - should retry every 1 sec
+  + trunk peer disconnect - others should continue (retry every 1 sec)
+  + add lifnet loopback support
+  + use lif:bitcoin/electrum json rpc TCP/SSL leaf to bluewallet server
+  + get electrum to work directly on lifnet_connect+call (not via websocket gw)
++ lif-wallet: hide test-nets, and show them only if developer tools enabled
+  and test-nets enabled
+
+For testnet release 21-Aug-2026
+-------------------------------
++ move current network to test network.
+  + copy (backup) original blocks ~/lif.store/lifmain
+  + how did lifmain allow allow 0x1d00ffff pow and allow lower vals in?
+  + adding liftest
+  + add liftest to wallet, and liftest_lif_kv to net
++ select dates
+  + 21-Aug-2026 testnet release 08/ALU/5786 h' ALUL H'TSPU, PRAST KI TXA
+  + 02-Oct-2026 mainnet release 21/TSR/5787 K"A TSRI H'TSPZ, ERB SMhT TURA
+  + 21-08-2026          08-11-5786
+    02-10-2026          21-01-5787
+    21x2 8+10 2+2+6=10  081 (1+1)*21     6*7
++ Setup 1 lifnet and lifcoin servers:
+  + setup domains: lifnet.com pub.site lif.site site.center bright.lif lifsite.com
+    so that can surf to them in https.
+    lifcoin.com still cache not updated
+  + Install and run on VPS1: lif_node.js, lif-kernel ssl, lifcoin_s.js
+    + add support for 1842 for local lif.net connection.
++ add LIF production network with production target (4G hash).
+  + automate the process: providing private addr for bitcoin transaction,
+    getting btc tip hash, inserting to lif genesis template, mining a lif
+    template, periodic test and update if new bitcoin hash to lif coinbase,
+    git commit networks.js with nonce+time, submitting bitcoin TX with link
+    to lif genesis, and lif hash itself, in a lif-kv format
+  + setting lifmain difficuly to 1d00ffff
+  + add gen_genesis.js to compute genesis block values and mining
+  + creating genesis blocks, validating XXX items networks.js
+    + 'select' in networks.js
+    + run node scripts/gen_genesis.js test
+    + create genesis 0x1f00ffff. magic to 42 words. add KV output of
+      bitcoin link bitcoin/block_hash@2948243 {hash: "00112233..."}
+    + once found, create an inscription output the text to update networks.js. commit it. tag it.
+      lifcoin/block_hash@1 {hash: ""}
+    + mining perf: start mining pool - add servers with "leaf" service of
+      free mining, given a header. Periodically monitor bitcoin tip,
+      and update mining pool.
+    + setup full mining cycle and actually mine a test block
+  + generate bitcoin TX to mark the new block with lif_kv
+    key=lifcoin/block@0/hash val={hash: '<32 bytes hex>'}
+  + create gen block: get from electrum block hash, mine lif,
+    once completed submit electrum TX to bitcoin
++ 21-Aug-2026 release day:
+  + btc mine loop run:
+    + get current btc head
+    + start Windows mining slave pool server: wallet.bright.life
+      in Windows open wallet.lifcoin.com, enable Developer tools,
+      enable slave mining, in LIF wallet, enable Advanced,
+      then start Mining Pool
+    + run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
+      wait for find winner.
+    + copy SET 01 SET_merkleRoot SET 01
+    + copy SET 02 SET_time SET 02 found time
+    + copy SET 02 SET_nonce SET 02 found nonce
+    + copy SET 03 SET_hash SET 03 lifmain.genesis.hash
+    + copy SET 03 SET_genesisBlock SET 03 lifmain.genesisBlock
+    + copy SET 04 SET_magic SET 04 lifmain.magic
+    + run node ~/lif-coin/scripts/gen_genesis.js test
+    + copy magic to lifmain.magic
+    + run node ~/lif-coin/scripts/gen_genesis.js test
+      make sure its SUCCESS
+    + commit networks.js
+  + delete existing mainnet (vps1-3): rm -rf ~/lif.store/lifmain
+  + restart mainnet vps1-3:
+    $ lif_service.sh update
+    $ lif-service.sh restart
+
+work between testnet and mainnet release
+----------------------------------------
++ update version 26.X.X to 2026.8.23
++ lif-os: new /.lif.imp/ support do_imp=1
+  + import /.lif/npm/public/.index/iniIcons.json fails
+    should be .lif.imp/public/.index/iniIcons.json
+  + enable do_imp. check perf. if works OK - rm obsolete
+  + add wallpaper_hola.jpg to be default wallpaper
++ improve performance via react@18.3.1/.lif.imp/
+  the equivalent of node_modules.
++ add support for "^2.0.0" in npm deps to use newest version of "^2.x.x"
+  and remove overrides overrides: {has-symbols: "^1.1.0",
+  which-typed-array: "^1.1.22", is-typed-array: "^1.1.15"}
+  in lif-explorer/client/package.json
+  dependencies: {"@cycle/http": "npm:@cycle/fetch@^4.0.0"}
++ support self reference "name": "lif-explorer" when looking up packages.
+  remove hack in lif-explorer/package.json
++ lif-explorer: SPA respond hi.html with any request.
+  + add server.js mapping
+  + add pass through to kernel.js
+  + upload to github.com/lif-zone/lif-explorer
+  + add web_exports support npm:module reading (without redirect)
+  + add exports support npm:module redirect
+  + add support for esplora: compile rxjs *.js via jsx, add index.html
+  c support bitcoin esplora CORS vis lif_net
+
+For mainnet release 02-Oct-2026
+-------------------------------
++ fix lif-coin/bin/lif_node.js:mine_address
++ redirect lifcoin.com -> start.lifcoin.com
++ add start.lifcoin.com lif-kernel/start
+  lif-explorer explorer, lif-wallet wallet, lif-os os, lif-basic
++ make wallet.lifcoin.com mobile friendly
++ release lif-kernel npm
+c add lif-kernel loader
+c add lif-zone/the-guide
++ adjust avg block 10m
++ give clear status messages in mining progress
++ fix instant mining
++ get_domain mining widget problems
++ 02-Oct-2026 release day:
+  + create new genesis block, and timestamp on BTC
+    + update flags: gen_genesis.js: update flags=21/TSR/5787
+    + start Windows mining slave pool server: wallet.bright.life
+      in Windows open wallet.lifcoin.com, enable Developer tools,
+      enable slave mining, in LIF wallet, enable Advanced,
+      then start Mining Pool
+    + run MINE_SLAVE=1 node ~/lif-coin/scripts/gen_genesis.js gen
+      wait for find winner.
+  + update to servers new chain
+    + backup lifmain->liftest to other directory
+    + delete existing lifmain: rm -rf ~/lif.store/lifmain
+    + vps1-3: lif_server.js update, lif_server.js restart
++ write announce email
+
+Post mainnet release
+-------------------
+- buy: lifnet-test.com lifocin-test.com
+- move old mainnet to testnet. add domains lifnet-test.com
+
+Post release:
+-------------
++ rename 'globDependencies' to 'override'
++ add lif-kernel loader
++ fix basic.pub.site
++ fixup magic
++ lif-wallet: improve ease of use of "send":
+  + Add 'send max' (send all coin, send all funds in wallet)
+  + When sending all money, deduct fees for amount, and warn user
+  + show while writing in amount the "live" balance will be left after transfer
++ lif-explorer: make a lif app:
+  c make lif-explorer use lifnet for requests
+  + make esplora load from LIF:
+    + fork it into a new tree
+    + add to lif kernel support for answeing index.html for any URL, and
+      supporting SPA, and 'virtual 404'.
+    + support lif kernel JsRx and make esplora run on it
++ lif-wallet: add a complete SPV model:
+  + store TXes (with/witout proofs)
+  + block headers (must always have connection, even if only to checkpoints)
+  + ask electrum only for what is missing
+  + handle multi-version chains (re-orgs). define 'safe' distance, to be
+    3 blocks in bitcoin. 6 blocks in lif (amount of time to show conflicts)
+* lif-kernel improvements
+  + clean up ?mjs=1 ?cjs=1 ?raw=1 -> ?mjs ?cjs ?raw
+  + make ?raw default. in our require/import add ?mjs. Also detect it
+    from the request headers. (clean lif-start/style.css)
+  + do alt (.js .ts .mjs /index.js...) only for ?mjs ?cjs ?amd imports
+  + allow fetching /.lif/git/... (non npm) resources that dont have
+    package.json (need to add validation that the repository exists)
+  + enable_follow for ?imp ?mjs: recirect+import in same result
+  + enable_follow for ?meta: redirect+requie meta in same result
+  + fix ieek lurking bug
+  - when modifing package.json patches, and just F5 fails to update it.
+    check in lif-explorer
+  - cdn failure: check for a 'good' (well known) file.
+    also ping a good CORS service (like google.com). So that it will
+    know what kind of cdn fail it is.
+  + add npm --file cdn support: get directory file listing and whole tgz
+    file listings. When available - do the alt lookups on it.
+    add support for npm package listing: (quick 'neg', and sha256 to compare
+    download)
+    https://unpkg.com/react@18.3.1/?meta
+  https://data.jsdelivr.com/v1/packages/npm/react@18.3.1
+  * add git --file cdn support
+  - add semver support for git (XXX in kernel.js): read all refs.
+  - new npm/git version check: only on service restart, or 2 forced fetch
+    in 10 seconds. but dont wait for it if there is a version in cache
+  - add support for html webapp in lif-kernel/boot.js:
+    lif-explorer/client/package.json: "webapp": "index.html"
+  - maybe: rename /lif-kernel/ to /.lif.local/lif-kernel
+  - maybe: kernel.js cache SPA index.html result set by {lif: {spa: true}}
+  - move ipc_fetch worker thread to kernel.js 
+- add lif-zone/the-guide
+- run node in browser
+  - fork all bcoin-org modules imported in lif-coin
+  - make it work with lifnet (node<->browser will communicate of lifnet)
+  - make it work with sockets over lifnet (tcp_out server)
+- lif-net
+  - add jsonrpc over tcp/tls support
+  - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
+    or lif:bitcoin/electrum
+  - implement lifcoin tcp socket via lif:net/lifcoin/node for an
+    incoming and outgoing TCP proxy.
+    Maybe map IPs to virtual 172.16.0.0/15
+    allocate virtual IP for server. each local
+    server remembers its IP<->rg_id mapping. once finished - reuse oldest.
+  - add lif-kernel outgoing connections to github lif:net/ip_bridge/http_out.
+    and lif_fetch('https://github.com/lif-zone/lif-kernel.git/info/refs?...')
+- support 2 VPS: support ns1 ns2 on different IPs: need acme ssl co-ordination in
+  startup: proxy dns _acme-challenge from ns2 ns3... to ns1.
+  Also need to transport the cert and key from ns1 to ns2 ns3...
+  to do that need a challenge/response: opening http admin connection
+  ns1->ns2,ns3... and providing them the cert+key.
+  might need to first generate a self-signed SSL, and add a port/server
+  for ns2 to ask fron ns1 for the certificates. ns1 to validate will
+  connect back https, validate the self-signed cert match, and then submit
+  the key to ns2.
+- fix caching and F5 reload sw: detect refresh in boot.js
+  performance.getEntriesByType('navigation') reload back forward navigate
+  prerender and load sw?revalidate=1, which tells kernel.js fetch() to
+  use revalidate options to revalidate etag/lmod
+  mayne move part of kernel to sw_boot.js
+  check that in DB and caches only cachable stuff is there
+- add caching of hi.js in kernel.js, when {spa: true}
+- improve perf of npm version list: https://registry.npmjs.org/express
+  make sure to use ETag/LMod on request, and make sure 304 response.
+- UI solution to update version: instead of
+  Devtools->Application->Service Worker->Update->Unregister
+
+Features
+--------
+- add an video conf site
+- add livecodes.io support
+- add LIF storage (instead of github), for immediate site setup like WIX,
+- add git API, and a website development with WYSIWIG
+
+Low priority:
+-------------
+- inscriptions:
+  http://start.localhost:1842/.lif/bitcoin/inscription/c6040c06144c8c95276e34b889cd28cc916425525ec7711a969f17f2c8ef9bd9i0
+- add support for websocket subscription on new transactions, and updating
+  accordingly. including tx from mempool (for instant mining win feedback).
+- instant mine: funding payouts for multiple wins
+- instant mining: add request for reduced fees, by providing prev tx, and
+  asking to update it.
+- add mining control CPU 5% - 100%, in drop down.
+- in CPU usage, it continues adding more mining threads - up to 4.
+- show in wallet tx list ALL txs with lif_kv. today it shows only the last
+  tx per value.
+- remove semver_full.js
+- add unit-tests pkg_transform_lookup
+  - fix up glob_match
+- add support for kv_lif with only key and no val (missing 'val'):
+  this allows "passing" existing keys from inputs to different
+  specific outputs in same transaction, without modifing values.
+- add support for any str (not only utf8/json) in lif kv server.
+- add ipc keep alive: every 100ms update a place in memory. On the waiting
+  side, if for 1000ms no update - it starts giving error messages
+- add support for lif no-cors via out servers routing requests in return
+  to mining or tx with money.
+- tx broadcast that fails should show a message that it failed
+- in wallet domain operations: change to default just DNS and site, and
+  clicking advanced will allow full JSON edit, and full key edit
+- tcpip.js/tcpip_s.js: Out-node transfers are hex inside JSON and fully
+  buffered in lif_fetch: fine for API calls, poor for large downloads.
+
+React rewrite
+-------------
+Screen routing (screen state + all those {screen=='x' && <Component />}) → React Router (react-router-dom). Each screen becomes a <Route>,         
+navigation becomes useNavigate(). This alone would cut a lot.                                                                                      
+
+Forms (manual useState per field, useFormValid, fee/address fields) → React Hook Form. Replaces most form state with useForm(), register(),        
+handleSubmit(). Works well with validation.                                                                                                        
+
+Async data fetching (the useEffect + setLoading + setConnErr + setBalance pattern repeated in every screen) → TanStack Query                       
+(@tanstack/react-query). Replaces all that with useQuery() and handles caching, loading, error states automatically.                               
+
+Inline styles (every element has style={{...}}) → Tailwind CSS or a small component library like Radix UI primitives. Even just extracting shared  
+styles to a styles.js object would help.                                                                                                           
+
+Modal system (the custom Modal_context) → Radix UI Dialog is a drop-in that handles accessibility, focus trapping, etc. for free.                  
+
+The highest ROI in order:                                                                                                                          
+1. React Router — biggest reduction, the screen state machine is ~100 lines of logic                                                               
+2. TanStack Query — eliminates repetitive fetch boilerplate across many screens                                                                    
+3. React Hook Form — cleans up the form screens                                                                                                    
+
+Text source options
+-------------------
+- prepare genesis block inscriptions:
+  - Begin Name Call Nothing Thing
+    BRASIT SMUT VIKRA BMDBR DVRIM
+  - BEGINNING NAMES CALLED NOTHING THINGS
+    Babel Universal Tongue straight to Simplified Technical Language
+    BRASIT In the BEGINNING
+    SMUT   These are the NAMES
+    VIKRA  Be CALLED
+    BMDBR  In the NOTHING
+    DVRIM  These are the THINGS
+  - NOTHING but DESERT
+    NAMEing gives MEANing
+    BEGIN a BEING
+  - wc Word Count
+    tr Translate TO=AL
+    r1 ROT1=>ROT2
+  - wc: 1 2 5 6 7 18: 42
+  - ZKUR=SMUR, BIT=AST, SQR=SVA
+    r1: MSH=>HSM
+    tr: GL OD = YGR SHDUTA = Eternal Witness
+  - r1: BOB=>GOD, FORD=>LORD
+  - AL=TO
+  - Mine. Your Name. ANUKI HSM ALUHK.
+    Lord Perfect Godspell Joseph
+    Harm Less
+    Dont Harm
+  - SLUM So-long
+    Hello Goodbye
+    YGR-SHDUTA GL-OD
+    Beach Bug
+  a brilliant academic career studying ancient
+  philology, transformational ethics and the wave harmonic theory of
+  historical perception, and then, after a nigh
+    M.Shoshan: Ancient Philology: Justice Ethics Morals letter word count guide    
+    M.S. Ancient Philology: Justice Ethics Morals letter word count guide    
+    M.S.: Ancient Philology: Justice Ethics Morals - counting letters and words
+    (M. Ben Shoshan 1952, JEM Pub. 1969, DNA Pub. 18-Oct-1984): the study of Justice, Ethcs and Morals 
+    LCPUR AUT UMILH
+    MBS LK RBS DNA SYC VEF/MMS
+    MURDKI BN SuSN, Mordechai Ben Shoshan
+    Lourance Kohlberg
+    RBKA BT SLUM, Rivka Bat Shalom
+    Douglas Noel Adams
+    MNhM MNDL SNIAURCUN, Mehahem Mendel Shniorson
+    SAR IAUB KHN, Shar Yashuv Cohen
+    Viktor Emil Frankl
+    Hebrew Ancient Philology Publishing (H. Publishing)
+  - Thank You. Harm Less. TUDH YQUM. TPGO PhUT. Be Happy. Dont Panic.
+    TUDA LK. LT TZIQ.
+  - My Ford scribe helper: Babel Baba Buba Bob is real right priest
+  - Everything you wanted to know about SIX, but were too afraid to ask!
+  - 42 words, The 42 of 18: The Meaning of Lif
+    The Meaning of Rich Life: The 42 of 10 18: 6-7
+    The question: how many words create rich life?
+    How many words bach number six? seven! it has 14 bars in first cycle.
+    The Guide is consists of one hundred and eighty godly spelt signs, and colorfull dreams.
+    If you can count something - one, two, three - then you ask how many do you see?
+    What kind of happiness is measured out in miles? smile!
+    Hamavdil ben kodesh lehol. Separating the 7 from 6.
+  - Is Real Truth Priest
+    Getting the right 42 words needed for revival into every hotel room
+    for travelers
+  - add marking in genesis block of bitcoin block hash.
+  - 5 book names: beginning, names, calling, talking, things.
+    begin, name, call, talk, thing.
+    Rot1 transpilation: OL PI SNI ODIM IQUM DBR
+    Beach six meets heaven
+Numbers hold the answers: guides/books, things/sentences, names/words and signs/letters
+6 MLIM K"A 4 AUT, CK AUT KL MLH = KCK MLUT HPCUQ
+A trilogy of five books: Beginning, Names, Call, Void, Things
+384785 79980 5845 5
+Journeys of the scribed dual golden core disks: Hello, Goodbye
+180 42 10 2
+    Six names each four signs. Number signs each name = as number of names of the thing
+    Dont Panic, Harm Less:
+  - the GUIDE, the BIBLE, the TORAH. HHUMS HTORA MDRIH
+  - creating basecoin TX: adding 'kv' bitcoin/block/2323' val
+    {"hash": "112233..."}. info will be collected via electrum, and checked it
+    does not yet appear in the KV DB. coinbase KVs will be stored in a
+    separate prefix than rest of KVs.
+    TORAH THE GUIDE TO LIF (18 chars, 5 words)
+    LIF is a book of LIFE
+    MSH BAK: Philological Book of Eternal Life Scripture
+    Lif is a Philological Book reader-writer scribed by Eternal Digital Ink
+    (mostly Eternal)
+    The Guide and The Well and the Torah
+  - ben shushan word counting 4-6 jpg
+  - add Paul bug, Bach Beach, and Dr. Suess, add Yiddish. Maybe woody alan.
+  - put full bible inscription 300K letters in one of the first blocks.
+  - rosseta stone: 42 words, in hebrew, english, spanish, greek, arameic.
+    will be the 1st data inscription. future: KV system will have also bin data:
+    key, val (json), valb (binary). json points to binary.
+  - Fire Lights, and forever alive HSNH BUOR UJI LNXJ
+    Life's fire never burns out HSNH BUOR UAINU OUKL
+    Life's light never burns out
+    Ethernal Flame
+    Eternal Network: Etha-Net
+    wc: Beginning Naming Calling and Meaning things
+    what do you get seven times nine
+    Verb (beginning) Gerund (naming) Gerund (calling) Gerund (meaning) Noum (things)
+    A Homer: to pull a homer
+    VALH SMUT - *these* are the names (the naming action/process, like LSIM)
+  - LIFE=12 SMUT/MZLUT 22 ATIUT/CIMNIM 32 NTIBUT 42 MILIM/MCOUT=10 DVRIM
+  - Torah letters 304805 words 79980, letters 5845
+    lif_kv HTURH/wc {things: 304885, names: 79980, signs: 5845}
+  - wc WHATDOYOUGETIFYOUMULTIPLYSIXBYEPTAFORTYTWO => 42
+    SIX BY NINE? TIHS
+  - burning bush of testing -> moshe only needed a bush
+    burning mountain of testing -> the people needed a mountain
+    harm less, dont panic, shalom shalom
+  + Sefaria hebrew text
+    Gideon's bible
+    https://github.com/scrollmapper/bible_databases
+    https://github.com/Sefaria/Sefaria-Data/tree/master/sources
+    https://www.openbible.info/labs/browse-books/
+  - Although the words in the Torah, which is also known as the Five Books of
+    Moses, consists of exactly 304,805 letters, the great sages of Jewish tradition
+    teach that all the wisdom in the universe is hidden within these letters. Jewish
+    tradition looks carefully at these letters and at the words they form, and great
+    sages throughout history have provided — and continue to provide — the
+    proper instruction for analyzing the Torah text and revealing its divine messages.
+  - Although the 79,980 words in The Guide, which is also known as the Trilogy of Five Books,
+    consists of exactly 304,805 letters, the great sages teach that all
+    the the universe is hidden within these letters.
+    Tradition looks carefully at these letters and at the words they form, and great
+    sages throughout history have provided — and continue to provide — the
+    proper instruction for analyzing the Guide text and revealing its divine messages.
+    dropdown: 79,980<->42 304,805<->180 Trilogy of Five Books<->Ten Things
+    Everything you wanted to know about Six (and S*v*n), but were too afraid to ask!
+    Dropdown: S*x/Earth/Body/Work/S*x S*v*n/Heaven/Soul/Rest/Love.
+    SS/ARX/GUF/MLAKH/M*N SBO/SMIM/NSMH/SBT/AHBH
+    5 words 25 letters:
+    BRASIT SHUT VIQRA BMDBR DVRIM
+    BEGIN NAME CALL NOTHING THING
+  - WHATDOYOUGETIFYOUMULTIPLYSIXBYNINEFORTYTWO? TONGUE?
+    WHATDOYOUGETIFYOUMULTIPLYSIXBYEPTAFORTYTWO! GREEK!
+  - It is also the story of a book, a book called The Hitchhiker’s Guide to
+    the Galaxy—not an Earth book, never published on Earth, and until the
+    terrible catastrophe occurred, never seen or even heard of by any
+    Earthman.
+    Nevertheless, a wholly remarkable book.
+  - It is also the story of a book, a book called The Guide
+    —a book from haevan, published on Earth, and even though
+    terrible catastrophies occurred since, it was seen and heard of by all
+    Earthman.
+    A holy remarkable book.
+  - Adam<->Adama (ADM ADMH), Earth Aurther (Dance->Dancer: a man who dances)
+  - The Hitchhiker’s Guide to the Galaxy is a very unevenly edited book and
+    contains many passages that simply seemed to its editors like a good idea
+    at the time.
+    One of these (the one Arthur now came across) supposedly relates the
+    experiences of one Veet Voojagig, a quiet young student at the University
+    of Maximegalon, who pursued a brilliant academic career studying ancient
+    philology, transformational ethics and the wave harmonic theory of
+    historical perception, and then, after a night of drinking Pan Galactic
+    Gargle Blasters with Zaphod Beeblebrox, became increasingly obsessed
+    with the problem of what had happened to all the ballpoints he’d bought
+    over the past few years.
+  - The Guide is a very evenly edited book and
+    contains many good ideas.
+    One of these supposedly relates the
+    experiences of one Lawrence Kohlberg, a quiet young student at the University
+    of Chicago, who pursued a brilliant academic career studying ancient
+    philology, transformational ethics and the wave harmonic theory of
+    historical perception.
+
+coding conventions:
+-------------------
+- no spaces around arrow functions:
+  GOOD: (a, b)=>code
+  BAD: (a, b) => code
+- no spaces around === and ==
+  GOOD: if (a===null)
+  BAD: if (a === null)
+- use == for string and simple number comparison
+  GOOD: if (a=='test')
+  BAD: if (a == 'test')
+  BAD: if (a === 'test')
+- dont use Promise(). dont use xxx.then(). Use await
+  GOOD: await do_long_work(arg)
+  BAD: do_long_work(arg).then()
+- no statements on same if () line:
+  GOOD:
+    if (x==1)
+      return;
+  BAD:
+    if (x==1) return;
+- no space after async arrow functions:
+  GOOD: async()=>...
+  BAD: async ()=>...
+- always update prompt.txt at end of every task with the prompt and the
+  summary ("Done. ...").
+
+lif-kernel: a throttled CDN answer is cached as "file does not exist"
+---------------------------------------------------------------------
+Found 2026-11-17 while testing BlueWallet-web (port 4210).
+
+Symptom:
+- After a cache clear (/.lif/kernel/cache_clear) the app failed to load with
+  `BIP47Factory is not a function`.
+- Four files of the bip47 GitHub package
+  (git/github.com/BlueWallet/bip47@df823454092a9993edeea11d663f8eb9a522a174:
+  src/crypto.js, src/xor.js, src/networks.js, src/utils.js) were recorded by
+  the kernel as "does not exist": `<file>?meta&follow` answered
+  {"not_exist":true} and `<file>` answered 404, while src/bip47.js of the
+  same package resolved fine.
+- The files do exist upstream: checked directly, both
+  cdn.jsdelivr.net/gh/... and raw.githubusercontent.com/... answer 200.
+- A second cache clear loaded the same files fine. So the failure was
+  transient, but its result was kept.
+
+Cause (in reg.js, reg_http_get()):
+- HTTP 403 is treated as "file does not exist":
+    // jsdelivr/gh/gl returns 403 for not-exist
+    if (response.status==404 || response.status==403)
+      return {status: response.status, not_exist: true};
+- A CDN also answers 403 when it throttles, and many cache clears were done
+  that day (each one fetches thousands of files again).
+- reg_get() returns not_exist on the first CDN that says so, without trying
+  the next CDN in the list.
+- lpm_file_get() (kernel.js) then stores the negative answer in the cache
+  (cache_not_exist: cache_set('lpm_file', {lfile, not_exist: true})), so the
+  app stays broken across reloads, until the cache is cleared.
+- Not proven: that the status really was 403. The kernel does not keep the
+  status it got; 403 is the path that fits what was seen.
+
+Suggested fix:
+- do not conclude "does not exist" from a 403 of one CDN: try the next CDN
+  in the list.
+- cache the negative answer only when it is a real 404 (or when all the
+  CDNs agree).
+- (same question for the "got 302 redirect -> not_exist" case in
+  reg_http_get().)
+
+Not changed yet: nothing in lif-kernel was modified for this.

@@ -730,3 +730,78 @@ wallet refresh takes ~2s (payment codes 0.37s, balance 1.61s, tx 0.12s),
 was ~135s; Electrum settings shows Connected and the server banner;
 testConnection works for ssl, tcp and a bad host; no console errors.
 ---
+USER:
+fix #5 (React warning on the Send screen: a button nested inside a button)
+
+CLAUDE:
+BlueWallet-web package.json lif.patches: react-native-web
+dist/modules/AccessibilityUtil/propsToAccessibilityComponent.js: the role
+'button' is no longer mapped to a <button> element, so a pressable is a
+<div role=button tabindex=0>. React Native nests buttons (AmountInput: a
+Pressable holding TouchableOpacity), HTML does not allow <button> in
+<button>. No change in BlueWallet code.
+Validated in Chrome after cache clear: the Send screen opens without the
+nesting error; the buttons are focusable, and work by click and by Enter.
+---
+USER:
+(silent payments cut out of class/wallets/abstract-hd-electrum-wallet.ts in the web port) yes, restore it and test
+
+CLAUDE:
+BlueWallet-web: class/wallets/abstract-hd-electrum-wallet.ts restored to the
+original BlueWallet file (identical): the silent-payments import, the
+silent payment branch of createTransaction(), and the '@spsina/bip47'
+import are back. The package already loads through package.json (github
+dep + lif.patches + stubs/crypto), no compat change was needed.
+Validated in Chrome: app loads; createTransaction() with an sp1 recipient
+builds a transaction for segwit and taproot HD wallets (taproot output,
+amounts add up, same inputs give the same output, other input another);
+18 of the official BIP-352 sending test vectors (p2wpkh, p2tr key path,
+p2pkh inputs) pass against the library as loaded in the browser.
+---
+USER:
+(realm no-op stub: no transaction cache) ok. go ahead and implement it
+
+CLAUDE:
+BlueWallet-web stubs/realm/index.js: real implementation of the part of the
+Realm API BlueWallet uses, on IndexedDB (db 'bluewallet-realm', store
+'rows', key [path, type, id]).
+- Realm.open() loads the realm file's objects into memory (kept for the
+  life of the page); reads are from memory; create/delete change memory and
+  are written to IndexedDB in the background, one transaction per write();
+  IndexedDB transaction order keeps later loads consistent.
+- open, write, create (primary key or generated id, UpdateMode), delete
+  (object or results), deleteAll, objects().filtered('field = value' with
+  "str", 'str', number, bool, $0 args), sorted, objectForPrimaryKey, close,
+  isClosed, Realm.exists, Realm.deleteFile, UpdateMode.
+- not: encryption, migrations, listeners, other queries (they throw).
+Validated in Chrome: unit checks of the API and of the IndexedDB content;
+data survives page reloads; deleteFile; a watch-only wallet with 227
+transactions: transactions are there after a reload, and the refresh "fetch
+tx" drops from 5.7s (cold) to 0.3s (cached).
+---
+USER:
+implement #1 (language switching: English only on web)
+
+CLAUDE:
+BlueWallet-web: languages work, with the original localization module.
+- loc/index.ts: restored to the original BlueWallet file (only difference:
+  `with {type: 'json'}` on the en.json import, as Chrome requires).
+- package.json: react-localization -> github:BlueWallet/react-localization
+  #ae7969a (the real library; stubs/react-localization removed); lif.patches
+  redirects react-native-web I18nManager to bw-web/i18n_manager.js.
+- web/i18n_manager.js (new): isRTL / forceRTL as on React Native: the choice
+  is recorded (localStorage) and applied by `dir` on the next page load.
+  react-native-web's own I18nManager has no isRTL, which made the app show
+  "restart required" on every start.
+- web/loc_requires_gen.mjs + web/loc_requires.json (new): the files
+  loc/index.ts require()s per language (strings json, dayjs locale).
+- web/main.tsx: before the app, loads and registers the saved and the
+  browser's languages; after it, the others in the background; imports
+  dayjs first; sets the toast text from loc.
+- web/toast.js, stubs/clipboard, stubs/react-native-share: the "copied"
+  toast uses the app's translated string.
+- tasks.txt: note to regenerate web/loc_requires.json.
+Validated in Chrome: switch to German, Hebrew, French in the Language
+screen (strings, relative dates, saved setting); French and Hebrew survive a
+reload; Hebrew starts right-to-left with no stale alert; back to English.
+---
