@@ -805,3 +805,15 @@ Validated in Chrome: switch to German, Hebrew, French in the Language
 screen (strings, relative dates, saved setting); French and Hebrew survive a
 reload; Hebrew starts right-to-left with no stale alert; back to English.
 ---
+USER:
+I want the favicon set (the blue wallet icon). which icon file do you suggest? can you add this, set early on in the code?
+
+CLAUDE:
+BlueWallet-web web/main.tsx: the favicon is the BlueWallet application icon,
+android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png (192x192, 12KB), by
+an absolute url from import.meta.resolve(). Set at the top of main.tsx,
+before the application is imported; an icon link of the loading page is
+removed first. The old link (href='lif-kernel/favicon.ico', relative) is
+gone. Validated in Chrome: the tab's favicon is the new url, served as
+image/png 192x192.
+---

@@ -319,6 +319,16 @@ Post release:
   - cdn failure: check for a 'good' (well known) file.
     also ping a good CORS service (like google.com). So that it will
     know what kind of cdn fail it is.
+  - jsdelivr sometimes returns 403 on throttle, which is NOT not_exist.
+    it also returns 403 on not_exists (need to validate). So the handling
+    should be to revalidate with a 'ping' file (a tiny file that tells the
+    CDN is working well). And NOT to cache the not_exist (unless this CDN
+    does not support file_list).
+    - reg_get() returns not_exist on the first CDN that says so, without trying
+      the next CDN in the list.
+    - lpm_file_get() (kernel.js) then stores the negative answer in the cache
+      (cache_not_exist: cache_set('lpm_file', {lfile, not_exist: true})), so the
+      app stays broken across reloads, until the cache is cleared.
   + add npm --file cdn support: get directory file listing and whole tgz
     file listings. When available - do the alt lookups on it.
     add support for npm package listing: (quick 'neg', and sha256 to compare
@@ -333,18 +343,17 @@ Post release:
     lif-explorer/client/package.json: "webapp": "index.html"
   - maybe: rename /lif-kernel/ to /.lif.local/lif-kernel
   - maybe: kernel.js cache SPA index.html result set by {lif: {spa: true}}
-  - move ipc_fetch worker thread to kernel.js 
 - add lif-zone/the-guide
 - run node in browser
   - fork all bcoin-org modules imported in lif-coin
   - make it work with lifnet (node<->browser will communicate of lifnet)
   - make it work with sockets over lifnet (tcp_out server)
 - lif-net
-  - add jsonrpc over tcp/tls support
-  - use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
+  + add jsonrpc over tcp/tls support
+  + use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
     or lif:bitcoin/electrum
-  - implement lifcoin tcp socket via lif:net/lifcoin/node for an
-    incoming and outgoing TCP proxy.
+  + implement lifcoin tcp socket via lif:net/lifcoin/node out TCP proxy
+  - implement lifcoin tcp socket via lif:net/lifcoin/node incoming TCP proxy
     Maybe map IPs to virtual 172.16.0.0/15
     allocate virtual IP for server. each local
     server remembers its IP<->rg_id mapping. once finished - reuse oldest.
@@ -624,45 +633,3 @@ coding conventions:
 - always update prompt.txt at end of every task with the prompt and the
   summary ("Done. ...").
 
-lif-kernel: a throttled CDN answer is cached as "file does not exist"
----------------------------------------------------------------------
-Found 2026-11-17 while testing BlueWallet-web (port 4210).
-
-Symptom:
-- After a cache clear (/.lif/kernel/cache_clear) the app failed to load with
-  `BIP47Factory is not a function`.
-- Four files of the bip47 GitHub package
-  (git/github.com/BlueWallet/bip47@df823454092a9993edeea11d663f8eb9a522a174:
-  src/crypto.js, src/xor.js, src/networks.js, src/utils.js) were recorded by
-  the kernel as "does not exist": `<file>?meta&follow` answered
-  {"not_exist":true} and `<file>` answered 404, while src/bip47.js of the
-  same package resolved fine.
-- The files do exist upstream: checked directly, both
-  cdn.jsdelivr.net/gh/... and raw.githubusercontent.com/... answer 200.
-- A second cache clear loaded the same files fine. So the failure was
-  transient, but its result was kept.
-
-Cause (in reg.js, reg_http_get()):
-- HTTP 403 is treated as "file does not exist":
-    // jsdelivr/gh/gl returns 403 for not-exist
-    if (response.status==404 || response.status==403)
-      return {status: response.status, not_exist: true};
-- A CDN also answers 403 when it throttles, and many cache clears were done
-  that day (each one fetches thousands of files again).
-- reg_get() returns not_exist on the first CDN that says so, without trying
-  the next CDN in the list.
-- lpm_file_get() (kernel.js) then stores the negative answer in the cache
-  (cache_not_exist: cache_set('lpm_file', {lfile, not_exist: true})), so the
-  app stays broken across reloads, until the cache is cleared.
-- Not proven: that the status really was 403. The kernel does not keep the
-  status it got; 403 is the path that fits what was seen.
-
-Suggested fix:
-- do not conclude "does not exist" from a 403 of one CDN: try the next CDN
-  in the list.
-- cache the negative answer only when it is a real 404 (or when all the
-  CDNs agree).
-- (same question for the "got 302 redirect -> not_exist" case in
-  reg_http_get().)
-
-Not changed yet: nothing in lif-kernel was modified for this.
