@@ -145,3 +145,588 @@ CLAUDE: Added blockchain.block.headers method to lib/node/http.js: takes [start,
 USER: implement step 4 (background sync with subscriptions)
 CLAUDE: Implemented electrum subscription-based background sync (Step 4 of SPV plan):
 Server (lib/node/http.js): Added per-connection subscription tracking in on_electrum(). blockchain.headers.subscribe now registers for push notifications on new blocks. Added blockchain.scripthash.subscribe that registers scripthash for notifications and returns status hash. On chain 'connect' event, notifies header subscribers with new tip and checks block TX outputs against subscribed scripthashes. On pool 'tx' event (mempool), checks TX outputs against subscribed scripthashes. Computes status as sha256 of concatenated tx_hash:height pairs. Cleans up event listeners on WebSocket close.
+---
+USER: In the 'Add wallet' screen, add a button on the left of 'Advanced' '<QR icon> Import from QR Code'. It will get the code. It will handle XPUB (zpub..., Lpub... read only), addresses (bc1... lif1... read only), 12/24 mnemonic, and xpriv (read write). It will set all the fields on the screen accordingly (coin type, read only, etc...). It should be the same as the QR Code scanning button that is today there (just that that button today might not handle all this, so it should)
+CLAUDE: Implemented "Import from QR Code" button in the Add Wallet header (next to Advanced). Changes:
+- wallet.jsx: Added parse_xkey import, xprivKey state, QR import button with icon in header
+- Smart scan detection: checks for BIP39 mnemonic (12/24 words), xpriv (via parse_xkey, sets full-control wallet), xpub (sets watch-only), or address (tries all networks)
+- Auto-detects coin type from key version bytes (btc/btc_testnet/lif) or address prefix (bc1/lif1/liftest1/tb1)
+- xpriv wallets: derivPath='m' since imported key is at account level, wallet_root() already handles ls.xpriv
+- Moved scanning overlay to top level (not inside watchOnly block) so it works for all import types
+- Shows imported xpriv key with "Clear and use mnemonic instead" option
+- Hides mnemonic/passphrase/advanced fields when xpriv is active
+- wallet_db.js: Added xpriv to rebroadcast check (line 211)
+- wallet.jsx: Fixed mnemonic validation guard for xpriv wallets (line 1024), xpub export for xpriv wallets (neutered().toBase58()), guarded Wallet_backup from crashing on xpriv wallets
+---
+USER: Add message signing capability - both sign and verify, like BlueWallet does it
+CLAUDE: Implemented Sign/Verify Message feature:
+- settings.js: Added sign_message() and verify_message() functions implementing standard Bitcoin message signing protocol (BIP-137). Uses messagePrefix from network config, double SHA256 hash, secp256k1 recoverable signatures. No new dependencies - uses existing ecc (@bitcoinerlab/secp256k1), ecpair, and bitcoinjs-lib.
+- wallet_db.js: Added sign_message and verify_message to imports and re-exports
+- wallet.jsx: Added Sign_message_screen component with two tabs:
+  - Sign tab: dropdown to pick from wallet's external addresses, message textarea, produces base64 signature (clickable to copy)
+  - Verify tab: address input, message textarea, signature textarea, validates and shows green/red result
+- Added "Sign Message" button in wallet detail screen (non-watch wallets only)
+- Added wallet_sign_message screen routing with back navigation
+---
+USER: in Wallet settings screen XPUB appears immediately. It should not (when pressing Export read only wallet - then it appears, and today due to this bug - it appears twice)
+CLAUDE: Removed the raw XPUB row from the wallet settings info table (was always visible for zpub wallets). Now the xpub only appears when clicking "Export read-only wallet" button, via the Xpub_export component with QR code.
+---
+USER: sign message button should be in the Wallet settings page
+CLAUDE: Moved "Sign Message" button from wallet detail screen to Wallet Settings page (next to Export buttons). Back navigation from sign message screen now returns to wallet settings.
+---
+USER: in Wallet settings, leave only Delete Wallet on top line, and move all other buttons to bottom of screen, 1 line per button (not all in the same row)
+CLAUDE: Reorganized Wallet Settings layout: Delete Wallet button stays on the top header line. All other buttons (Advanced, Export/Backup, Export read-only, Sign Message) moved to the bottom in a vertical column, one button per line.
+---
+USER: Sign message only gave one address in dropdown and user doesn't know which address it is. How does BlueWallet do it?
+CLAUDE: Redesigned Sign tab to match BlueWallet's approach: replaced address dropdown with a text input where the user pastes the address they want to prove ownership of. When signing, it searches the wallet's known addresses (both external and change) for a match and uses that keyPair. Shows clear error if address not found in wallet or has no signing key.
+---
+USER: also the delete - move to bottom of the page
+CLAUDE: Moved Delete Wallet button from the top header line to the bottom of the wallet settings page, after all other buttons.
+---
+USER: the buttons should be left aligned, not full row - exactly the same as the buttons on the general Settings page
+CLAUDE: Changed wallet settings buttons to be left-aligned (alignItems: flex-start) so they size to their content instead of stretching full width, matching the general Settings page style.
+---
+USER: Implement standard PSBT flow: watch-only wallet creates unsigned TX, sends via QR to signing wallet, gets signed PSBT back and broadcasts
+CLAUDE: Implemented full PSBT air-gapped signing flow:
+
+tx_create.js:
+- tx_send_unsigned() — builds funded PSBT without signing, returns {psbt, fee}
+- tx_fund_unsigned() — funds PSBT with UTXOs but no signing/finalization
+- psbt_sign(psbt, wallet) — signs PSBT inputs matching wallet's addresses, returns count signed
+- psbt_finalize_broadcast(psbt_hex, netconf) — finalizes signed PSBT and broadcasts
+
+wallet_db.js: Added tx_send_unsigned, psbt_sign, psbt_finalize_broadcast exports
+
+wallet.jsx:
+- Send_screen: watch-only (zpub) wallets now show "Create PSBT" button instead of "Send". Creates unsigned PSBT, displays as QR code, then offers "Scan signed PSBT" to scan the signed version back, finalize and broadcast
+- "Send (PSBT)" button added to wallet detail for zpub wallets
+- Sign_psbt_screen: new screen for signing wallets — scans unsigned PSBT QR, signs all matching inputs, displays signed PSBT as QR for the watch-only wallet to scan back
+- "Sign PSBT" button added to Wallet Settings (non-watch wallets only)
+- Routing and back navigation for wallet_sign_psbt screen
+---
+USER: Remove in "Export/Backup wallet" the "Show QR code", since now it has its own button ("Export read-only wallet")
+CLAUDE: Removed the "Show QR Code" button, QR canvas, and related state (showQr, qrCanvasRef, useEffect) from the Wallet_backup component. The mnemonic QR export is no longer needed here since "Export read-only wallet" handles xpub QR export separately.
+---
+USER: for the send PSBT and scan PSBT -> add a text clickable (just like the "Receive" screen) so its possible to copy the text, and pass it back and forth (in blue wallet its possible)
+CLAUDE: Added clickable/copyable text display and paste input to both PSBT screens:
+- Unsigned PSBT (Send screen): shows clickable hex text below QR (click to copy), plus "Or paste signed PSBT" input with Broadcast button
+- Signed PSBT (Sign PSBT screen): shows clickable hex text below QR (click to copy), plus "Or paste unsigned PSBT" input with Sign button on the scan screen
+Both follow the same pattern as the Receive screen's clickable address with "Copied to clipboard" feedback.
+---
+USER: Continue porting BlueWallet to web - debug and fix the import failure for hd-segwit-bech32-wallet
+CLAUDE: Fixed the wallet import chain that was failing with "Failed to fetch dynamically imported module". Root cause: silent-payments npm package (GitHub dep) imports Node.js `crypto` builtin which doesn't exist in browser. Created a crypto stub (stubs/crypto/) with sha256 via @noble/hashes, but the real fix was making the silent-payments import lazy - removed the top-level `import {SPFactory} from 'silent-payments'` from abstract-hd-electrum-wallet.ts and replaced the silent payment code block with a simple error throw ("Silent payments not supported in web version") since it's only needed for sp1 addresses. Also rewrote web/app.jsx to use dynamic imports with a loading screen (progress bar) since the wallet chain takes ~45s to load on first visit. Fixed ReceiveScreen to derive address locally (synchronous bip32 derivation) instead of waiting for electrum balance fetch. All screens working: loading -> wallet list -> add wallet (create/import) -> wallet detail (balance, transactions) -> receive (QR code + bc1q address + copy) -> send. Electrum connects successfully via lif-net/bitcoin/electrum.
+---
+USER: continue debugging BlueWallet-web App.tsx import chain. find and fix remaining import failures.
+CLAUDE: Systematically traced App.tsx import chain using headless Chrome CDP. Fixed multiple issues:
+1. Added missing exports to arkade-os-sdk stub (ARK_REALM_SCHEMA_VERSION, ArkRealmSchemas, runArkRealmMigrations, RestArkProvider, ContractManager, VtxoManager, DelegateVtxo, networks)
+2. Added missing exports to arkade-os-boltz-swap stub (RealmSwapRepository, BoltzRealmSchemas, SwapManager, isSubmarineFinalStatus, isReverseFinalStatus, isChainFinalStatus, update* functions)
+3. Added missing exports to react-native-svg stub (Image, Mask, Pattern, Ellipse, TSpan, ForeignObject, Symbol, Marker)
+4. Replaced DevMenu.tsx with no-op stub (DevSettings not available in react-native-web)
+Found lif-kernel bugs: PNG image imports crash (serves binary as JS), service worker state corruption after lmod errors, file: dep subpath imports ignore physical files. Blocked on patching @react-navigation/elements PNG imports (auto-mode blocks node_modules writes). Created tasks.txt in ~/BlueWallet-web/ with all open tasks and lif-kernel bugs.
+---
+USER: Add patches/ directory support to lif-kernel for replacing files in npm/git packages (like patch-package but with full replacement files instead of diffs)
+CLAUDE: Added `lpm_patch_file_get` function to kernel.js that intercepts file serving in `lpm_file_get_follow`. For npm/git registry files, checks if app's `patches/` directory has a replacement. Convention: `patches/@scope+name/path/file.js` (scoped) or `patches/name/path/file.js` (unscoped). Created first patch: `BlueWallet-web/patches/@react-navigation+elements/lib/module/index.js` replacing PNG import.meta.resolve calls with empty strings.
+---
+USER: can you check everything together and make it run? if there are bugs then fix them? (continued from previous session)
+
+CLAUDE: Fixed multiple bugs to get BlueWallet-web rendering in the browser:
+
+1. **Dual-React-instance "Invalid hook call" error** — Verified kernel's peer dep resolution works correctly (react-native-web's peerDep on react resolves to app's react@19.2.6 via parent chain). Removed broken `lif.patches` entry that was erroring.
+
+2. **Upgraded react-native-web 0.19.13 → 0.21.4** — Old version only supported React 18. v0.21.4 supports React 19. Updated patch file for new version's exports (InputAccessoryView now built-in).
+
+3. **CSSStyleDeclaration indexed property error** — Reanimated stub's Animated.View/Text/etc used raw DOM elements (div/span), bypassing react-native-web's style processing. Fixed by using react-native-web's View/Text as base components and stripping animation-specific props (entering, exiting, layout, etc).
+
+4. **loc.formatString missing** — Added `formatString` method to loc/index.ts supporting `{key}` and `{0}` placeholder patterns matching react-localization's API.
+
+5. **LinearTransition.duration().easing() chain error** — Rewrote reanimated animation stubs (LinearTransition, FadeIn, FadeOut, etc) as chainable builders via `_chain()` factory. Added missing Easing functions (quad, cubic, out, inOut).
+
+6. **Bugsnag.setUser missing** — Added setUser, setContext, addMetadata, clearMetadata, addOnError to bugsnag stub.
+
+7. **Added ErrorBoundary** in web/main.tsx to catch and display render errors gracefully.
+
+Files changed:
+- ~/BlueWallet-web/package.json (react-native-web version, removed broken lif.patches)
+- ~/BlueWallet-web/stubs/react-native-reanimated/index.js (Animated components use RNW, chainable animations, Easing fixes)
+- ~/BlueWallet-web/stubs/bugsnag-react-native/index.js (added missing methods)
+- ~/BlueWallet-web/loc/index.ts (added formatString)
+- ~/BlueWallet-web/patches/react-native-web/dist/index.js (updated for v0.21.4)
+- ~/BlueWallet-web/web/main.tsx (ErrorBoundary, cleaned up debug logs)
+- ~/lif-kernel/kernel.js (removed debug logging)
+
+Result: App loads (~85s first load for ~1149 modules), renders full wallet home screen with navigation, balance display, and "Add a wallet" UI. Remaining known issue: @keystonehq/bc-ur-registry CJS module error (hardware wallet, non-blocking).
+---
+---
+USER: Add loading progress counter using $lif.boot.kernel_stats() to show resource count during BlueWallet load
+
+CLAUDE: Added resource loading counter to web/main.tsx. Uses $lif.boot.kernel_stats() polled every 200ms to update the "Loading…" text with the number of resources fetched (e.g. "Loading… 423"). Counter starts from the diff when the first stat arrives and clears when App.tsx import completes or errors. Added data-loading-text attribute to the loading div for querySelector access.
+
+Files changed: ~/BlueWallet-web/web/main.tsx
+---
+---
+USER: Add a loading progress counter to BlueWallet-web using $lif.boot.kernel_stats() to show resource count during loading, similar to lif-kernel/hi.js pattern. Fix counter not displaying any count.
+CLAUDE: Added loading progress counter to ~/BlueWallet-web/web/main.tsx using setInterval polling $lif.boot.kernel_stats().fetch.all every 200ms. Updates the "Loading…" text with the resource count. Fixed counter not showing by moving document.getElementById inside the interval callback (React 18+ createRoot renders async, so the DOM element wasn't available immediately after root.render).
+---
+USER: Fix PNG asset imports being loaded as JS modules (e.g. back-icon-mask.png?mjs) in @react-navigation/elements and drawer.
+CLAUDE: Created patches for 4 files that import PNG assets as ES modules: @react-navigation+elements/lib/module/Header/HeaderBackButton.js (back-icon.png, back-icon-mask.png), Header.js (search-icon.png), HeaderSearchBar.js (clear-icon.png, close-icon.png, search-icon.png), and @react-navigation+drawer/lib/module/views/DrawerToggleButton.js (toggle-drawer-icon.png). Each patch replaces `import x from '...png'` with `const x = ''` to prevent lif-kernel from trying to load PNGs as JS modules.
+---
+USER: Implement lif.patch file-level patching system in lif-kernel, allowing package.json to specify replacement files for npm module files. Format: {lif: {patch: {"npm-module": {"./path/in/module.js": "./local/replacement.js"}}}}. Module name without version matches any version, with @version matches only that. Keys starting ./ are local file redirects (future). Object values with "diff" key for diff patches (future). Keys ending / for directory redirects (future).
+CLAUDE: Added lpm_patch_file_lookup() function to lif-kernel/kernel.js that checks lpm_pkg_app.pkg.lif.patch config when fetching npm files. If a match is found, redirects to the local replacement file in the app directory. Integrated into lpm_file_get_follow() before the npm fetch, using the existing redirect mechanism. Added patch config to BlueWallet-web/package.json for @react-navigation/elements (4 files), @react-navigation/drawer (1 file), and react-native-web (1 file). Patch files use absolute /.lif/npm/ URLs for PNG asset references since import.meta.resolve relative paths won't work from the local patch file location. Reorganized patches into patches/react-navigation-elements/ and patches/react-navigation-drawer/ directories. Tested: page loads with zero PNG-related errors.
+---
+USER: Implement lif.patch file-level patching in lif-kernel. Full-file redirect approach broke relative imports in patched files.
+CLAUDE: Changed lif.patch implementation from file redirect to in-memory text replacement. When patch value is an object (not string), each key→value pair is a find/replace on the fetched npm file. The original file is fetched from npm, text replacements applied to the blob, then served normally — relative imports and transforms work because the file identity stays as the npm path. String values reserved for future full-file redirect (needs import context fix). Updated BlueWallet-web package.json patch config to use object format with exact import line replacements. Removed react-native-web from patches (had relative imports that broke). Tested: zero PNG errors, patches applied correctly.
+---
+USER: Fix PNG asset import patching, useLogger error, and dist/index.js alt resolution bug
+CLAUDE: 1. Confirmed lif.patch text replacement system works - PNG imports patched to use import.meta.resolve() in @react-navigation/elements and @react-navigation/drawer. 2. Added @react-navigation/devtools to lif.patch in BlueWallet-web/package.json - replaces conditional require('./useLogger') with noop assignment, fixing "useLogger is not a function" error. 3. Fixed bug in lif-kernel/kernel.js pkg_alt_get(): when lfile ends with '/' (directory path), alt was ['.js', '/index.js'] producing double slashes like dist//index.js which fails on CDNs. Now returns ['index.js'] for trailing-slash paths. App now loads with zero console.error() messages.
+---
+USER: Fix /img/icon.png 404 error in BlueWallet-web
+CLAUDE: Added "web_exports": {"./img/*": "./img/*"} to BlueWallet-web/package.json lif config. This tells lif-kernel's service worker to redirect /img/* requests to the local app files via /.lif/local/bluewallet-web//img/*, matching the pattern used in lif-explorer. The 404 is resolved.
+---
+USER: Fix codegenNativeComponent error, PlatformColor error, and cbor-sync AMD/CJS detection
+CLAUDE: 1. Added lif.patch for react-native-web to export stubs for codegenNativeComponent and PlatformColor (missing from react-native-web but present in react-native). 2. Added lif.patch for @keystonehq/bc-ur-registry cbor-sync.js to strip the AMD define branch from its UMD wrapper — the factory uses require() which isn't available in AMD mode. 3. Fixed lif-kernel/ast.js module type detection: when both define() (AMD) and require() (CJS) are detected, classify as CJS not AMD, since real AMD modules declare dependencies in the define array. Added unit tests for pure AMD and UMD-with-require cases.
+---
+USER: Fix mixed ESM/CJS require() warnings in ScreenFallback.js and lightning-ark-wallet.ts
+CLAUDE: 1. Added lif.patch for @react-navigation/drawer ScreenFallback.js: changed `require('react-native-screens')` to `await import('react-native-screens')` — the file is served as ESM but had a CJS require. 2. Edited BlueWallet-web/class/wallets/lightning-ark-wallet.ts: changed `require('bech32')` to `await import('bech32')` — same ESM/CJS mix issue. Both warnings resolved.
+---
+USER: Stub RN-specific props in context-menu-view to suppress React DOM warnings
+CLAUDE: Updated stubs/react-native-context-menu-view/index.js to destructure and drop RN-specific props (previewBackgroundColor, dropdownMenuMode, menuConfig, onPressMenuItem, onPressMenuPreview, isMenuPrimaryAction) instead of passing them through to the DOM div. Mapped onPress to onClick. All three React DOM prop warnings resolved. Also removed the @keystonehq/bc-ur-registry lif.patch since the ast.js fix handles that case generically.
+---
+USER: Fix blank screen issue — app loads with zero errors but displays nothing (height 0 on all content divs)
+CLAUDE: Two fixes:
+1. web/main.tsx: Added `html, body { height: 100% }`, `#root { display: flex; flex-direction: column; height: 100% }`, and `id="root"` on the mount div — React Native Web flex layout needs explicit height chain from viewport
+2. package.json lif config: Added `"overrides": {"react": "19.2.6", "react-dom": "19.2.6"}` to force correct React version for all sub-packages — after SW cache clear, react-native-web's peerDep was resolving to react@19.3.1 (latest) instead of app's pinned 19.2.6, causing dual-React "Invalid hook call" error
+---
+USER: Render Error when creating Bitcoin wallet: "Failed to set an indexed property [0] on CSSStyleDeclaration"
+CLAUDE: Fixed style array flattening in stubs that pass `style` to raw DOM elements. React Native allows `style={[s1, s2]}` arrays, but React DOM chokes on numeric keys. Added `Array.isArray(style) ? Object.assign({}, ...style) : style` in:
+- stubs/react-native-linear-gradient/index.js (also improved to use colors prop)
+- stubs/lottie-react-native/index.js
+- stubs/react-native-gesture-handler/index.js (ScrollView, FlatList, RectButton, etc.)
+- stubs/react-native-context-menu-view/index.js
+---
+USER: Wallet creation stuck after clicking Create — console error: realm.objects(...).filtered is not a function
+CLAUDE: Fixed Realm stub (stubs/realm/index.js). `objects()` returned a plain array which doesn't have Realm's `.filtered()` method. Created a `Results` class extending `Array` with `.filtered()`, `.sorted()`, `.snapshot()` methods. Also added `objectForPrimaryKey()` method to Realm class.
+---
+USER: Fix two issues on PleaseBackup screen: 1) BackHandler console error "BackHandler is not supported on web", 2) mnemonic text rendered vertically on screen
+CLAUDE: Fixed both issues:
+1. BackHandler: Added lif.patch in package.json for react-native-web's BackHandler/index.js to remove console.error() - addEventListener still works silently returning {remove: emptyFunction}
+2. Vertical mnemonic text: Added overflow:'hidden' to hiddenText style in components/SeedWords.tsx - the hidden test element (width:0, height:0) was overflowing visible text on web (RN clips by default, web doesn't)
+---
+USER: Move RN<->React compat fixes to compatibility layer (not BlueWallet source); fix Receive button (nothing happens) and Send button (missing export crash); fix icon rendering (text instead of glyphs on Send/Receive buttons)
+CLAUDE: Multiple fixes applied:
+1. Refactored stubs to use View/Pressable from react-native instead of raw <div> with manual style flattening - moved compat into the layer. Reverted SeedWords.tsx overflow change, added CSS rule [class*="css-text-"] { overflow: hidden; } in main.tsx instead.
+2. Receive button fix: Alert.alert() in react-native-web is a complete no-op (static alert() {}), causing navigation guard's presentWalletExportReminder Promise to never resolve. Added lif.patch for Alert/index.js replacing no-op with window.confirm() implementation.
+3. Send button fix: Added missing calculateBlockTime export to blue_modules/BlueElectrum.ts (needed by CoinControlOutputSheet.tsx).
+4. Icon rendering fix: Updated stubs/react-native-vector-icons-common/index.js createIconSet to support three rendering modes: CSS class-based (FontAwesome 4/6, MDI), ligature-based (Material Icons), and codepoint-based (Ionicons, Entypo). Added CDN font CSS links in web/main.tsx for all six icon families. Updated all icon set stubs with their font configs. Icons now render as actual glyphs.
+---
+USER: Send icon should be up arrow, not down arrow like Receive (both were showing down arrow because RN transform array wasn't being converted to CSS)
+CLAUDE: Added flatStyle() helper to stubs/react-native-vector-icons-common/index.js that converts RN-style transform arrays (e.g. [{rotate: '225deg'}]) to CSS transform strings (e.g. 'rotate(225deg)'). Now Receive shows ↙ (45deg) and Send shows ↗ (225deg) as in the original BlueWallet.
+---
+---
+USER: can you recreate this problem? (bc-bech32 file: dep ?imp 500 error)
+CLAUDE: Reproduced the bc-bech32 ?imp 500 error. The correct URL is `/.lif/local/bluewallet-web//.lif.imp/bc-bech32?imp` (not `/.lif/npm/...`). Got full stack trace from SW console: `_path_ext(f.lfile)` in util.js:378 crashes because `f.lfile` is undefined. The resolution chain finds the package at `local/bluewallet-web//blue_modules/bc-bech32` but fails to follow `"main": "dist/index.js"` to the actual entry file. Compare with bip38 (`"main": "index.js"` at root level) which works fine. Updated tasks.txt with the precise diagnosis including stack trace and repro steps.
+---
+USER: Now fix #1 (bc-bech32 file: dep not treated as its own package)
+CLAUDE: BlueWallet-web/package.json: changed "bc-bech32" to "file:./blue_modules/bc-bech32//" so lif-kernel treats it as its own package and honors its "main": "dist/index.js". Reverted the relative-path workaround in blue_modules/bc-ur/dist/encodeUR.js and decodeUR.js back to `from 'bc-bech32'`. Validated in Chrome: .lif.imp/bc-bech32?imp returns 200 re-exporting dist/index.js, bc-ur loads and encodeUR/decodeUR round-trip works, app renders the wallets list. Updated tasks.txt (removed the fixed bug entry, added a note about the trailing `//` rule).
+---
+USER: yes, apply the fix and validate (lif-kernel file: dep subpath bug)
+CLAUDE: After the lif-kernel fix, BlueWallet-web failed to load because @arkade-os/boltz-swap/repositories/realm had no stub file (it had been served index.js through the bug). Added stubs/arkade-os-boltz-swap/repositories/realm.js re-exporting RealmSwapRepository and BoltzRealmSchemas from ../index.js. Removed the "file: dep subpath imports ignore physical files" entry from tasks.txt and recorded the fix under Completed.
+---
+USER: I committed your change in lif-kernel. does bluewallet work now with this (after removing the workarounds?)
+CLAUDE: Removed the BlueWallet-web workarounds for the lif-kernel file: subpath bug and validated in Chrome. stubs/arkade-os-sdk: moved ExpoArkProvider/ExpoIndexerProvider to adapters/expo.js and the Realm* / ARK_REALM_SCHEMA_VERSION / ArkRealmSchemas / runArkRealmMigrations exports to repositories/realm.js, removed them from index.js, pointed package.json exports at those files. stubs/arkade-os-boltz-swap: moved RealmSwapRepository and BoltzRealmSchemas to repositories/realm.js, fixed package.json exports. package.json: both @arkade-os entries now end with //. tasks.txt: removed obsolete open task #4, recorded under Completed. Result: all five arkade imports resolve to the right file with the right exports, lightning-ark-wallet.ts / arkade-background.ts / realmInstance.ts import cleanly, app renders the wallets list.
+---
+USER: for silent-payments - just use the lif-kernel package.json patch method (json-specific patching). check beforehand bluewallet loads, and then check after the change.
+CLAUDE: BlueWallet-web/package.json: silent-payments now points at upstream "github:BlueWallet/SilentPayments#5eea40e" (the local copy in stubs/silent-payments was identical to that commit except for an added lif.alt), and lif.alt is supplied via lif.patches -> "./package.json" -> json. Validated before and after in Chrome: app renders wallets list, silent-payments exports G, K_MAX, SPFactory, class/contact-list.ts imports. Patch key had to be the full resolved commit ("github:BlueWallet/SilentPayments#<40-char sha>"): keys "silent-payments" and "github:BlueWallet/SilentPayments" do not match in lif-kernel's lpm_patch_pkg_json (reported, not fixed). stubs/silent-payments left in place, now unused.
+---
+USER: it was a bug - needed to be T_lmod_str(). I fixed and committed this.
+CLAUDE: BlueWallet-web/package.json: shortened the silent-payments lif.patches key from the full-sha form to "github:BlueWallet/SilentPayments", which now matches with the lif-kernel fix. Validated in Chrome: app renders wallets list, silent-payments exports G, K_MAX, SPFactory, class/contact-list.ts imports, no service worker errors.
+---
+USER:
+remove stubs/silent-payments
+
+CLAUDE:
+BlueWallet-web: removed the unused stubs/silent-payments directory (git rm of
+the 10 tracked files plus its untracked node_modules). silent-payments is now
+loaded from github:BlueWallet/SilentPayments#5eea40e with lif.patches.
+Validated the app still loads after a fresh service worker.
+---
+---
+USER:
+remove from tasks.txt what was done/fixed/obsolete. what is #5 - what stream
+included in original bluewallet?
+
+CLAUDE:
+BlueWallet-web tasks.txt: replaced the stale "Current Status", removed open
+tasks that are done or obsolete (JSON imports blocking load, App.tsx import
+chain test, __DEV__ global) and the whole Completed list. Kept the image-import
+search task and the lif-kernel JSON-import and asset-import feature requests
+with their current workarounds, updated the service-worker corruption bug
+(seen again, trigger unknown), and added the bare-name lif.patches key
+limitation. No code changes.
+---
+---
+USER:
+hasnt JSON import been fully resolved? both static import and dynamic imports
+support {type: 'json'} now? is there somewhere a workaround in bluewallet
+related to this? if so the workaround needs to be removed, and then tested it
+works ok. (Also: remove the asset-import feature request from tasks.txt and
+validate the png imports are patched to import.meta.resolve.)
+
+CLAUDE:
+BlueWallet-web: removed the JSON-copied-into-JS workaround. Deleted
+loc/en_data.js, models/fiatUnits_data.js, class/bip39_wallet_formats_data.js
+and class/bip39_wallet_formats_bluewallet_data.js; loc/index.ts,
+models/fiatUnit.ts and class/wallet-import.ts now import the .json files with
+`with {type: 'json'}`. Validated in the browser. Removed the asset-import
+feature request from tasks.txt; validated the @react-navigation png patches.
+Found the cause of the service worker 'lmod' bug: lpm_pkg_app/lpm_pkg_root are
+lost when Chrome restarts the idle service worker (not fixed).
+---
+---
+USER:
+so those packages should have file: with // at the end, no? ... no - I mean
+for all (also the partial copies). wait! no! for icons no need to add
+package.json. I am talking about the JS ones
+
+CLAUDE:
+BlueWallet-web package.json: every file: dependency whose folder has a
+package.json is now declared with a trailing `//` (48 entries; 5 already had
+it). The 7 @react-native-vector-icons stubs, which have no package.json, stay
+without `//`. Validated: app loads and all 61 tested imports (every file: dep
+plus the known subpaths) succeed; pako now resolves through its own exports to
+dist/pako.esm.mjs.
+---
+---
+USER:
+lets focus on the copies - why copy? why not refer directly from package.json
+to the github source?
+
+CLAUDE:
+BlueWallet-web package.json: bip47, @spsina/bip47, bip38, coinselect and
+slip39 now point at their GitHub sources (the same github:BlueWallet/... refs
+as original BlueWallet) instead of the local copies under stubs/. No
+lif.patches entry was needed. Validated: app loads, all 61 tested imports
+succeed, including coinselect/split and slip39/src/slip39_helper. The stub
+directories are left in place, unused.
+---
+---
+USER:
+remove the 4 unused stub folders
+
+CLAUDE:
+BlueWallet-web: removed stubs/bip47, stubs/bip38, stubs/coinselect and
+stubs/slip39 (git rm of 45 tracked files plus their ignored node_modules).
+Validated the app still loads and all 61 tested imports succeed.
+---
+---
+USER:
+now fix the bare-name lif.patches key limitation.
+
+CLAUDE:
+BlueWallet-web package.json: lif.patches key for silent-payments changed from
+"github:BlueWallet/SilentPayments" to the dependency name "silent-payments",
+now supported by lif-kernel (pkg_patch_mod_match in lpm.js). Validated: app
+loads, silent-payments exports G, K_MAX, SPFactory, 61/61 imports pass.
+---
+---
+USER:
+its not a bug ... please revert, and fix bluewallet package.json accordingly.
+
+CLAUDE:
+BlueWallet-web package.json: lif.patches key for silent-payments restored to
+"github:BlueWallet/SilentPayments" (the bare dependency name is intentionally
+not supported by lif-kernel).
+---
+---
+USER:
+please handle #4 (require('x.json') in app code returns {uri: path} from the
+shim in web/node_env.js, not the data)
+
+CLAUDE:
+BlueWallet-web: the five require('…json') calls are now static imports with
+`with {type: 'json'}`: screen/settings/About.tsx (current-branch.json),
+screen/wallets/WalletsAddMultisig.tsx (msvault.json), screen/send/success.tsx
+(bluenice.json), components/BlocksAccordion.tsx (txblock.json),
+components/icons/TransactionPendingIcon.tsx (pending.json).
+web/node_env.js: the require() shim no longer answers for .json.
+current-branch.json generated with scripts/current-branch.sh and removed from
+.gitignore, since About.tsx now needs the file to load.
+Validated: app loads, all five modules import, JSON data is real.
+---
+---
+USER:
+oh - if its a bug - it needs to be fixed now (the two require() calls that
+got an empty object from the shim)
+
+CLAUDE:
+BlueWallet-web web/node_env.js: the require() shim now has a module registry
+(require.register(path, mod)); a registered path returns the module.
+web/main.tsx: require_init(), run after App.tsx is loaded, registers
+'./hd-segwit-bech32-wallet' (used by class/wallets/legacy-wallet.ts
+getTransactions(), a late load because of a circular import) and
+'../../release-notes' (screen/settings/ReleaseNotes.tsx; empty string if
+release-notes.json does not exist). Original BlueWallet files untouched.
+Generated release-notes.json with scripts/release-notes.sh (still gitignored).
+Validated: LegacyWallet and SegwitBech32Wallet getTransactions() return [],
+require('../../release-notes') returns the text.
+---
+---
+USER:
+release-notes.json is not important. Just make it ignore/skipped in web mode.
+
+CLAUDE:
+BlueWallet-web web/main.tsx: require_init() no longer tries to load
+release-notes.json; '../../release-notes' is registered as an empty string, so
+the Release Notes screen is blank on web. Removed the locally generated
+release-notes.json and release-notes.txt (both git-ignored).
+---
+---
+USER:
+yes, remove the leftovers (in BlueWallet-web patches/)
+
+CLAUDE:
+BlueWallet-web: removed the unused whole-file patch copies
+patches/react-native-web/, patches/react-navigation-elements/ and
+patches/react-navigation-drawer/ (6 tracked files) and the empty
+patches/react-native-web+0.19.13/ directory. They were superseded by lif.patch
+in package.json. The original BlueWallet patch-package files are kept.
+Validated the app still loads.
+---
+---
+USER:
+lets put it in lif.patches (not lif.patch), and call it "replace_line".
+
+CLAUDE:
+BlueWallet-web package.json: the four lif.patch modules (@react-navigation/
+elements, @react-navigation/drawer, react-native-web, @react-navigation/
+devtools) moved into lif.patches, each file entry wrapped as
+{"replace_line": {...}}; lif.patch section removed. Validated: app loads after
+a cache clear and all 17 replacements are applied.
+---
+---
+USER:
+Web does support 'back' button capture; its a problem that the web port does
+not handle it. Also alert() should be an HTML popup window. Real
+code/functions should not be in package.json: package.json is good to "catch"
+and replace code calls, not to do a whole implementation.
+
+CLAUDE:
+BlueWallet-web:
+- web/alert.js: React Native Alert as an HTML <dialog> (showModal): one button
+  per entry with its own label, cancel/destructive styles, Escape or click
+  outside presses the cancel button, or dismisses a cancelable alert
+  (onDismiss); text set with textContent.
+- web/back_handler.js: React Native BackHandler on the Navigation API:
+  hardwareBackPress handlers called newest first on a back traversal; a
+  handler returning true cancels the navigation.
+- package.json: dependency "bw-web": "file:./web"; the react-native-web
+  patches for Alert and BackHandler are now one-line replace_line redirects
+  (export {default} from 'bw-web/alert.js' / 'bw-web/back_handler.js'); the
+  inline window.alert/confirm implementation and the console.error removal
+  are gone.
+Validated in Chrome: dialog buttons/labels/callbacks, Escape handling,
+onDismiss; back capture with history.back() and with a real mouse Back button.
+---
+---
+USER:
+please also handle it (react-native-prompt-android stub is a no-op, so text
+prompts such as passwords do nothing on web)
+
+CLAUDE:
+BlueWallet-web:
+- web/dialog.js (new): the HTML <dialog> code moved out of web/alert.js into
+  dialog_show({title, message, buttons, cancelable, onDismiss, input}); an
+  optional text field whose value is passed to the pressed button; Enter
+  presses the last non-cancel button.
+- web/alert.js: now a thin Alert class calling dialog_show().
+- stubs/react-native-prompt-android/index.js: real prompt(title, message,
+  callbackOrButtons, options) on dialog_show(); type maps to the input type
+  (secure-text -> password, numeric, email-address, phone-pad), defaultValue,
+  placeholder, cancelable.
+- stubs/create_stubs.sh: no longer generates the no-op prompt stub.
+Validated in Chrome through helpers/prompt.ts: OK, Enter, Cancel, Escape,
+non-cancelable, numeric, callback form; Alert re-tested.
+---
+---
+USER:
+fix it (Lottie animations don't play: the stub renders an empty view)
+
+CLAUDE:
+BlueWallet-web:
+- stubs/lottie-react-native/index.js: real LottieView on lottie-web (light
+  SVG player). Props: source, style, autoPlay, loop, progress, resizeMode
+  (contain/cover), colorFilters (layer name or '**', applied to the fills and
+  strokes of a copy of the animation data), onAnimationFinish; ref methods
+  play, pause, resume, reset.
+- stubs/lottie-react-native/package.json: dependency lottie-web 5.13.0 (the
+  stub is its own package, so the dependency lives there).
+- stubs/create_stubs.sh: no longer generates the empty Lottie stub.
+Validated in Chrome with the four real animation files: SVGs rendered, colour
+filters applied, looping one animates, progress=1 shows the final frame,
+onAnimationFinish fires. Screenshots checked for the animations, the prompt
+and the alert dialog.
+---
+---
+USER:
+there are some icons missing: the more_horiz button top right of the wallet
+page, the Close button next to "Add Wallet", and the image left of "Scan" in
+the wallets screen. All clickable, but have no image.
+
+CLAUDE:
+BlueWallet-web:
+- components/themes.ts: closeImage/scanImage restored to the original
+  require('../img/...png') (they had been blanked to ''); the file is
+  identical to original BlueWallet again.
+- web/node_env.js: require() of an image returns {uri, width, height}: uri is
+  the path from the project root (/img/x.png, independent of the page URL),
+  the @2x/@3x file on a high density screen, size from web/img_sizes.json.
+- web/img_sizes_gen.mjs (new) generates web/img_sizes.json (new, 25 images).
+- package.json: replace_line on @react-navigation/elements Header.js adds
+  paddingEnd: 16 to the header's right container (the native header's side
+  margin), so the more_horiz icon is no longer under the scrollbar.
+Validated with screenshots: all three icons visible; add-wallet type icons too.
+---
+---
+USER:
+In the main page, the "+" button next to "Wallets" does nothing when clicked
+(probably should create a new wallet).
+
+CLAUDE:
+Cause: stubs/react-native-context-menu-view rendered a Pressable and passed
+the menu's onPress (menu item chosen) to it as a click handler, so the click
+was swallowed and never reached AddWalletButton's own onPress; no menu ever
+opened anywhere on web.
+BlueWallet-web:
+- web/menu.js (new): HTML popup menu menu_show({x, y, title, actions,
+  on_select, on_cancel}); groups, subtitle, destructive, disabled, selected;
+  closes on outside click, Escape, blur, resize.
+- stubs/react-native-context-menu-view/index.js: real ContextMenuView: a plain
+  View; opens the menu on click in dropdownMenuMode, otherwise on long press
+  or right click; a plain click is left to the parent; onPress gets
+  {nativeEvent: {index, indexPath, name}}.
+- stubs/create_stubs.sh: no longer generates this stub.
+Validated in Chrome with real mouse input: + opens Add Wallet; right click and
+long press open "Import wallet" (release does not navigate); choosing it opens
+Import Wallet; the dropdown on the Add Wallet screen opens with its groups.
+---
+---
+USER:
+Work overnight without waiting for feedback: review the ~40 hand-written
+stubs in BlueWallet-web, go over all screens and features, fix what does not
+work where the fix is clear. QR code does not work (camera and display); copy
+solutions from ~/lif-wallet. Summary in the morning; user decides what to
+commit.
+
+CLAUDE:
+BlueWallet-web (nothing committed):
+New shared web modules: web/vfs.js (in-memory files, download, file picker),
+web/qr_decode.js (BarcodeDetector or jsQR), web/storage.js (localStorage
+key/value).
+Stubs rewritten as real implementations: react-native-svg (valid SVG element
+names, toDataURL), react-native-reanimated (shared values animate with rAF,
+useAnimatedStyle re-renders, interpolate, Easing), react-native-camera-kit
+(Camera on getUserMedia + QR scan, detectQRCodeInImage), react-native-
+permissions (camera), react-native-fs, documents-picker, react-native-share,
+react-native-image-picker, react-native-blue-crypto (real scrypt),
+react-native-linear-gradient (start/end/locations), default-preference,
+secure-key-store and keychain (persist in localStorage), react-native-localize
+(browser locale), safe-area-context and react-native-screens (Views instead of
+raw divs), draggable-flatlist (FlatList with HTML drag and drop), Ionicons and
+Entypo (real glyph maps via deps bw-icons-ionicons/bw-icons-entypo 13.1.5).
+stubs/create_stubs.sh never overwrites an existing stub.
+blue_modules/BlueElectrum.ts (web module): getConfig().connected is 1/0;
+added getServerBanner, forceDisconnect, testConnection, getCurrentBlockTip,
+getConfirmedBlockHeight, getBlockTimestamps, setBatching*, real
+estimateCurrentBlockheight.
+package.json: deps jsqr, bw-icons-ionicons, bw-icons-entypo. web/main.tsx:
+icon fonts 13.1.5. tasks.txt: removed the fake scrypt note.
+Validated in Chrome: QR shows on Receive and decodes; scan flow with a
+simulated camera; 33 screens walked without render errors; BlueWallet
+self-test passes; earlier alert/prompt/menu/back tests re-run.
+---
+USER:
+no need to for backwards moving localStorage to indexedDB. please move to indexedDB.
+
+CLAUDE:
+BlueWallet-web: moved app storage from localStorage to IndexedDB (no migration).
+- web/storage.js: storage(prefix) is now async on IndexedDB (db 'bluewallet',
+  store 'kv', key = prefix+key, via idb); added clear(); calls
+  navigator.storage.persist() on first open.
+- stubs/async-storage, react-native-default-preference,
+  react-native-secure-key-store, react-native-keychain: use the async store;
+  AsyncStorage no longer swallows write errors.
+---
+USER:
+please handle #14 (web/app.jsx: unreferenced old prototype still using localStorage)
+
+CLAUDE:
+BlueWallet-web: removed web/app.jsx (git rm). Nothing referenced it.
+---
+USER:
+#15 - can you give the version from package.json?
+
+CLAUDE:
+BlueWallet-web: react-native-device-info getVersion() now returns the
+version from the app's package.json. New web/app_info.js imports
+../package.json (type json) and exports version; the stub imports it from
+bw-web/app_info.js.
+---
+USER:
+#5 share on desktop - see how the click on the address in lif-wallet that copies it to the clipboard - does a small popup acking that it was copied to clipboard, and then disappears. do something similar - a popup for such "temp" messages
+
+CLAUDE:
+BlueWallet-web: added web/toast.js: toast_show(message, {ms}) - a small
+popup at the bottom of the page (popover, top layer) that goes away by
+itself; also exports a ToastAndroid on top of it.
+- stubs/react-native-share: sharing text without a system share sheet copies
+  to the clipboard and shows "Copied to clipboard".
+- package.json: react-native-web index patch also exports ToastAndroid from
+  bw-web/toast.js.
+- components/Alert.ts: restored to the original BlueWallet file (the local
+  no-op ToastAndroid is no longer needed).
+---
+USER:
+yes - I want it (the "Copied to clipboard" popup for the other copy actions). so no need to go and change 17 places, right? just to change the web implementation?
+
+CLAUDE:
+BlueWallet-web: stubs/clipboard/index.js: Clipboard.setString() awaits the
+clipboard write and then shows toast_show('Copied to clipboard'); not for
+empty text (clearing the clipboard); a failed write is logged as a warning.
+No change in BlueWallet code.
+---
+USER:
+(react-native-tcp-socket on lif-kernel net/tcpip.js) go on to step 2
+
+CLAUDE:
+BlueWallet-web step 2: real TCP/TLS sockets for the electrum client.
+- stubs/react-native-tcp-socket/index.js: was a no-op. Now Socket (lif-kernel
+  tcp_sock), TLSSocket(socket, {rejectUnauthorized}) as in
+  react-native-tcp-socket (the plain socket gets connect(), the TLSSocket is
+  read/written/listened), createConnection, connectTLS, isIP.
+- package.json: electrum-client -> github:BlueWallet/rn-electrum-client#83420b8
+  (was mapped to the tcp-socket stub).
+- web/main.tsx require_init(): registers 'net', 'tls' (both the tcp-socket
+  stub, as on React Native) and 'electrum-client' for require().
+- blue_modules/BlueElectrum.ts not changed in this step (still the web
+  rewrite; restoring the original is step 3).
+Validated in Chrome on an isolated instance (serve.js -p 4212 --no-peer +
+tcpip_s.js --peer 4212): the real electrum-client over the stub: version,
+headers subscribe, 40 request history and balance batches (~100ms each),
+fee estimate, close, and connect errors.
+---
+USER:
+(react-native-tcp-socket on lif-kernel net/tcpip.js) go on to step 3
+
+CLAUDE:
+BlueWallet-web step 3: the original Electrum module.
+- blue_modules/BlueElectrum.ts: restored to the original BlueWallet file
+  (identical). The web rewrite (and my parallel sending edit) is gone.
+- web/main.tsx: require_init_early() registers 'net', 'tls' and
+  'electrum-client' before App is imported (the original requires them at
+  the top of the module); require_init() also registers the four wallet
+  classes BlueElectrum.ts loads with a late require().
+Validated in Chrome on the isolated instance (4212 --no-peer + tcpip_s.js
+--peer 4212): connects to electrum1.bluewallet.io:443 over TLS; a new HD
+wallet refresh takes ~2s (payment codes 0.37s, balance 1.61s, tx 0.12s),
+was ~135s; Electrum settings shows Connected and the server banner;
+testConnection works for ssl, tcp and a bad host; no console errors.
+---
