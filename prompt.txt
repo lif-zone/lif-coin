@@ -817,3 +817,228 @@ removed first. The old link (href='lif-kernel/favicon.ico', relative) is
 gone. Validated in Chrome: the tab's favicon is the new url, served as
 image/png 192x192.
 ---
+USER:
+I found a bug: open bluewallet, click New wallet -> click Create -> then click '<-' (back - top left button). Now the page will partially load and the "Create" button will not render.
+
+CLAUDE:
+BlueWallet-web package.json lif.patches: @react-navigation/native-stack
+lib/module/views/NativeStackView.js (the web stack view) ignored the
+headerBackVisible option: it showed a back button whenever there was a
+previous screen. Now headerBackVisible: false gives an empty left header.
+The backup screen (PleaseBackup) sets headerBackVisible: false, so on web
+it had a back arrow the app does not have; going back with it returned to
+Add Wallet, whose isLoading state is never reset (spinner, no Create
+button). No change in BlueWallet code.
+Validated in Chrome after cache clear with the reported steps: the backup
+screen has no back button; the browser Back button closes the dialog (the
+screen's own back handler); Add Wallet opened again shows Create.
+---
+USER:
+please fix #1 (swipe actions in Manage Wallets: the swipe stub only shows the row)
+
+CLAUDE:
+BlueWallet-web:
+- stubs/react-native-gesture-handler/index.js: Swipeable was `children`.
+  Now a real one for web: the row is dragged sideways (pointer events) to
+  show renderRightActions / renderLeftActions behind it; friction,
+  thresholds, overshoot; onSwipeableWillOpen/Open/WillClose/Close; ref
+  close/openRight/openLeft/reset; sideways wheel (trackpad) opens/closes;
+  the click that ends a swipe is not a press. Inside a draggable element
+  (the reorder list) a mouse drag that starts sideways cancels the HTML
+  drag and is a swipe.
+- stubs/react-native-draggable-flatlist/index.js: a dragstart that was
+  cancelled is not a reorder.
+Validated in Chrome with real mouse input (CDP) on Manage Wallets: swipe
+left opens the row and shows Hide; Hide toggles hideBalance and closes;
+next time it shows Show; swipe back closes; a short move does not open; a
+vertical drag still starts a reorder; a click on a row still opens the
+wallet.
+---
+USER:
+handle #1 (Ark: the Ark SDK and Boltz swap packages are stubs). before you add it - tell me if it loads dynamically or in the boot part. ... go with option 1. only when needed
+
+CLAUDE:
+BlueWallet-web: Ark wallets work, with the real packages loaded only when
+an Ark wallet is used.
+- web/arkade.js (new): ark_load() loads the real packages; placeholder(),
+  placeholder_class(), lazy_schemas() for the facades.
+- stubs/arkade-os-sdk (index, adapters/expo, repositories/realm) and
+  stubs/arkade-os-boltz-swap (index, repositories/realm): were empty
+  classes. Now facades: same export names, as placeholders that are
+  replaced by the real exports (live bindings) after ark_load().
+  adapters/expo maps the Expo providers to the sdk's Rest providers.
+- package.json: bw-arkade-sdk = npm:@arkade-os/sdk@0.4.79,
+  bw-arkade-boltz-swap = npm:@arkade-os/boltz-swap@0.3.67; lif.patches pins
+  boltz-swap's sdk dependency to 0.4.79 (BlueWallet's `overrides`), so
+  there is one copy of the sdk.
+- web/main.tsx: LightningArkWallet.prototype.init() first awaits
+  ark_load(): every use of the packages by the wallet starts with init().
+- stubs/realm: queries with AND/OR, ( ), IN {..}, !=, null (the sdk's
+  repositories use them); a schema entry {__lazy_schemas()} is resolved
+  when the realm is opened.
+- stubs/react-native-keychain: getSecurityLevel() (null), and the constant
+  enums filled in.
+- tasks.txt: note on the facade name lists.
+Validated in Chrome: no real Ark module is loaded at start; a new Ark
+wallet initializes against https://arkade.computer (address, balance,
+transactions); saved in the app and reloaded, the app shows first and the
+packages load by themselves after it. Not validated: Lightning swaps
+(api.boltz.exchange does not resolve from this machine).
+---
+USER:
+I am going to sleep now. please continue testing as much as you can on your own #1 - #13, fix what you can, and report at the end what you are not sure how to fix (or if to fix at all). I will decide in the morning what to commit
+
+CLAUDE:
+BlueWallet-web overnight testing (real mouse/touch/file input through CDP on
+port 4210, with the imported test wallet). Fixes, all in the compat layer:
+- web/find_node_handle.js (new) + package.json lif.patches for
+  react-native-web dist/exports/findNodeHandle: findNodeHandle() threw on
+  web. BlueWallet calls it before every action-sheet style alert, so the
+  Send screen's errors (invalid address, not enough balance), the Scan
+  long-press menu, and others showed nothing. Now returns a handle.
+- web/back_handler.js: only a user-initiated Back (event.userInitiated) is
+  a hardwareBackPress. The application's own history moves (react-navigation
+  after popTo) were taken as Back presses and popped a second screen:
+  "Receive with amount" -> Add went back to the wallet instead of the
+  receive screen.
+- web/menu.js: an open popup menu closes when the app navigates.
+- stubs/react-native-notifications: removeAllDeliveredNotifications() and
+  the other missing no-op functions (console errors on wallet create).
+Tested OK: 43 screens; wallet with history: list, transaction status,
+advanced details, note; send flow to the Confirm screen (also a silent
+payment address) with a temporary in-memory coin, nothing broadcast;
+validation alerts; receive, receive with amount, QR content; create with
+backup confirmation; delete; import by text file and by QR image (file
+chooser); custom Electrum server set/reload/reset; all 71 languages;
+swipe by mouse, touch and trackpad wheel; drag reorder both directions;
+storage encryption on, unlock after reload, off; multisig vault 2-of-3
+creation, co-signers, coordination setup export; Ark wallet created
+through the Add Wallet screen; sign message.
+---
+---
+USER:
+lets do #1 (merge BlueWallet's 5 new upstream commits down the layers fixes -> web2 -> master) - you give me the commands, and I will execute. [after merging:] i did the commands. now continue
+
+CLAUDE:
+Previewed the merge (no conflicts, no new deps), user merged. Re-test on web found
+the reworked multisig screen (components/MultipleStepsListItem.tsx) imports
+interpolateColor from react-native-reanimated, missing in the web stub -> Render Error
+on WalletsAddMultisigStep2.
+- ~/BlueWallet-web (branch web2) stubs/react-native-reanimated/index.js: added
+  color_parse() (hex / rgb() / rgba() / CSS names through a canvas) and exported
+  interpolateColor(v, input, output) returning 'rgba(r, g, b, a)', clamped.
+Verified: vault intro -> step 2 -> three keys generated, no errors. Further
+re-testing postponed by the user. 4210 test server now serves ~/BlueWallet-web.
+---
+---
+USER:
+please fix that problem for the web (to reload, so not to bother the user on nonsense)
+[the "Restarting BlueWallet is required for the language orientation to take effect" message]
+
+CLAUDE:
+~/BlueWallet-web (branch web2) web/i18n_manager.js: forceRTL() now reloads the page
+itself when the direction differs from the one the page started with, and only when
+the choice was stored in localStorage (so the next start has the right direction and
+cannot loop). Tested: en -> he reloads to rtl with no dialog, he -> en reloads to ltr,
+en -> fr does not reload.
+---
+---
+USER:
+In web2 package.json - please make it identical to upstream, with all the web2 stuff under "lif" section. in lif-kernel, the lif section overrides the main section, so dependencies in lif override dependencies in the regular section.
+
+CLAUDE:
+~/BlueWallet-web (branch web2) package.json: now upstream's text unchanged plus one
+"lif" key: description, webapp, spa, web_exports, alt, transform, dependencies (the 69
+web2 entries that upstream lacks or has with another value), overrides and patches.
+- upstream's top-level overrides pins @arkade-os/sdk to 0.4.79 for every package, and
+  an override wins over dependencies in the kernel: lif.overrides maps it to the
+  facade stub for the app, and the @arkade-os/boltz-swap package.json patch got its
+  own overrides entry so the real boltz-swap still gets the real sdk 0.4.79.
+- consequences: package name is "bluewallet" (local URL /.lif/local/bluewallet//),
+  version is upstream's 8.0.4 (shown by web/app_info.js), the "serve" script is gone.
+Tested: cache clear, app loads, start-up console clean, Ark loads, screen walk as before.
+---
+---
+USER:
+I looked at it, and its not good: there are modules defined in the general section that are copied to the lif section without any change. The lif section needs only the modifications.
+
+CLAUDE:
+~/BlueWallet-web (web2) package.json lif.dependencies: no entry was byte-identical to
+upstream, but 4 differed only by a caret (@react-navigation/devtools, drawer, native,
+native-stack): removed, upstream's exact versions apply. Also removed the react 19.2.6
+override (upstream 19.3.0 applies) and set react-dom to 19.3.0 to match. 69 -> 64
+entries: 49 stubs, 6 aliases, 2 git, 7 new packages. Sanity: cache clear, app loads,
+Settings opens.
+---
+---
+USER:
+the stubs are all web related. And no need for a WHOLE directory (with package.json). So move it: 'mv stubs/react-native-background-fetch/index.js web/stubs/react-native-background-fetch.js', and see how it should be defined inside package.json so that it loads correctly (just the file). Then also the create_stubs.sh script can be removed.
+
+CLAUDE:
+~/BlueWallet-web (web2): every stubs/<name>/index.js moved to web/stubs/<name>.js
+(git mv), the stub package.json files and stubs/create_stubs.sh removed, stubs/ gone.
+package.json lif.dependencies: "file:./stubs/<name>//" -> "./web/stubs/<name>.js"
+(a "./" path is a file of the app's own package). Two stubs stay folders, without a
+package.json, because they are imported with sub paths: web/stubs/arkade-os-sdk
+(index, adapters/expo, repositories/realm) and web/stubs/arkade-os-boltz-swap
+(index, repositories/realm), mapped as "./web/stubs/<name>". lottie-web 5.13.0 (was
+in the lottie stub's package.json) moved to lif.dependencies. Comments in
+web/arkade.js and web/dialog.js updated. Sanity: cache clear, app loads, console
+clean, Ark loads through the facades.
+---
+---
+USER:
+validate everything in the tree is exactly like on upstream [...] yes, go through them. start with group 5. CLAUDE.md -> web/CLAUDE.md (write inside it that for the web porting work to ignore ./CLAUDE.md). lightning-ark-wallet.ts stays. the two bundled libraries - you check. package-lock.json: revert to original. the rest as you wrote.
+
+CLAUDE:
+~/BlueWallet-web (web2), original files restored to upstream (git checkout fixes --):
+CLAUDE.md, package-lock.json, .gitignore, blue_modules/hapticFeedback.ts,
+components/DevMenu.tsx, class/wallets/types.ts, blue_modules/noble_ecc.ts,
+class/contact-list.ts, components/BlocksAccordion.tsx,
+components/icons/TransactionPendingIcon.tsx, screen/send/success.tsx,
+screen/wallets/WalletsAddMultisig.tsx, screen/settings/About.tsx,
+blue_modules/bc-bech32/dist/*. Removed: current-branch.json, the duplicate
+blue_modules/uint8array-extras/uint8array-extras/.
+Web side: web/CLAUDE.md (new: port conventions, says to ignore ../CLAUDE.md);
+web/react_native_extra.js (new: codegenNativeComponent, PlatformColor, DevSettings,
+exported from react-native-web's index by the existing patch, replacing inline code
+in package.json); web/main.tsx require_init_early() registers
+'../../current-branch.json' and the four animation json files BlueWallet loads with
+require(); package.json lif.dependencies: "bip47" removed (upstream has @spsina/bip47).
+Not restorable: blue_modules/bc-ur/dist/* (5 files) stay ES modules: lif-kernel does
+not pass the imported names on a relative import, so a local CommonJS file cannot
+give named exports ('../bc-ur/dist' from blue_modules/ur/index.js).
+Left by decision: lightning-ark-wallet.ts (await import), and the json import
+attribute in wallet-import.ts, loc/index.ts, fiatUnit.ts.
+Sanity: app loads, About and the multisig intro open, legacy UR round trip works.
+---
+---
+USER:
+move to fixes the with {type: json}. also the change of that require -> await import. [then] why do they do there dynamic import, not static import?
+
+CLAUDE:
+~/BlueWallet-fixes (branch fixes), uncommitted for the user:
+- class/wallet-import.ts, loc/index.ts, models/fiatUnit.ts: json import attribute.
+- class/wallets/lightning-ark-wallet.ts line 34: require('bech32') ->
+  import { bech32m } from 'bech32' (as class/lnurl.ts and clipboardPayment.ts do).
+  Not moved as "await import": a top-level await fails in hermes-parser and gives
+  invalid CommonJS with the React Native babel preset.
+~/BlueWallet-web (web2): the same line set to the static import, so the file equals
+the fixes one. All four checked with @react-native/babel-preset 0.88.1; web app loads.
+---
+---
+USER:
+can you recreate the problem (bc-ur cjs)? [...] why not add a lif patch to change the import to "bc-ur/dist", and define lif.dependencies[bc-ur] = './blue_modules/bc-ur//' ?
+
+CLAUDE:
+~/BlueWallet-web (web2): blue_modules/bc-ur/dist/* (5 files) restored to upstream's
+CommonJS. package.json lif section: dependencies "bc-ur": "file:./blue_modules/bc-ur//";
+patches "/bluewallet//" ./blue_modules/ur/index.js (the import of '../bc-ur/dist' ->
+'bc-ur/dist', so the kernel passes the imported names to its CommonJS wrapper), and
+"/bluewallet/blue_modules/bc-ur//" ./dist/utils.js (upstream's file mixes an ES import
+line into a CommonJS file: the import of sha256 becomes a require, and the unused
+require of ../../uint8array-extras is dropped). Needs the lif-kernel change that lets
+a package patch its own files (lpm_patch_lookup). Sanity: app loads, legacy UR round
+trip works with the original files. No original file differs from fixes now, except
+the 4 files whose change is waiting on the fixes branch.
+---
