@@ -374,6 +374,9 @@ Post release:
   use revalidate options to revalidate etag/lmod
   mayne move part of kernel to sw_boot.js
   check that in DB and caches only cachable stuff is there
+- kernel.js cache_store: a patched file (lif.patches) is cached by URL only,
+  so a changed patch is not seen. add a hash of its patch to the cache key.
+  specially when parent patching dependency npm/gits modules.
 - add caching of hi.js in kernel.js, when {spa: true}
 - improve perf of npm version list: https://registry.npmjs.org/express
   make sure to use ETag/LMod on request, and make sure 304 response.
