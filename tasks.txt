@@ -359,6 +359,10 @@ Post release:
     server remembers its IP<->rg_id mapping. once finished - reuse oldest.
   - add lif-kernel outgoing connections to github lif:net/ip_bridge/http_out.
     and lif_fetch('https://github.com/lif-zone/lif-kernel.git/info/refs?...')
+  - Lifnet.init() on node always adds ws://localhost:1842, also when only
+    --peer is wanted.
+  - connect errors are all prefixed "no good <topic> servers online:", which
+    hides the real cause (refused, policy, timeout).
 - support 2 VPS: support ns1 ns2 on different IPs: need acme ssl co-ordination in
   startup: proxy dns _acme-challenge from ns2 ns3... to ns1.
   Also need to transport the cert and key from ns1 to ns2 ns3...
