@@ -86,6 +86,7 @@ function usage(err){
   console.log('--address-file FILE: json file: field: mine_address');
   process.exit(1);
 }
+export function get_node(){ return node; }
 export async function main(argv, opt){
   argv ||= process.argv;
   let i = 2;
