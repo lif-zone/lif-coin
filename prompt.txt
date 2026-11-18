@@ -1184,3 +1184,33 @@ isDisabled(); the old estimateFee() removed.
 Sanity on anycoin: Bitcoin Send reaches the Confirm screen with a fee. LIF Send not
 tested yet: master needs the anycoin commit merged first.
 ---
+---
+USER:
+write in ~/claude_lif.json the private and public keys of the address I sent 10 LIF to (and the 12 words). [then] show me the overview again?
+
+CLAUDE:
+~/claude_lif.json written (mode 600): mnemonic, path, account xpub/xprv, and keys of the
+first two receive addresses and the first change address; nothing secret printed.
+After the user's anycoin commit and merge: LIF Send tested on master up to the Confirm
+screen (1 LIF to the wallet's own second address, fee 730146 = 5000/vbyte), not sent.
+The LIF payment is confirmed: balance 10 LIF, "Received". lifcoin/electrum.ts
+(estimateFees, ensureConnected, isDisabled) still uncommitted.
+Also restored the Bitcoin test wallet's balance, left wrong by my earlier Send test.
+---
+---
+USER:
+fix #9 [the LIF node's get_balance returns the total ever received, not the balance]
+
+CLAUDE:
+lib/node/http.js: blockstream_metas_sum() was a module function that only summed funded
+outputs (spent_txo_* had a TODO), so blockchain.scripthash.get_balance and the
+blockstream address API gave "total received". It is now a method,
+async blockstream_metas_sum(metas, addrsh), that asks this.spend_get() for every output
+of the address: an output spent by a transaction in a block counts in
+chain_stats.spent_txo_*, one spent in the mempool in mempool_stats.spent_txo_*.
+funded_txo_count now counts outputs (it counted transactions). Both callers
+(get_balance, blockstream_address) await it. Checked with the method called on fakes
+for 5 cases taken from real addresses (0 instead of 4498815000, 49500000000 instead of
+50000000000, unconfirmed receive, confirmed coin spent in mempool, empty). The running
+node was not restarted.
+---
