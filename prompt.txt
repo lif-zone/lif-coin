@@ -1042,3 +1042,105 @@ a package patch its own files (lpm_patch_lookup). Sanity: app loads, legacy UR r
 trip works with the original files. No original file differs from fixes now, except
 the 4 files whose change is waiting on the fixes branch.
 ---
+---
+USER:
+lets start with step one of LIF support. [decisions: option A (wallet classes call their own Electrum client), a new layer "anycoin" between web2 and master for the generalization] I created it. go ahead
+
+CLAUDE:
+~/BlueWallet-anycoin (branch anycoin), first generalization step:
+- class/wallets/legacy-wallet.ts: new type TWalletElectrum (the 8 BlueElectrum functions
+  the wallet classes call) and a getter `get electrum(): TWalletElectrum` returning
+  BlueElectrum; a wallet of another network overrides it.
+- 28 calls `BlueElectrum.x(...)` -> `this.electrum.x(...)` in legacy-wallet.ts (10),
+  abstract-hd-electrum-wallet.ts (14), abstract-hd-wallet.ts, multisig-hd-wallet.ts,
+  hd-legacy-breadwallet-wallet.ts, hd-legacy-p2pkh-wallet.ts (1 each); the 5 namespace
+  imports that became unused removed.
+Checked: all 28 are inside instance methods (TypeScript AST scan). Sanity on web: app
+loads, three real wallets refresh balance and history through the getter.
+4210 test server now serves ~/BlueWallet-anycoin.
+---
+---
+USER:
+I committed it. go ahead with the next piece [anycoin: the network used for addresses and transactions]
+
+CLAUDE:
+~/BlueWallet-anycoin (branch anycoin):
+- class/wallets/legacy-wallet.ts: getters `network` (bitcoin.networks.bitcoin) and
+  `bech32Prefix` (network.bech32 + '1'), and `_newPsbt()` (new Psbt on the wallet's
+  network; a hook for other limits such as the highest fee rate). Used in getAddress(),
+  _targetsAreOverestimated(), coinselect() target sizing, createTransaction(),
+  isAddressValid() in place of the implicit Bitcoin default and the 'bc1' literals.
+- class/wallets/abstract-hd-electrum-wallet.ts: createTransaction() uses _newPsbt();
+  _nodeToBech32SegwitAddress/_nodeToLegacyAddress/_nodeToP2shSegwitAddress pass
+  this.network.
+Checked on web: Bitcoin wallet addresses, address validation and a built transaction
+are unchanged. A throwaway subclass in the page (network lif, path m/84'/1842'/0',
+_newPsbt with a higher fee limit) gives the same lif1 addresses as lif-wallet's
+libraries for the test mnemonic, validates lif1 only, and builds + signs a transaction.
+---
+---
+USER:
+I committed it and merged to master. go ahead [step one of LIF support, the LIF layer on master]
+
+CLAUDE:
+master was 2 commits behind anycoin (the merge had not reached it): fast-forwarded with
+`git merge --ff-only anycoin` (no commit made, not pushed).
+~/BlueWallet-lif (master), new directory lif/:
+- lif/network.ts: lif_network (bech32 'lif', Lpub versions), LIF_COIN_TYPE 1842,
+  LIF_ELECTRUM_TOPIC 'lifcoin/electrum', LIF_MAX_FEE_RATE.
+- lif/hd_lif_wallet.ts: HDLifWallet extends HDSegwitBech32Wallet (type 'HDlif', path
+  m/84'/1842'/0', electrum and network getters, _newPsbt with the higher fee limit,
+  Lpub <-> xpub conversion, BIP47/silent payments/PayJoin off).
+- lif/electrum.ts: the 8 TWalletElectrum functions (+ estimateFee) over the lifnet
+  topic: one connection, tip from headers.subscribe, transactions decoded from hex with
+  lif1 addresses, confirmations/time from the block height; balance summed from
+  listunspent because the node's get_balance gives the total received.
+Tested in the page against the live LIF node: addresses and Lpub equal lif-wallet's;
+BlueWallet's own balance/history/utxo code over the LIF client with two real addresses
+(2 txs, 100 txs) gives consistent results. Not yet done: Add Wallet button and type
+registration. 4210 test server now serves ~/BlueWallet-lif.
+---
+---
+USER:
+[hooks for wallet types] yes - anycoin will make the EXISTING coins of bluewallet go via a registry. [...] They will register themselfs. Its also a better design for BlueWallet. ok - continue
+
+CLAUDE:
+lif/ renamed to lifcoin/ on master (git mv) at the user's suggestion.
+~/BlueWallet-anycoin (branch anycoin), wallet type registry, part 1 (loading):
+- class/wallet-registry.ts (new): TWalletType {type, load(json, saved)},
+  registerWalletType(), getWalletType(), getWalletTypes().
+- every wallet class file registers itself at its end (17 files, 20 types); the
+  special cases of the old switch moved with their class: watch-only (init, skip an
+  invalid xpub), aezeed (passphrase migration), lightning custodian (hub uri, init;
+  helpers/lndHub loaded with import() to avoid the import cycle), and the old
+  'lightningLdk' type (registered by hd-segwit-bech32-wallet.ts).
+- class/wallet-types.ts (new): imports every wallet module, so they register: the one
+  place where a wallet type is added to the app.
+- class/blue-app.ts: the 97-line switch became a registry lookup with the LegacyWallet
+  fallback; 16 unused imports removed.
+Sanity on web: 20 types registered, all 11 saved wallets restored with the right class.
+4210 test server serves ~/BlueWallet-anycoin. Next: the Add Wallet screen (part 2).
+---
+---
+USER:
+committed. continue [anycoin registry, part 2: the Add Wallet screen]
+
+CLAUDE:
+~/BlueWallet-anycoin (branch anycoin):
+- class/wallet-registry.ts: TAddWalletContext, TAddWalletOption {id, order, testID,
+  button, keepsEntropy, isVisible, isCreateDisabled, create}, registerAddWalletOption(),
+  getAddWalletOptions().
+- screen/wallets/addWalletOptions.ts (new): the four existing options registered
+  (Bitcoin, Vault, Ark behind 20 presses on Bitcoin, Lightning when selected or a hub is
+  stored), with their create code moved unchanged from Add.tsx.
+- screen/wallets/Add.tsx: renders the registered options, one press handler, Create
+  calls the selected option; the per-button handlers, the three create functions, the
+  ButtonSelected type and index2walletType removed (570 -> 401 lines).
+- components/WalletButton.tsx: optional `details` prop; ButtonDetails and buttonDetails
+  exported. navigation/AddWalletStack.tsx: selectedWalletType route param is a string.
+Still in Add.tsx by name: the entropy indicator (on-chain) and the LNDHub input
+(Lightning). One difference: the keyboard is now dismissed on every option press.
+Tested on web: buttons and active state, Vault -> multisig screen, Ark appears after 20
+Bitcoin presses, create a Bitcoin HD wallet -> backup screen, deleted again. The
+Lightning (LNDHub) path was not run.
+---
