@@ -1144,3 +1144,43 @@ Tested on web: buttons and active state, Vault -> multisig screen, Ark appears a
 Bitcoin presses, create a Bitcoin HD wallet -> backup screen, deleted again. The
 Lightning (LNDHub) path was not run.
 ---
+---
+USER:
+continue [...] I pushed. go ahead and test [the LIF hook on master]
+
+CLAUDE:
+~/BlueWallet-lif (master), uncommitted:
+- lifcoin/index.ts (new): registerWalletType for HDLifWallet, and the Add Wallet option
+  'LIF' ("Lifcoin", after Bitcoin; Create makes an HDLifWallet, saves, goes to PleaseBackup).
+- lifcoin/lifcoin.png (new): the LIF wordmark from lif-kernel/lif.svg, 102x102.
+- class/wallet-types.ts: one added line, import '../lifcoin/index.ts'.
+Tested on web through the UI: Lifcoin button shown and selectable; Create gives an
+HDLifWallet (type HDlif, 12 words, m/84'/1842'/0') and the backup screen; wallet card
+and wallet screen open; Receive shows the wallet's lif1 address with a QR code; after a
+page reload the wallet is restored as HDLifWallet and refreshes from the LIF node.
+Left for step two: unit shown as BTC, LIF counted in the BTC total, payment link scheme.
+Not tested: a LIF wallet with history through the UI, and Send.
+Test wallet "claude lif test" left in the 4210 profile.
+---
+---
+USER:
+yes - go ahead with #1 [Send from a LIF wallet: the fee source]
+
+CLAUDE:
+~/BlueWallet-anycoin (branch anycoin), uncommitted:
+- class/wallets/legacy-wallet.ts: TWalletElectrum also has estimateFees,
+  ensureConnected, isDisabled.
+- models/networkTransactionFees.ts: recommendedFees(electrum = BlueElectrum);
+  NetworkTransactionFee.storageKeyFor(network) (Bitcoin keeps its key, another network
+  gets a suffix).
+- screen/send/SendDetails.tsx: loadNetworkTransactionFees(wallet) asks wallet.electrum
+  and caches per network; called at start and when the wallet changes to one with
+  another Electrum client.
+- screen/send/Confirm.tsx, psbtWithHardwareWallet.tsx: wallet.electrum.ensureConnected()
+  before the broadcast.
+~/BlueWallet-lif (master), uncommitted: lifcoin/electrum.ts: estimateFees() (the node's
+one rate for fast/medium/slow, 5000 when it cannot be asked), ensureConnected(),
+isDisabled(); the old estimateFee() removed.
+Sanity on anycoin: Bitcoin Send reaches the Confirm screen with a fee. LIF Send not
+tested yet: master needs the anycoin commit merged first.
+---
