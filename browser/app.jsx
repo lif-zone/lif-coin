@@ -19,21 +19,18 @@ async function start_btc_node(){
 
 async function start_lif_node(){
   console.log('loading lif-chain app');
+  let ProxySocket = (await import('./proxysocket.js')).default;
+  function createSocket(port, host){
+    let proto = location.protocol=='https:' ? 'wss' : 'ws';
+    let hostname = global.location.host;
+    hostname = 'localhost:4000';
+    return ProxySocket.connect(`${proto}://${hostname}`, port, host);
+  }
   let {main, do_mine} = await import('../bin/lif_node.js');
-  await main(['node', 'lif_node.js']);
-  //await do_mine();
-}
-
-async function start_lif_gen_run_test(){
-  console.log('loading gen.do_test');
-  let {do_test} = await import('../scripts/gen_genesis.js');
-  await do_test();
-}
-
-async function start_lif_tx(){
-  console.log('loading gen.tx');
-  let {do_tx} = await import('./lif_node.js');
-  await do_tx();
+  console.log('starting lif-chain app');
+  await main(['node', 'lif_node.js'], {createSocket});
+  console.log('completed lif-chain app');
+  0 && await do_mine();
 }
 
 const App = ()=>{
@@ -42,8 +39,6 @@ const App = ()=>{
     <p>
       <button onClick={()=>start_btc_node()}>Start bit-coin node</button>
       <button onClick={()=>start_lif_node()}>Start lif-coin node</button>
-      <button onClick={()=>start_lif_gen_run_test()}>Start lif-gen</button>
-      <button onClick={()=>start_lif_tx()}>Start lif-tx</button>
     </p>
     <small>
       Welcome. Your machine is currently validating the blockchain. The blocks
