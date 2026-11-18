@@ -1214,3 +1214,106 @@ for 5 cases taken from real addresses (0 instead of 4498815000, 49500000000 inst
 50000000000, unconfirmed receive, confirmed coin spent in mempool, empty). The running
 node was not restarted.
 ---
+---
+USER:
+I deployed. retry #9
+
+CLAUDE:
+Verified the deployed LIF node over lifnet: get_balance equals the unspent sum for three
+addresses (0, 49500000000, 1000000000; the first two were 4498815000 and 50000000000).
+~/BlueWallet-lif (master) lifcoin/electrum.ts: balance_get() now uses
+blockchain.scripthash.get_balance (the workaround that summed listunspent is removed).
+LIF test wallet: balance 1000000000, equal to its utxo sum.
+---
+---
+USER:
+please continue with #1 [LIF step two: unit and totals]
+
+CLAUDE:
+Design: the units stay the same kinds (BitcoinUnit.BTC = one coin, SATS = smallest
+part); a wallet tells its coin, and only the unit names shown differ.
+~/BlueWallet-anycoin (branch anycoin), uncommitted, first batch:
+- models/bitcoinUnits.ts: type TCoin {units: {BTC, sats}}.
+- class/wallets/abstract-wallet.ts: getter `coin` (undefined = Bitcoin).
+- loc/index.ts: unitLabel(unit, coin?); formatBalance(balance, unit, withFormatting, coin?).
+- wallet's coin passed in components/WalletsCarousel.tsx, WalletListItem.tsx,
+  TransactionsNavigationHeader.tsx (copied value and the unit button),
+  TransactionListItem.tsx (amount suffix), screen/wallets/WalletTransactions.tsx.
+- class/blue-app.ts getBalance(): a wallet of another coin is not added to the total.
+~/BlueWallet-lif (master), uncommitted: lifcoin/network.ts lif_coin {BTC: 'LIF',
+sats: 'sats'}; lifcoin/hd_lif_wallet.ts getter coin.
+Sanity on anycoin: Bitcoin total, card and wallet screen unchanged. LIF display to be
+tested after the anycoin commit is merged into master.
+Not yet coin aware: Send, Confirm, Success, Receive, transaction details, coin control.
+---
+---
+USER:
+I committed it and merged to master. go ahead
+
+CLAUDE:
+Tested on master: the LIF wallet's card shows "9.99269854 LIF", its screen header shows
+the amount with a "LIF" unit button, BlueApp.getBalance() is Bitcoin only. Found that
+the total shown at the top is summed in components/TotalWalletsBalance.tsx, not by
+BlueApp.getBalance(): fixed there on anycoin (a wallet with a coin is skipped),
+uncommitted. lifcoin/network.ts and hd_lif_wallet.ts (coin) on master tested, uncommitted.
+---
+---
+USER:
+I committed it and merged to master. go ahead [second batch of the coin unit names]
+
+CLAUDE:
+master was still 1 commit behind anycoin and the lifcoin files uncommitted (the second
+half of the chained command had not run). The total at the top therefore still showed
+the old sum on master.
+~/BlueWallet-anycoin (branch anycoin), uncommitted, second batch: the wallet's coin is
+passed for the unit names in components/AmountInput.tsx (new prop `coin`),
+screen/send/SendDetails.tsx (fee, amount input), Confirm.tsx, success.tsx (wallet looked
+up by walletID), screen/receive/ReceiveDetails.tsx, screen/send/CoinControl.tsx (new
+prop `coin` on OutputList), CoinControlOutputSheet.tsx,
+screen/transactions/TransactionStatus.tsx.
+Sanity on anycoin: Bitcoin Send reaches Confirm with BTC labels as before.
+Left with a BTC label: SelectFeeScreen, AddressItem, WalletDetails, send/create.tsx,
+psbtMultisig, and everything fiat.
+---
+---
+USER:
+go ahead with #1 to #4 (LIF wallet screens that still ask Bitcoin's Electrum
+client: Receive, transaction details, fee bump/cancel, refresh of all wallets)
+
+CLAUDE:
+anycoin (~/BlueWallet-anycoin):
+- class/wallets/legacy-wallet.ts: TWalletElectrum gains
+  getMempoolTransactionsByAddress, forgetCachedTransactions,
+  getConfirmedBlockHeight, getBlockTimestamps. New walletElectrum(wallet):
+  the client of the wallet's network, Bitcoin's when there is no wallet.
+- screen/receive/ReceiveDetails.tsx, screen/transactions/TransactionStatus.tsx,
+  components/BlocksAccordion.tsx (new electrum prop),
+  screen/wallets/WalletTransactions.tsx: use the wallet's client.
+- class/hd-segwit-bech32-transaction.ts: client and network of the wallet;
+  accepts a BIP84 wallet of another coin (new util/isHDSegwitBech32.ts, used
+  also in CPFP.js, RBFBumpFee.js, RBFCancel.js, SendDetails.tsx).
+  scriptPubKeyToAddress() of SegwitBech32Wallet/TaprootWallet take a network.
+- components/ReplaceFeeSuggestions.tsx: wallet prop (fees of its network).
+- class/blue-app.ts: getElectrums(index?); fetchWalletBalances/
+  fetchWalletTransactions/fetchSenderPaymentCodes take the clients to fetch
+  for. components/Context/StorageProvider.tsx: refresh connects the client
+  of each network and skips only the wallets of an unreachable one.
+master (~/BlueWallet-lif): lifcoin/electrum.ts: the four new functions
+(mempool transactions are taken from the history, fee computed from inputs).
+Tested on master with the anycoin edits applied temporarily: LIF receive
+polling, transaction screen and block queue, fee-bump class and screens,
+refresh per client; Bitcoin unchanged. Not tested: a real LIF fee bump (needs
+an unconfirmed transaction).
+---
+USER:
+go ahead with #5 (a LIF wallet accepts a Bitcoin legacy 1.../3... address)
+
+CLAUDE:
+master (~/BlueWallet-lif): lifcoin/hd_lif_wallet.ts: isAddressValid() accepts
+only lif1 addresses as a destination (1... and 3... addresses are written
+the same on Bitcoin and LIF). Tested in the Send screen: 1..., 3... and bc1
+give "The address is not valid", lif1 reaches Confirm (not sent); the
+wallet's own and change addresses are valid.
+---
+USER: Create browser/lifsocket.js as an alternative to browser/proxysocket.js. Instead of proxying TCP through a WebSocket to server.js, it should use lifnet for outgoing TCP connections via lif-kernel/net/tcpip.js. Also add a button in app.jsx to use it.
+CLAUDE: Created browser/lifsocket.js: extends tcp_sock from lif-kernel/tcpip, which tunnels TCP over lifnet's tcp/out topic to a lif-net out node. Exports createSocket(port, host) and LIFSocket class. Added "Start lif-coin (lifnet)" button to app.jsx with start_lif_node_lifnet() function that uses lifsocket instead of proxysocket. No server.js proxy needed.

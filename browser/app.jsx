@@ -33,12 +33,23 @@ async function start_lif_node(){
   0 && await do_mine();
 }
 
+async function start_lif_node_lifnet(){
+  console.log('loading lif-chain app (lifnet)');
+  let {createSocket} = await import('./lifsocket.js');
+  let {main, do_mine} = await import('../bin/lif_node.js');
+  console.log('starting lif-chain app (lifnet)');
+  await main(['node', 'lif_node.js'], {createSocket});
+  console.log('completed lif-chain app (lifnet)');
+  0 && await do_mine();
+}
+
 const App = ()=>{
   return (<>
     <h1>Lifcoin, the browser full node</h1>
     <p>
       <button onClick={()=>start_btc_node()}>Start bit-coin node</button>
       <button onClick={()=>start_lif_node()}>Start lif-coin node</button>
+      <button onClick={()=>start_lif_node_lifnet()}>Start lif-coin (lifnet)</button>
     </p>
     <small>
       Welcome. Your machine is currently validating the blockchain. The blocks
