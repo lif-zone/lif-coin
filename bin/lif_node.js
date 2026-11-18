@@ -36,7 +36,7 @@ async function wait_for_sync_full(){
   console.log('got full');
 }
 let node;
-async function start(){
+async function start(opt={}){
   console.log(`Mining address: ${mine_address}`);
   node = new FullNode({
     network: 'lifmain', // 'main'
@@ -64,6 +64,7 @@ async function start(){
     incoming_sync: true,
     assist_before_sync: true,
     bip37: true,
+    ...opt,
   });
   await node.ensure();
   await node.open({addr_rescan: false});
@@ -85,7 +86,7 @@ function usage(err){
   console.log('--address-file FILE: json file: field: mine_address');
   process.exit(1);
 }
-export async function main(argv){
+export async function main(argv, opt){
   argv ||= process.argv;
   let i = 2;
   for (; i<argv.length;){
@@ -110,7 +111,7 @@ export async function main(argv){
   if (argv.length!=i)
     return usage();
   mine_address ||= default_address;
-  await start();
+  await start(opt);
 }
 if (!process.browser)
   main();
