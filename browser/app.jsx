@@ -212,7 +212,7 @@ const App = ()=>{
 
   return (<div style={{padding: 20, fontFamily: 'monospace'}}>
     <h1 style={{fontSize: '2em', margin: '10px 0'}}>
-      <img src={import.meta.resolve('lif-kernel/lif.svg')} style={{height: '1.2em',
+      <img src="/.lif/npm/lif-kernel/lif.svg" style={{height: '1.2em',
         verticalAlign: 'middle', marginRight: 8}} />
       Lifcoin, the browser full node</h1>
     <div style={{margin: '10px 0'}}>
