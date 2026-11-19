@@ -1368,3 +1368,6 @@ master (~/BlueWallet-lif): lifcoin/network.ts: LIF_USD_DEFAULT = 0.01,
 lif_coin.price = {currency: 'USD', rate}.
 Tested on master with the anycoin edits applied temporarily: 10 LIF = $0.10
 in wallet header, rows, transaction screen, Send, Confirm; Bitcoin unchanged.
+---
+USER: async-function module fails when CJS worker require()s it because lif-kernel picks the mjs export. Add a package.json patch to force CJS.
+CLAUDE: Added `patches` section to `package.json` under `lif` key: patches `async-function` exports to resolve `.` to `./index.js` (sync CJS) instead of `./index.mjs` (async ESM). Also earlier: replaced global console.log/error/warn hijacking in app.jsx with a `Logger` instance whose `writeConsole` feeds `log_add()`, passed to lif_node.js via `{logger: make_logger()}` in the `opt` parameter.

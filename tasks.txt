@@ -334,8 +334,13 @@ Post release:
     add support for npm package listing: (quick 'neg', and sha256 to compare
     download)
     https://unpkg.com/react@18.3.1/?meta
-  https://data.jsdelivr.com/v1/packages/npm/react@18.3.1
+    https://data.jsdelivr.com/v1/packages/npm/react@18.3.1
   * add git --file cdn support
+  - in boot.js:require_sync, get from kernel the cjs version (meta redirect),
+    not the mjs version (main, not module, exports default no import)
+    https://unpkg.com/async-function@1.0.0/package.json
+    should return both options?
+    once done, remove the pactch lif-coin/package.json:async-function
   - add semver support for git (XXX in kernel.js): read all refs.
   - new npm/git version check: only on service restart, or 2 forced fetch
     in 10 seconds. but dont wait for it if there is a version in cache
