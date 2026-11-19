@@ -1,84 +1,253 @@
-import React from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import './node_env.js';
-// lif-coin env
 process.env.BCOIN_WORKER_FILE = import.meta.resolve('../lib/workers/worker.js');
 process.argv = ['lif-coin'];
 import fs from "./fs.js";
 
-// main app
-let app;
-async function start_btc_node(){
-  if (app)
-    return console.error('already started');
-  console.log('loading btc-chain app');
-  app = (await import('../bin/btc_node.js')).default;
-  console.log('starting btc-chain app');
-  await app();
-  console.log('completed btc-chain app');
+// Log
+const MAX_LOG = 500;
+let log_lines = [];
+let log_listener;
+
+function log_add(line){
+  log_lines.push(line);
+  if (log_lines.length>MAX_LOG)
+    log_lines = log_lines.slice(-MAX_LOG);
+  log_listener?.();
 }
 
-async function start_lif_node(){
-  console.log('loading lif-chain app');
-  let ProxySocket = (await import('./proxysocket.js')).default;
-  function createSocket(port, host){
-    let proto = location.protocol=='https:' ? 'wss' : 'ws';
-    let hostname = global.location.host;
-    hostname = 'localhost:4000';
-    return ProxySocket.connect(`${proto}://${hostname}`, port, host);
-  }
-  let {main, do_mine} = await import('../bin/lif_node.js');
-  console.log('starting lif-chain app');
-  await main(['node', 'lif_node.js'], {createSocket});
-  console.log('completed lif-chain app');
-  0 && await do_mine();
-}
+// intercept console.log and console.error
+let _console_log = console.log.bind(console);
+let _console_error = console.error.bind(console);
+console.log = (...args)=>{
+  _console_log(...args);
+  log_add(args.map(a=>typeof a=='object' ? JSON.stringify(a) : ''+a)
+    .join(' '));
+};
+console.error = (...args)=>{
+  _console_error(...args);
+  log_add('[error] '+args.map(a=>{
+    if (a instanceof Error)
+      return a.message;
+    if (typeof a=='object')
+      return JSON.stringify(a);
+    return ''+a;
+  }).join(' '));
+};
+let _console_warn = console.warn.bind(console);
+console.warn = (...args)=>{
+  _console_warn(...args);
+  log_add('[warn] '+args.map(a=>typeof a=='object' ? JSON.stringify(a)
+    : ''+a).join(' '));
+};
 
-async function start_lif_node_lifnet(){
-  console.log('loading lif-chain app (lifnet)');
+// Node
+let node_ref = null;
+let node_coin = null;
+
+async function start_lif(){
   let {createSocket} = await import('./lifsocket.js');
-  let {main, do_mine} = await import('../bin/lif_node.js');
-  console.log('starting lif-chain app (lifnet)');
+  let {main, get_node} = await import('../bin/lif_node.js');
   await main(['node', 'lif_node.js'], {createSocket});
-  console.log('completed lif-chain app (lifnet)');
-  0 && await do_mine();
+  node_ref = get_node?.();
 }
 
+async function start_btc(){
+  let {createSocket} = await import('./lifsocket.js');
+  let {default: app, get_node} = await import('../bin/btc_node.js');
+  await app();
+  node_ref = get_node?.();
+}
+
+// URL
+function url_coin(){
+  let path = location.pathname;
+  if (path=='/btc')
+    return 'btc';
+  return 'lif';
+}
+
+function url_screen(){
+  if (location.pathname=='/options')
+    return 'options';
+  return 'main';
+}
+
+function url_auto(){
+  return location.search=='?start';
+}
+
+function set_url(path, replace){
+  if (location.pathname+location.search==path)
+    return;
+  if (replace)
+    history.replaceState(null, '', path);
+  else
+    history.pushState(null, '', path);
+}
+
+// RPC
+async function rpc_exec(cmd_text){
+  if (!node_ref?.rpc)
+    return {error: 'node not running'};
+  let argv = cmd_text.trim().split(/\s+/);
+  let method = argv.shift();
+  let params = argv.map(arg=>{
+    try { return JSON.parse(arg); }
+    catch(e){ return arg; }
+  });
+  return await node_ref.rpc.execute({method, params});
+}
+
+// App
 const App = ()=>{
-  return (<>
-    <h1>Lifcoin, the browser full node</h1>
-    <p>
-      <button onClick={()=>start_btc_node()}>Start bit-coin node</button>
-      <button onClick={()=>start_lif_node()}>Start lif-coin node</button>
-      <button onClick={()=>start_lif_node_lifnet()}>Start lif-coin (lifnet)</button>
-    </p>
-    <small>
-      Welcome. Your machine is currently validating the blockchain. The blocks
-      and wallet are stored on your local disk with indexed DB. You are
-      connecting to the actual bitcoin P2P network via a websocket-&gt;tcp
-      proxy. Enjoy. (See the
-      <a href="https://github.com/bcoin-org/bcoin"
-        target="_blank">bcoin repo</a>
-      for more bitcoin magic).
-    </small>
-    <div className="tx">
-      <div>Chain State: <span id="state"></span></div>
-      <div>Last 20 Blocks/TXs:</div>
-      <div id="tx"></div>
+  let [coin, setCoin] = useState(url_coin);
+  let [running, setRunning] = useState(false);
+  let [screen, setScreen] = useState(url_screen);
+  let [logText, setLogText] = useState(()=>log_lines.join('\n'));
+  let [rpcCmd, setRpcCmd] = useState('');
+  let [rpcResult, setRpcResult] = useState('');
+  let logRef = useRef(null);
+
+  // sync log_lines to state
+  useEffect(()=>{
+    log_listener = ()=>setLogText(log_lines.join('\n'));
+    return ()=>{ log_listener = null; };
+  }, []);
+
+  // auto scroll log
+  useEffect(()=>{
+    let el = logRef.current;
+    if (el)
+      el.scrollTop = el.scrollHeight;
+  }, [logText]);
+
+  // handle popstate
+  useEffect(()=>{
+    let on_pop = ()=>{
+      let path = location.pathname;
+      if (path=='/options')
+        setScreen('options');
+      else {
+        setScreen('main');
+        if (!running)
+          setCoin(url_coin());
+      }
+    };
+    window.addEventListener('popstate', on_pop);
+    return ()=>window.removeEventListener('popstate', on_pop);
+  }, [running]);
+
+  // auto-start on ?start
+  let started = useRef(false);
+  useEffect(()=>{
+    if (started.current)
+      return;
+    if (url_auto()){
+      started.current = true;
+      do_start(coin);
+    }
+  }, []);
+
+  let do_start = useCallback(async(c)=>{
+    if (running)
+      return;
+    setRunning(true);
+    set_url('/'+c+'?start', true);
+    try {
+      if (c=='btc')
+        await start_btc();
+      else
+        await start_lif();
+    } catch(e){
+      console.error('node failed: '+e.message);
+      setRunning(false);
+    }
+  }, [running]);
+
+  let select_coin = useCallback((c)=>{
+    if (running)
+      return;
+    setCoin(c);
+    set_url('/'+c);
+  }, [running]);
+
+  let go_options = useCallback(()=>{
+    setScreen('options');
+    set_url('/options');
+  }, []);
+
+  let go_back = useCallback(()=>{
+    setScreen('main');
+    let path = '/'+coin;
+    if (running)
+      path += '?start';
+    set_url(path);
+  }, [coin, running]);
+
+  let do_rpc = useCallback(async(e)=>{
+    e.preventDefault();
+    if (!rpcCmd.trim())
+      return;
+    setRpcResult('running...');
+    try {
+      let result = await rpc_exec(rpcCmd);
+      setRpcResult(JSON.stringify(result, null, 2));
+    } catch(e){
+      setRpcResult('Error: '+(e.message||e));
+    }
+  }, [rpcCmd]);
+
+  if (screen=='options')
+    return (<div style={{padding: 20, fontFamily: 'monospace'}}>
+      <h2>Options</h2>
+      <button onClick={go_back}>&larr; Back</button>
+      <div style={{marginTop: 20}}>
+        <form onSubmit={do_rpc}>
+          <input type="text" value={rpcCmd}
+            onChange={e=>setRpcCmd(e.target.value)}
+            placeholder="RPC command (e.g. getblockchaininfo)"
+            style={{width: '60%', fontFamily: 'monospace', padding: 4}} />
+          <button type="submit" style={{marginLeft: 8}}>Run</button>
+        </form>
+        {rpcResult && <pre style={{
+          marginTop: 10, padding: 10, border: '1px solid #ccc',
+          maxHeight: 400, overflow: 'auto', whiteSpace: 'pre-wrap',
+        }}>{rpcResult}</pre>}
+      </div>
+    </div>);
+
+  return (<div style={{padding: 20, fontFamily: 'monospace'}}>
+    <h1 style={{fontSize: '2em', margin: '10px 0'}}>
+      Lifcoin, the browser full node</h1>
+    <div style={{margin: '10px 0'}}>
+      <label style={{marginRight: 20, cursor: running ? 'default' : 'pointer'}}>
+        <input type="radio" name="coin" value="lif"
+          checked={coin=='lif'} disabled={running}
+          onChange={()=>select_coin('lif')} />
+        {' '}Lifcoin
+      </label>
+      <label style={{cursor: running ? 'default' : 'pointer'}}>
+        <input type="radio" name="coin" value="btc"
+          checked={coin=='btc'} disabled={running}
+          onChange={()=>select_coin('btc')} />
+        {' '}Bitcoin
+      </label>
     </div>
-    <div id="log" className="log"></div>
-    <form id="rpc" className="rpc" action="#">
-      <input type="text" name="cmd" id="cmd"
-        placeholder="RPC command (e.g. getblockchaininfo)" />
-    </form>
-    <div id="wallet" className="wallet"></div>
-    <form id="send" className="send" action="#">
-      <input type="text" name="address" id="address" placeholder="Address" />
-      <input type="text" name="amount" id="amount" placeholder="Amount (BTC)" />
-      <input type="submit" value="Send" />
-    </form>
-    <input type="button" id="newaddr" value="New Address" />
-    <div id="floating" className="floating"></div>
-  </>);
+    <div style={{margin: '10px 0'}}>
+      <button onClick={()=>do_start(coin)} disabled={running}>
+        {running ? 'Running...' : 'Start'}
+      </button>
+      {running && <button onClick={go_options}
+        style={{marginLeft: 10}}>Options</button>}
+    </div>
+    <textarea ref={logRef} readOnly value={logText}
+      style={{
+        width: '100%', height: '70vh', fontFamily: 'monospace',
+        fontSize: '0.85em', padding: 5, border: '1px solid #999',
+        whiteSpace: 'pre', resize: 'vertical', boxSizing: 'border-box',
+      }} />
+  </div>);
 };
 
 export default App;

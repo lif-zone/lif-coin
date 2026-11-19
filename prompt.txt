@@ -1317,3 +1317,31 @@ wallet's own and change addresses are valid.
 ---
 USER: Create browser/lifsocket.js as an alternative to browser/proxysocket.js. Instead of proxying TCP through a WebSocket to server.js, it should use lifnet for outgoing TCP connections via lif-kernel/net/tcpip.js. Also add a button in app.jsx to use it.
 CLAUDE: Created browser/lifsocket.js: extends tcp_sock from lif-kernel/tcpip, which tunnels TCP over lifnet's tcp/out topic to a lif-net out node. Exports createSocket(port, host) and LIFSocket class. Added "Start lif-coin (lifnet)" button to app.jsx with start_lif_node_lifnet() function that uses lifsocket instead of proxysocket. No server.js proxy needed.
+---
+USER: Redesign browser/app.jsx UI: radio buttons for Lifcoin/Bitcoin, Start button, log textarea (capped at 500 lines from console.log/error/warn), Options screen with RPC, pushState URL routing (/lif /lif?start /btc /btc?start /options). Remove old UI elements (Address, Amount, Send, New Address, tx list). Auto-start on ?start URL param.
+CLAUDE: Rewrote browser/app.jsx: React component with coin radio buttons, Start button, log textarea capturing intercepted console.log/error/warn (500 line cap), Options screen behind pushState /options with RPC command input. URLs change via pushState without reload; lif-kernel serve.js SPA fallback serves index.html for all navigation requests. Added get_node() export to bin/lif_node.js and bin/btc_node.js for RPC access. Guarded all DOM references in bin/btc_node.js (getElementById calls return null with new UI) with null checks and console.log fallbacks for logger.writeConsole. Removed old HTML elements (tx list, wallet, send form, floating div).
+---
+USER:
+go ahead with #5 to #7 (remaining "BTC" labels for a LIF wallet, home recent
+transactions without units, fiat value of LIF uses the Bitcoin price)
+
+CLAUDE:
+anycoin (~/BlueWallet-anycoin), no change in lifcoin/:
+- models/bitcoinUnits.ts: coinHasFiat(coin): only Bitcoin has a value in
+  currency. loc/index.ts formatBalance(): a coin without a price is never
+  formatted as currency.
+- No currency unit and no value in currency for such a coin:
+  components/AmountInput.tsx, components/TransactionsNavigationHeader.tsx
+  (unit toggle), screen/receive/ReceiveDetails.tsx, screen/send/Confirm.tsx,
+  screen/transactions/TransactionStatus.tsx.
+- Unit names of the coin: components/addresses/AddressItem.tsx,
+  screen/SelectFeeScreen.tsx, screen/send/create.tsx (new walletID param of
+  CreateTransaction, passed by Confirm), screen/wallets/WalletDetails.tsx
+  (CSV header).
+- components/TransactionListItem.tsx: the amount of a coin other than
+  Bitcoin carries its unit (home list mixes coins); copy gives the number.
+Tested with the edits applied temporarily on master: wallet screen and unit
+toggle, transaction screen, addresses, Send amount input, fee screen,
+Confirm, Details; Bitcoin transaction screen still shows currency.
+Not seen on screen: a LIF row in the home list (its last transactions are
+all Bitcoin now); same component as the wallet screen rows.

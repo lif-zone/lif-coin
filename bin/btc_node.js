@@ -16,7 +16,7 @@ const floating = document.getElementById('floating');
 const send = document.getElementById('send');
 const newaddr = document.getElementById('newaddr');
 const chainState = document.getElementById('state');
-const rpc = document.getElementById('rpc');
+const rpc_el = document.getElementById('rpc');
 const cmd = document.getElementById('cmd');
 const items = [];
 
@@ -27,6 +27,15 @@ const logger = new Logger({level: 'debug', console: true});
 logger.writeConsole = function writeConsole(level, module, args) {
   const name = Logger.levelsByVal[level];
   const msg = this.fmt(args, false);
+
+  if (!log) {
+    let prefix = module ? `[${name}] (${module}) ` : `[${name}] `;
+    if (level === Logger.levels.ERROR)
+      console.error(prefix + msg);
+    else
+      console.log(prefix + msg);
+    return;
+  }
 
   if (++scrollback > 1000) {
     log.innerHTML = '';
@@ -80,16 +89,22 @@ window.onunhandledrejection = function onunhandledrejection(event) {
   throw event.reason;
 };
 
-body.onmouseup = function onmouseup() {
-  floating.style.display = 'none';
-};
+if (body && floating) {
+  body.onmouseup = function onmouseup() {
+    floating.style.display = 'none';
+  };
 
-floating.onmouseup = function onmouseup(ev) {
-  ev.stopPropagation();
-  return false;
-};
+  floating.onmouseup = function onmouseup(ev) {
+    ev.stopPropagation();
+    return false;
+  };
+}
 
 function show(obj) {
+  if (!floating) {
+    console.log(obj instanceof Error ? obj.stack : JSON.stringify(obj, null, 2));
+    return;
+  }
   if (obj instanceof Error) {
     floating.innerHTML = obj.stack;
     floating.style.display = 'block';
@@ -99,7 +114,7 @@ function show(obj) {
   floating.style.display = 'block';
 }
 
-rpc.onsubmit = function onsubmit(ev) {
+if (rpc_el) rpc_el.onsubmit = function onsubmit(ev) {
   const text = cmd.value || '';
   const argv = text.trim().split(/\s+/);
   const method = argv.shift();
@@ -132,7 +147,7 @@ rpc.onsubmit = function onsubmit(ev) {
   return false;
 };
 
-send.onsubmit = function onsubmit(ev) {
+if (send) send.onsubmit = function onsubmit(ev) {
   const value = document.getElementById('amount').value;
   const address = document.getElementById('address').value;
 
@@ -160,7 +175,7 @@ send.onsubmit = function onsubmit(ev) {
   return false;
 };
 
-newaddr.onmouseup = function onmouseup() {
+if (newaddr) newaddr.onmouseup = function onmouseup() {
   (async () => {
     try {
       await wdb.primary.createReceive();
@@ -194,6 +209,11 @@ function escape(html, encode) {
 function addItem(item, entry) {
   const height = entry ? entry.height : -1;
 
+  if (!tdiv) {
+    console.log(`${item.rhash()} (${height} - ${kb(item.getSize())})`);
+    return;
+  }
+
   if (items.length === 20) {
     const el = items.shift();
     tdiv.removeChild(el);
@@ -212,10 +232,11 @@ function addItem(item, entry) {
 
   items.push(el);
 
-  chainState.innerHTML = ''
-    + `tx=${node.chain.db.state.tx} `
-    + `coin=${node.chain.db.state.coin} `
-    + `value=${Amount.btc(node.chain.db.state.value)}`;
+  if (chainState)
+    chainState.innerHTML = ''
+      + `tx=${node.chain.db.state.tx} `
+      + `coin=${node.chain.db.state.coin} `
+      + `value=${Amount.btc(node.chain.db.state.value)}`;
 }
 
 function setMouseup(el, obj) {
@@ -265,6 +286,8 @@ async function _formatWallet(wallet) {
   const det = await wallet.toDetails(txs);
 
   html += 'TXs:\n';
+  if (!wdiv)
+    return;
   wdiv.innerHTML = html;
 
   for (const tx of det) {
@@ -279,6 +302,7 @@ async function _formatWallet(wallet) {
 node.chain.on('block', addItem);
 node.mempool.on('tx', addItem);
 
+export function get_node(){ return node; }
 export default async function(){
   await node.ensure();
   await node.open();
