@@ -209,6 +209,8 @@ const App = ()=>{
 
   return (<div style={{padding: 20, fontFamily: 'monospace'}}>
     <h1 style={{fontSize: '2em', margin: '10px 0'}}>
+      <img src="fullnode.png" style={{width: '1.2em', height: '1.2em',
+        verticalAlign: 'middle', marginRight: 8}} />
       Lifcoin, the browser full node</h1>
     <div style={{margin: '10px 0'}}>
       <label style={{marginRight: 20, cursor: 'pointer'}}>
