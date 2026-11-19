@@ -4,6 +4,9 @@ process.env.BCOIN_WORKER_FILE = import.meta.resolve('../lib/workers/worker.js');
 process.argv = ['lif-coin'];
 import fs from "./fs.js";
 
+import {html_favicon_set} from 'lif-kernel/util';
+html_favicon_set(import.meta.resolve('./lif_node.png'));
+
 // Log
 const MAX_LOG = 500;
 let log_lines = [];
@@ -209,7 +212,7 @@ const App = ()=>{
 
   return (<div style={{padding: 20, fontFamily: 'monospace'}}>
     <h1 style={{fontSize: '2em', margin: '10px 0'}}>
-      <img src="fullnode.png" style={{width: '1.2em', height: '1.2em',
+      <img src={import.meta.resolve('lif-kernel/lif.svg')} style={{height: '1.2em',
         verticalAlign: 'middle', marginRight: 8}} />
       Lifcoin, the browser full node</h1>
     <div style={{margin: '10px 0'}}>
