@@ -38,11 +38,13 @@ function make_logger(){
 // Node
 let node_ref = null;
 
-async function start_lif(){
+async function start_node(coin){
   let {createSocket} = await import('./lifsocket.js');
-  let {main, get_node} = await import('../bin/lif_node.js');
-  await main(['node', 'lif_node.js'], {createSocket, logger: make_logger()});
-  node_ref = get_node?.();
+  let mod = coin=='btc'
+    ? await import('../bin/btc_node.js')
+    : await import('../bin/lif_node.js');
+  await mod.main(['node', coin+'_node.js'], {createSocket, logger: make_logger()});
+  node_ref = mod.get_node?.();
 }
 
 // URL
@@ -141,10 +143,7 @@ const App = ()=>{
     setRunning(true);
     set_url('/'+c+'?start', true);
     try {
-      if (c=='btc')
-        console.error('btc node not yet supported in new UI');
-      else
-        await start_lif();
+      await start_node(c);
     } catch(e){
       console.error('node failed: '+e.message);
       setRunning(false);
