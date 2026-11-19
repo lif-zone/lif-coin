@@ -151,12 +151,17 @@ const App = ()=>{
     }
   }, [running]);
 
+  let do_stop = useCallback(()=>{
+    location.href = '/'+coin;
+  }, [coin]);
+
   let select_coin = useCallback((c)=>{
-    if (running)
-      return;
     setCoin(c);
-    set_url('/'+c);
-  }, [running]);
+    if (running)
+      location.href = '/'+c;
+    else
+      set_url('/'+c);
+  }, [running, coin]);
 
   let go_options = useCallback(()=>{
     setScreen('options');
@@ -207,23 +212,24 @@ const App = ()=>{
     <h1 style={{fontSize: '2em', margin: '10px 0'}}>
       Lifcoin, the browser full node</h1>
     <div style={{margin: '10px 0'}}>
-      <label style={{marginRight: 20, cursor: running ? 'default' : 'pointer'}}>
+      <label style={{marginRight: 20, cursor: 'pointer'}}>
         <input type="radio" name="coin" value="lif"
-          checked={coin=='lif'} disabled={running}
+          checked={coin=='lif'}
           onChange={()=>select_coin('lif')} />
         {' '}Lifcoin
       </label>
-      <label style={{cursor: running ? 'default' : 'pointer'}}>
+      <label style={{cursor: 'pointer'}}>
         <input type="radio" name="coin" value="btc"
-          checked={coin=='btc'} disabled={running}
+          checked={coin=='btc'}
           onChange={()=>select_coin('btc')} />
         {' '}Bitcoin
       </label>
     </div>
     <div style={{margin: '10px 0'}}>
-      <button onClick={()=>do_start(coin)} disabled={running}>
-        {running ? 'Running...' : 'Start'}
-      </button>
+      {running
+        ? <><button onClick={do_stop}>Stop</button>
+          <span style={{marginLeft: 10, color: 'green'}}>Running...</span></>
+        : <button onClick={()=>do_start(coin)}>Start</button>}
       {running && <button onClick={go_options}
         style={{marginLeft: 10}}>Options</button>}
     </div>
