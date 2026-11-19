@@ -1,316 +1,117 @@
+#!/usr/bin/env node
 'use strict';
-console.log('start lif-scroll app.js');
+process.title = 'btc_node';
+import '../browser/browser_env.js';
+import Network from '../lib/protocol/network.js';
+import FullNode from '../lib/node/fullnode.js';
+import Address from '../lib/primitives/address.js';
+import {ewait} from 'lif-kernel/util.js';
+import assert from 'bsert';
+import {readFileSync} from 'fs';
 
-import Logger from 'blgr';
-import FullNode from '../lib/node/fullnode';
-import Amount from '../lib/btc/amount';
-import plugin from '../lib/wallet/plugin';
-import util from '../lib/utils/util';
-import ProxySocket from './proxysocket';
+// test address: all all all all all all all all all all all all
+let test_address = 'bc1qannfxke2tfd4l7vhepehpvt05y83v3qsf6nfkk';
+let default_address = 'bc1qannfxke2tfd4l7vhepehpvt05y83v3qsf6nfkk';
+let mine_address;
 
-const body = document.getElementsByTagName('body')[0];
-const log = document.getElementById('log');
-const wdiv = document.getElementById('wallet');
-const tdiv = document.getElementById('tx');
-const floating = document.getElementById('floating');
-const send = document.getElementById('send');
-const newaddr = document.getElementById('newaddr');
-const chainState = document.getElementById('state');
-const rpc_el = document.getElementById('rpc');
-const cmd = document.getElementById('cmd');
-const items = [];
-
-let scrollback = 0;
-
-const logger = new Logger({level: 'debug', console: true});
-
-logger.writeConsole = function writeConsole(level, module, args) {
-  const name = Logger.levelsByVal[level];
-  const msg = this.fmt(args, false);
-
-  if (!log) {
-    let prefix = module ? `[${name}] (${module}) ` : `[${name}] `;
-    if (level === Logger.levels.ERROR)
-      console.error(prefix + msg);
-    else
-      console.log(prefix + msg);
-    return;
-  }
-
-  if (++scrollback > 1000) {
-    log.innerHTML = '';
-    scrollback = 1;
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-
-  log.innerHTML += `<span style="color:blue;">${now}</span> `;
-
-  if (name === 'error') {
-    log.innerHTML += `<span style="color:red;">[${name}] `;
-    if (module)
-      log.innerHTML += `(${module}) `;
-    log.innerHTML += '</span>';
-  } else {
-    log.innerHTML += `[${name}] `;
-    if (module)
-      log.innerHTML += `(${module}) `;
-  }
-
-  log.innerHTML += escape(msg) + '\n';
-  log.scrollTop = log.scrollHeight;
-};
-
-const node = new FullNode({
-  hash: true,
-  query: true,
-  prune: true,
-  network: 'main',
-  memory: false,
-  logConsole: true,
-  workers: true,
-  workerFile: '/worker.js',
-  createSocket: (port, host) => {
-    let proto = global.location.protocol === 'https:' ? 'wss' : 'ws';
-    let hostname = global.location.host;
-    hostname = 'localhost:4000';
-    return ProxySocket.connect(`${proto}://${hostname}`, port, host);
-  },
-  logger: logger,
-  plugins: [plugin]
+process.on('unhandledRejection', (err, promise)=>{
+  console.error(err);
+  throw err;
+});
+process.on('SIGINT', async()=>{
+  await node.close();
 });
 
-const {wdb} = node.require('walletdb');
-wdb.options.witness = true;
-
-window.onunhandledrejection = function onunhandledrejection(event) {
-  console.log('unhandled rejection '+event.reason.message+': '
-    +event.reason.stack);
-  throw event.reason;
-};
-
-if (body && floating) {
-  body.onmouseup = function onmouseup() {
-    floating.style.display = 'none';
-  };
-
-  floating.onmouseup = function onmouseup(ev) {
-    ev.stopPropagation();
-    return false;
-  };
+async function Ewait(e, name){
+  let wait = ewait();
+  e.once(name, a=>wait.return(a));
+  return await wait;
 }
-
-function show(obj) {
-  if (!floating) {
-    console.log(obj instanceof Error ? obj.stack : JSON.stringify(obj, null, 2));
-    return;
-  }
-  if (obj instanceof Error) {
-    floating.innerHTML = obj.stack;
-    floating.style.display = 'block';
-    return;
-  }
-  floating.innerHTML = escape(JSON.stringify(obj, null, 2));
-  floating.style.display = 'block';
+async function wait_for_sync_full(){
+  console.log('waiting for full');
+  console.log(node.chain.isFull());
+  let ret = await Ewait(node, 'full');
+  console.log('got full');
 }
-
-if (rpc_el) rpc_el.onsubmit = function onsubmit(ev) {
-  const text = cmd.value || '';
-  const argv = text.trim().split(/\s+/);
-  const method = argv.shift();
-  const params = [];
-
-  cmd.value = '';
-
-  for (const arg of argv) {
-    let param;
-    try {
-      param = JSON.parse(arg);
-    } catch (e) {
-      param = arg;
-    }
-    params.push(param);
-  }
-
-  (async () => {
-    try {
-      const result = await node.rpc.execute({ method, params });
-      show(result);
-    } catch (e) {
-      show(e);
-    }
-  })();
-
-  ev.preventDefault();
-  ev.stopPropagation();
-
-  return false;
-};
-
-if (send) send.onsubmit = function onsubmit(ev) {
-  const value = document.getElementById('amount').value;
-  const address = document.getElementById('address').value;
-
-  const options = {
-    outputs: [{
-      address: address,
-      value: Amount.value(value)
-    }]
-  };
-
-  (async () => {
-    try {
-      const mtx = await wdb.primary.createTX(options);
-      await wdb.primary.sign(mtx);
-      await node.relay(mtx.toTX());
-      show(mtx);
-    } catch (e) {
-      show(e);
-    }
-  })();
-
-  ev.preventDefault();
-  ev.stopPropagation();
-
-  return false;
-};
-
-if (newaddr) newaddr.onmouseup = function onmouseup() {
-  (async () => {
-    try {
-      await wdb.primary.createReceive();
-      formatWallet(wdb.primary);
-    } catch (e) {
-      show(e);
-    }
-  })();
-};
-
-function kb(size) {
-  size /= 1000;
-  return size.toFixed(2) + 'kb';
-}
-
-function create(html) {
-  const el = document.createElement('div');
-  el.innerHTML = html;
-  return el.firstChild;
-}
-
-function escape(html, encode) {
-  return html
-    .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function addItem(item, entry) {
-  const height = entry ? entry.height : -1;
-
-  if (!tdiv) {
-    console.log(`${item.rhash()} (${height} - ${kb(item.getSize())})`);
-    return;
-  }
-
-  if (items.length === 20) {
-    const el = items.shift();
-    tdiv.removeChild(el);
-    el.onmouseup = null;
-  }
-
-  const el = create(''
-    + `<a style="display:block;" href="#${item.rhash()}">`
-    + `${item.rhash()} (${height} - ${kb(item.getSize())})`
-    + '</a>'
-  );
-
-  tdiv.appendChild(el);
-
-  setMouseup(el, item);
-
-  items.push(el);
-
-  if (chainState)
-    chainState.innerHTML = ''
-      + `tx=${node.chain.db.state.tx} `
-      + `coin=${node.chain.db.state.coin} `
-      + `value=${Amount.btc(node.chain.db.state.value)}`;
-}
-
-function setMouseup(el, obj) {
-  el.onmouseup = function onmouseup(ev) {
-    show(obj);
-    ev.stopPropagation();
-    return false;
-  };
-}
-
-async function formatWallet(wallet) {
-  try {
-    await _formatWallet(wallet);
-  } catch (e) {
-    show(e);
-  }
-}
-
-async function _formatWallet(wallet) {
-  const {key, mnemonic} = wallet.master.toJSON(node.network, true);
-  const account = await wallet.getAccount('default');
-  const receive = account.receiveAddress();
-  const nested = account.nestedAddress();
-  const raddr = receive.toString(node.network);
-  const naddr = nested ? nested.toString(node.network) : null;
-
-  let html = '';
-
-  html += '<b>Wallet</b><br>';
-
-  if (naddr) {
-    html += `Current Address (p2wpkh): <b>${raddr}</b><br>`;
-    html += `Current Address (p2wpkh behind p2sh): <b>${naddr}</b><br>`;
-  } else {
-    html += `Current Address: <b>${raddr}</b><br>`;
-  }
-
-  html += `Extended Private Key: <b>${key.xprivkey}</b><br>`;
-  html += `Mnemonic: <b>${mnemonic.phrase}</b><br>`;
-
-  const balance = await wallet.getBalance();
-
-  html += `Confirmed Balance: <b>${Amount.btc(balance.confirmed)}</b><br>`;
-  html += `Unconfirmed Balance: <b>${Amount.btc(balance.unconfirmed)}</b><br>`;
-
-  const txs = await wallet.getHistory();
-  const det = await wallet.toDetails(txs);
-
-  html += 'TXs:\n';
-  if (!wdiv)
-    return;
-  wdiv.innerHTML = html;
-
-  for (const tx of det) {
-    const hash = util.revHex(tx.hash);
-    const el = create(
-      `<a style="display:block;" href="#${hash}">${hash}</a>`);
-    wdiv.appendChild(el);
-    setMouseup(el, tx.toJSON());
-  }
-}
-
-node.chain.on('block', addItem);
-node.mempool.on('tx', addItem);
-
-export function get_node(){ return node; }
-export default async function(){
-  await node.ensure();
-  await node.open();
-  await node.connect();
-  node.startSync();
-  wdb.primary.on('balance', ()=>{
-    formatWallet(wdb.primary);
+let node;
+async function start(opt={}){
+  console.log(`Mining address: ${mine_address}`);
+  node = new FullNode({
+    network: 'main',
+    file: false,
+    argv: [],
+    env: true,
+    logFile: true,
+    logConsole: true,
+    logLevel: 'info',
+    memory: false,
+    workers: true,
+    listen: true,
+    prefix: '~/lif.store',
+    coinbaseFlags: 'mined by lif-coin',
+    'index-tx': true,
+    'index-address': true,
+    'index-addrsh': true,
+    //'reject-absurd-fees': false,
+    cors: true,
+    'coinbase-address': [mine_address],
+    'persistent-mempool': true,
+    'require-standard': false,
+    incoming_sync: true,
+    assist_before_sync: true,
+    //hash: true,
+    //query: true,
+    //prune: true,
+    ...opt,
   });
-  formatWallet(wdb.primary);
+  await node.ensure();
+  await node.open({addr_rescan: false});
+  await node.connect();
+  await node.startSync();
+  if (0) await wait_for_sync_full();
 }
+
+function exit(err){
+  console.error(err);
+  process.exit(1);
+}
+function usage(err){
+  console.log('node btc_node.js [OPTS]');
+  console.log('');
+  console.log('--address ADDRESS: the mining address to get 10% of block reward');
+  console.log('--address-test: mnemonic all all all all all all all all all all all all');
+  console.log('--address-default: default donation address');
+  console.log('--address-file FILE: json file: field: mine_address');
+  process.exit(1);
+}
+export function get_node(){ return node; }
+export async function main(argv, opt){
+  argv ||= process.argv;
+  let i = 2;
+  for (; i<argv.length;){
+    let a = argv[i++];
+    if (a=='--address'){
+      let address = argv[i++];
+      if (!address)
+        return exit('no address');
+      let addr = new Address(address);
+      if (!addr)
+        exit('invalid addr');
+      mine_address = addr.address;
+    } else if (a=='--address-default')
+      mine_address = default_address;
+    else if (a=='--address-test')
+      mine_address = test_address;
+    else if (a=='--address-file')
+      mine_address = JSON.parse(readFileSync(argv[i++], 'utf8')).mine_address;
+    else
+      return usage();
+  }
+  if (argv.length!=i)
+    return usage();
+  mine_address ||= default_address;
+  await start(opt);
+}
+if (!process.browser)
+  main();
 

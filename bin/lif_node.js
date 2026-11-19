@@ -39,7 +39,7 @@ let node;
 async function start(opt={}){
   console.log(`Mining address: ${mine_address}`);
   node = new FullNode({
-    network: 'lifmain', // 'main'
+    network: 'lifmain', // 'main' for BTC
     file: false,
     argv: [],
     env: true,
@@ -49,7 +49,6 @@ async function start(opt={}){
     memory: false,
     workers: true,
     listen: true,
-    //loader: require,
     prefix: '~/lif.store',
     coinbaseFlags: 'mined by lif-coin',
     'index-tx': true,
@@ -63,7 +62,6 @@ async function start(opt={}){
     'require-standard': false,
     incoming_sync: true,
     assist_before_sync: true,
-    bip37: true,
     ...opt,
   });
   await node.ensure();
