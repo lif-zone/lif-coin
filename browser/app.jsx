@@ -16,6 +16,12 @@ function log_add(line){
   log_listener?.();
 }
 
+window.onunhandledrejection = function(event){
+  log_add('[error] unhandled rejection: '+event.reason?.message
+    +'\n'+event.reason?.stack);
+  throw event.reason;
+};
+
 import Logger from 'blgr';
 
 function make_logger(){
