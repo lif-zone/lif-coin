@@ -100,7 +100,6 @@
       "websocket": "1.0.35"
     },
     "dependencies": {
-      "lif-kernel": "/lif-kernel",
       "browserfs": "^2.0.0",
       "browser-resolve": "^2.0.0",
       "browserify-zlib": "~0.2.0",
