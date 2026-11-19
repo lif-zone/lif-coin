@@ -1345,3 +1345,26 @@ toggle, transaction screen, addresses, Send amount input, fee screen,
 Confirm, Details; Bitcoin transaction screen still shows currency.
 Not seen on screen: a LIF row in the home list (its last transactions are
 all Bitcoin now); same component as the wallet screen rows.
+---
+USER:
+Just reminding you that by default LIF USD is 0.01$ (until price update from
+network). From where do you get the lif network price?
+
+CLAUDE:
+There is no network price yet (lif-wallet settings.js has usd: 0.01 fixed for
+LIF; only BTC is fetched). Replaced "no fiat for LIF" by a price of the coin:
+anycoin (~/BlueWallet-anycoin):
+- models/bitcoinUnits.ts: TCoin.price {currency, rate} (optional).
+- blue_modules/currency.ts: coinRate(), coinHasFiat(coin) (moved here);
+  satoshiToLocalCurrency(), BTCToLocalCurrency(), fiatToBTC() take the coin.
+  A coin is shown in currency only when its price is in the currency of the
+  user.
+- loc/index.ts: formatBalanceWithoutSuffix()/formatBalancePlain() take the
+  coin. components/AmountInput.tsx: conversions and their cache per coin.
+- Coin passed in TransactionsNavigationHeader, TransactionListItem,
+  ReceiveDetails, ReceiveMoreOptionsSheet/ReceiveCustomAmountSheet (new
+  walletID param), Confirm, TransactionStatus, SendDetails.
+master (~/BlueWallet-lif): lifcoin/network.ts: LIF_USD_DEFAULT = 0.01,
+lif_coin.price = {currency: 'USD', rate}.
+Tested on master with the anycoin edits applied temporarily: 10 LIF = $0.10
+in wallet header, rows, transaction screen, Send, Confirm; Bitcoin unchanged.

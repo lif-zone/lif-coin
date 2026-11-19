@@ -16,46 +16,26 @@ function log_add(line){
   log_listener?.();
 }
 
-// intercept console.log and console.error
-let _console_log = console.log.bind(console);
-let _console_error = console.error.bind(console);
-console.log = (...args)=>{
-  _console_log(...args);
-  log_add(args.map(a=>typeof a=='object' ? JSON.stringify(a) : ''+a)
-    .join(' '));
-};
-console.error = (...args)=>{
-  _console_error(...args);
-  log_add('[error] '+args.map(a=>{
-    if (a instanceof Error)
-      return a.message;
-    if (typeof a=='object')
-      return JSON.stringify(a);
-    return ''+a;
-  }).join(' '));
-};
-let _console_warn = console.warn.bind(console);
-console.warn = (...args)=>{
-  _console_warn(...args);
-  log_add('[warn] '+args.map(a=>typeof a=='object' ? JSON.stringify(a)
-    : ''+a).join(' '));
-};
+import Logger from 'blgr';
+
+function make_logger(){
+  let logger = new Logger({level: 'debug', console: true});
+  logger.writeConsole = function(level, module, args){
+    let name = Logger.levelsByVal[level];
+    let msg = this.fmt(args, false);
+    let prefix = module ? `[${name}] (${module}) ` : `[${name}] `;
+    log_add(prefix+msg);
+  };
+  return logger;
+}
 
 // Node
 let node_ref = null;
-let node_coin = null;
 
 async function start_lif(){
   let {createSocket} = await import('./lifsocket.js');
   let {main, get_node} = await import('../bin/lif_node.js');
-  await main(['node', 'lif_node.js'], {createSocket});
-  node_ref = get_node?.();
-}
-
-async function start_btc(){
-  let {createSocket} = await import('./lifsocket.js');
-  let {default: app, get_node} = await import('../bin/btc_node.js');
-  await app();
+  await main(['node', 'lif_node.js'], {createSocket, logger: make_logger()});
   node_ref = get_node?.();
 }
 
@@ -104,7 +84,7 @@ const App = ()=>{
   let [coin, setCoin] = useState(url_coin);
   let [running, setRunning] = useState(false);
   let [screen, setScreen] = useState(url_screen);
-  let [logText, setLogText] = useState(()=>log_lines.join('\n'));
+  let [logText, setLogText] = useState('');
   let [rpcCmd, setRpcCmd] = useState('');
   let [rpcResult, setRpcResult] = useState('');
   let logRef = useRef(null);
@@ -156,7 +136,7 @@ const App = ()=>{
     set_url('/'+c+'?start', true);
     try {
       if (c=='btc')
-        await start_btc();
+        console.error('btc node not yet supported in new UI');
       else
         await start_lif();
     } catch(e){
