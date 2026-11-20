@@ -16,7 +16,7 @@ function load_progress(){
   document.body.appendChild(elm);
   let last, diff;
   let iv = setInterval(async()=>{
-    let stats = await $lif.boot.kernel_stats();
+    let stats = await globalThis.$lif.boot.kernel_stats();
     let all = stats?.fetch?.all;
     if (all==null || all==last)
       return;
@@ -49,8 +49,15 @@ function log_add(line){
   log_listener?.();
 }
 
+let con = {
+  error: msg=>{ console.error(msg); log_add('[error] '+msg); },
+  warn: msg=>{ console.warn(msg); log_add('[warn] '+msg); },
+  info: msg=>{ console.info(msg); log_add('[info] '+msg); },
+  log: msg=>{ console.log(msg); log_add('[log] '+msg); },
+};
+
 window.onunhandledrejection = function(event){
-  log_add('[error] unhandled rejection: '+event.reason?.message
+  con.error('unhandled rejection: '+event.reason?.message
     +'\n'+event.reason?.stack);
   throw event.reason;
 };
@@ -72,7 +79,7 @@ function make_logger(){
 let node_ref = null;
 
 async function start_node(coin){
-  log_add('Loading...');
+  con.log('Loading...');
   let lp = load_progress();
   let mod;
   try {
@@ -80,12 +87,12 @@ async function start_node(coin){
       ? await import('../bin/btc_node.js')
       : await import('../bin/lif_node.js');
   } catch(e){
-    log_add('[error] load failed: '+e.message);
+    con.error('load failed: '+e.message);
     throw e;
   } finally {
     lp.remove();
   }
-  log_add('Running');
+  con.log('Running');
   await mod.main(['node', coin+'_node.js'], {logger: make_logger()});
   node_ref = mod.get_node?.();
 }
@@ -188,7 +195,7 @@ const App = ()=>{
     try {
       await start_node(c);
     } catch(e){
-      console.error('node failed: '+e.message);
+      log.error('node failed: '+e.message);
       setRunning(false);
     }
   }, [running]);
