@@ -39,7 +39,8 @@ function make_logger(){
 let node_ref = null;
 
 async function start_node(coin){
-  let {createSocket} = await import('./lifsocket.js');
+  let {tcp_sock} = await import('lif-kernel/tcpip');
+  let createSocket = (port, host)=>tcp_sock.connect(port, host);
   let mod = coin=='btc'
     ? await import('../bin/btc_node.js')
     : await import('../bin/lif_node.js');
