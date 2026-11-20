@@ -1377,3 +1377,63 @@ CLAUDE: Updated app.jsx: Stop button reloads page at /coin URL (no ?start) to ki
 ---
 USER: Icons and sites.js: use lif-kernel/lif.svg for title image, extract L as lif_node.png for favicon. Bitcoin fullnode gets btc_node.png from BlueWallet sticker. Add fullnode and fullnode_btc entries to lif-start/sites.js. Fix html_favicon_set() in lif-kernel to reuse existing link element. btc_node.js cleanup confirmed already done.
 CLAUDE: Created lif_node.png (128x128, L extracted from lif-kernel/lif.svg with transparency). Created btc_node.png (128x128, resized from BlueWallet bitcoin-logo-png-transparent.png). Updated app.jsx: favicon via html_favicon_set() from lif-kernel/util, title image from lif-kernel/lif.svg. Fixed lif-kernel html_favicon_set() to reuse existing link[rel=icon]. Updated lif-start/sites.js with fullnode (lif_node.png) and fullnode_btc (btc_node.png) entries. Removed old fullnode.png.
+USER:
+go ahead with #1 to #5 (anycoin: Broadcast screen uses Bitcoin's client; minimum send
+amount 500 fixed; Add Wallet screen decides entropy/LNDHub itself; Import Wallet cannot
+produce a LIF wallet; multisig PSBT screen says BTC)
+
+CLAUDE:
+anycoin (uncommitted, ~/BlueWallet-anycoin):
+- screen/send/Broadcast.tsx: a network selector (SegmentedControl, unit names BTC/LIF)
+  shown when the user's wallets are on more than one network; broadcast goes through a
+  wallet of the chosen network (wallet.electrum). Bitcoin first and the default. For a
+  coin: no push-notification registration, no (Bitcoin) explorer button.
+- class/wallet-registry.ts: TAddWalletOption.asksLndHub; registerMnemonicImporter()/
+  getMnemonicImporters(). screen/wallets/Add.tsx: entropy indicator by
+  selectedOption.keepsEntropy, LNDHub field by selectedOption.asksLndHub.
+  addWalletOptions.ts: Lightning option asksLndHub.
+- class/wallet-import.ts: in the BIP39 part, the wallets of the registered importers are
+  checked: used ones are reported; when nothing was used they are offered after the new
+  bech32 wallet.
+- screen/send/psbtMultisig.tsx: unitLabel(BTC, wallet.coin) in the two BTC labels.
+- #2 not changed: LIF dust is the same as Bitcoin (294 sats for p2wpkh: MIN_RELAY 1000,
+  3*minFee), so the 500 minimum is right for LIF too.
+web2 (uncommitted, ~/BlueWallet-web): SegmentedControl showed nothing on web
+(codegenNativeComponent returned null): new web/segmented_control.js, used by
+web/react_native_extra.js. Also makes the Receive and Addresses tabs appear on web.
+master (uncommitted, ~/BlueWallet-lif): lifcoin/index.ts registerMnemonicImporter ->
+HDLifWallet.
+Tested on 4210 with the edits applied temporarily: import of the LIF test mnemonic finds
+the LIF wallet; a fresh mnemonic offers Bitcoin bech32 + LIF; the Bitcoin test mnemonic
+gives the 4 Bitcoin wallets only; Broadcast selector BTC/LIF, "00" on LIF is rejected by
+the LIF server; Addresses tabs Receive/Change work; Add Wallet screen renders.
+---
+---
+USER: Move error-swallowing emit() into tcp_sock in lif-kernel/net/tcpip.js, remove lifsocket.js. Add lif-kernel/compat/net.js as Node.js net module shim. Map net override in package.json to lif-kernel/net. Remove explicit createSocket from app.jsx. Clean up BlueWallet Socket stub. Create lif-kernel/CLAUDE.md with Jungo Language definition, dev server, browser testing via CDP, Node.js compat, patches, coding conventions.
+CLAUDE: Added emit() error-swallowing to tcp_sock class in lif-kernel/net/tcpip.js. Removed browser/lifsocket.js. Created lif-kernel/compat/net.js with Socket/connect/createConnection/isIP exports wrapping tcp_sock. Changed package.json net override from _empty to lif-kernel/net. Removed createSocket from app.jsx start_node(). Cleaned BlueWallet Socket stub (removed redundant emit override). Created lif-kernel/CLAUDE.md: Jungo Language definition, dev server usage, Chrome CDP browser testing (launch, control, console, screenshot, cleanup), Node.js compatibility overrides, package.json patches, coding conventions.
+USER:
+Read ~/lif-kernel/CLAUDE.md first. Then create ~/BlueWallet-lif/CLAUDE.md: opens with
+"Read ~/lif-kernel/CLAUDE.md first...", documents the branch layers, how to run the web
+version and test ports, the react-native-tcp-socket web stub, the LIF electrum client,
+and other BlueWallet-lif specifics. Jungo style, under 100 lines.
+
+CLAUDE:
+~/BlueWallet-lif/CLAUDE.md already exists: it is BlueWallet's own file, kept identical
+to upstream. Not overwritten. The new file is ~/BlueWallet-lif/lifcoin/CLAUDE.md (master
+layer, 98 lines): layers (with anycoin) and merge rules, code style, run/test ports,
+TCP socket stub, LIF Electrum client differences, LIF coin facts, test rules.
+---
+USER:
+did you explain about the layers and merge logic, so a new fresh claude session will
+know what to do? and how to give me the commit instructions like you give me ( && \ at
+ends of lines...)
+
+CLAUDE:
+~/BlueWallet-lif/lifcoin/CLAUDE.md: the rules were there but too short for a fresh
+session. Added a "Commit and merge" section with a full example command sequence
+(&& \ line ends, cd per directory, add -u plus new files by name, merge --no-edit
+layer by layer down to master) and rules: start at the first changed layer, merge
+first then commit in a lower layer with its own change, git status first, move an edit
+made in the wrong directory. Layers: edit in the layer's own directory. Other sections
+shortened to stay under 100 lines.
+---

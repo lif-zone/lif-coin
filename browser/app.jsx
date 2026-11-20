@@ -3,6 +3,39 @@ import './node_env.js';
 process.env.BCOIN_WORKER_FILE = import.meta.resolve('../lib/workers/worker.js');
 process.argv = ['lif-coin'];
 import fs from "./fs.js";
+import {html_elm} from 'lif-kernel/util';
+
+// Load Progress
+function load_progress(){
+  let elm = html_elm('div', {id: 'lif-loader', style:
+    'position:fixed;top:0;left:0;width:100%;height:100%;display:flex;'
+    +'align-items:center;justify-content:center;font-family:sans-serif;'
+    +'color:#888;font-size:14px;pointer-events:none;z-index:1000'});
+  let txt = document.createTextNode('Loading…');
+  elm.appendChild(txt);
+  document.body.appendChild(elm);
+  let last, diff;
+  let iv = setInterval(async()=>{
+    let stats = await $lif.boot.kernel_stats();
+    let all = stats?.fetch?.all;
+    if (all==null || all==last)
+      return;
+    if (last==null)
+      diff = all;
+    last = all;
+    txt.textContent = 'Loading… '+(all-diff);
+  }, 200);
+  return {
+    elm,
+    remove(){
+      if (this.removed)
+        return;
+      this.removed = true;
+      clearInterval(iv);
+      elm.remove();
+    },
+  };
+}
 
 // Log
 const MAX_LOG = 500;
@@ -39,9 +72,20 @@ function make_logger(){
 let node_ref = null;
 
 async function start_node(coin){
-  let mod = coin=='btc'
-    ? await import('../bin/btc_node.js')
-    : await import('../bin/lif_node.js');
+  log_add('Loading...');
+  let lp = load_progress();
+  let mod;
+  try {
+    mod = coin=='btc'
+      ? await import('../bin/btc_node.js')
+      : await import('../bin/lif_node.js');
+  } catch(e){
+    log_add('[error] load failed: '+e.message);
+    throw e;
+  } finally {
+    lp.remove();
+  }
+  log_add('Running');
   await mod.main(['node', coin+'_node.js'], {logger: make_logger()});
   node_ref = mod.get_node?.();
 }
