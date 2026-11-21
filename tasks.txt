@@ -391,6 +391,27 @@ Post release:
   make sure to use ETag/LMod on request, and make sure 304 response.
 - UI solution to update version: instead of
   Devtools->Application->Service Worker->Update->Unregister
+- Taproot support (BIP 340/341/342)
+  - Phase 1 — Foundation:
+    -  Add `VERIFY_TAPROOT` flag + related flags in `lib/script/common.js`
+    - Add `OP_CHECKSIGADD` opcode (0xba) + `SIGHASH_DEFAULT` (0x00)
+    - Create tagged hash utility (`sha256(sha256(tag) || sha256(tag) || msg)`)
+    - Add `isTaproot()` on Script class
+  - Phase 2 — Sighash + Signing:
+    - Implement Taproot sighash computation (BIP 341) — port from bitpay's
+      `sighashschnorr.js` but use bcrypto's native schnorr
+    - Add key tweak functions (using bcrypto's `schnorr.publicKeyTweakAdd`)
+  - Phase 3 — Verification:
+    - Extend `verifyProgram()` for witness v1: key-path + script-path spend
+    - Implement `checkSchnorrSignature`, Merkle root, `verifyTaprootCommitment`
+    - Implement Tapscript execution (`OP_CHECKSIGADD`, sigops budget)
+  - Tests:
+    - Copy `script_assets_test.json` from bitpay-bitcore (comprehensive Bitcoin
+      Core taproot test vectors, 10.5 MB)
+    - Copy `bip341_wallet_vectors.json` from bitcoin-core
+    - Port BIP 340 test vectors (15 vectors)
+    - Add taproot address tests
+    - Write integration tests for taproot transaction signing
 
 Features
 --------
@@ -428,27 +449,6 @@ Low priority:
   clicking advanced will allow full JSON edit, and full key edit
 - tcpip.js/tcpip_s.js: Out-node transfers are hex inside JSON and fully
   buffered in lif_fetch: fine for API calls, poor for large downloads.
-- Taproot support (BIP 340/341/342)
-  - Phase 1 — Foundation:
-    -  Add `VERIFY_TAPROOT` flag + related flags in `lib/script/common.js`
-    - Add `OP_CHECKSIGADD` opcode (0xba) + `SIGHASH_DEFAULT` (0x00)
-    - Create tagged hash utility (`sha256(sha256(tag) || sha256(tag) || msg)`)
-    - Add `isTaproot()` on Script class
-  - Phase 2 — Sighash + Signing:
-    - Implement Taproot sighash computation (BIP 341) — port from bitpay's
-      `sighashschnorr.js` but use bcrypto's native schnorr
-    - Add key tweak functions (using bcrypto's `schnorr.publicKeyTweakAdd`)
-  - Phase 3 — Verification:
-    - Extend `verifyProgram()` for witness v1: key-path + script-path spend
-    - Implement `checkSchnorrSignature`, Merkle root, `verifyTaprootCommitment`
-    - Implement Tapscript execution (`OP_CHECKSIGADD`, sigops budget)
-  - Tests:
-    - Copy `script_assets_test.json` from bitpay-bitcore (comprehensive Bitcoin
-      Core taproot test vectors, 10.5 MB)
-    - Copy `bip341_wallet_vectors.json` from bitcoin-core
-    - Port BIP 340 test vectors (15 vectors)
-    - Add taproot address tests
-    - Write integration tests for taproot transaction signing
 
 React rewrite
 -------------
