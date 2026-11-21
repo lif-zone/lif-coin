@@ -1515,3 +1515,20 @@ CLAUDE:
 amount field bugs moved from "Upstream bugs to report (not fixed here)" to
 the "Push web2 upstream" item, with the fixes branch changes to offer.
 ---
+---
+USER:
+handle #1 - should connect to LIF servers in parallel to BTC servers
+
+CLAUDE:
+anycoin (~/BlueWallet-anycoin) components/Context/StorageProvider.tsx,
+refreshAllWalletTransactions: each network (each Electrum client of
+BlueApp.getElectrums) connects and is refreshed on its own, all at the same
+time (refreshNetwork: ensureConnected, payment codes, balances,
+transactions, saveToDisk, its own fetch timeout and error handling). Before,
+all networks had to connect or fail before any was fetched. With Bitcoin
+only it is the same sequence as before.
+Tested in the app: Bitcoin server set to 192.0.2.1:50001: LIF was fetched
+while Bitcoin was still connecting (before: about 45s later, after Bitcoin
+gave up). Server restored: all 13 wallets refreshed, Bitcoin and LIF.
+Not changed: the "Network Error" dialog of Bitcoin still shows over the app.
+---
