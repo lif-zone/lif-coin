@@ -1437,3 +1437,6 @@ first then commit in a lower layer with its own change, git status first, move a
 made in the wrong directory. Layers: edit in the layer's own directory. Other sections
 shortened to stay under 100 lines.
 ---
+---
+USER: Improve lpm_import_lookup() to resolve iteratively at each parent level instead of collecting info and deciding at the end. Overrides FORCE a version. Not recursive — iterative loop. Also fix npm_import_parse dep value workaround (/nodejs/ instead of /nodejs// until npm_import_parse is fixed).
+CLAUDE: Rewrote lpm_import_lookup() in kernel.js (lines 233-290) to iterate through lpm_pkg parents. Key changes: (1) at each level, sets resolved on the spot instead of collecting categories; (2) self's override wins over parent's override (is_over flag); (3) parent override applies to non-override resolutions; (4) tracks res_path from first resolution and appends it to final result when the override strips the path; (5) breaks early for non-npm registries. All existing + new tests (npm/net→local/nodejs//net, npm/net2→local/nodejs//net) pass. Used /nodejs/ workaround in test data until npm_import_parse // handling is fixed.

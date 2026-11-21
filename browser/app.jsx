@@ -4,6 +4,7 @@ process.env.BCOIN_WORKER_FILE = import.meta.resolve('../lib/workers/worker.js');
 process.argv = ['lif-coin'];
 import fs from "./fs.js";
 import {html_elm} from 'lif-kernel/util';
+import {createSocket} from 'net';
 
 // Load Progress
 function load_progress(){
@@ -49,21 +50,7 @@ function log_add(line){
   log_listener?.();
 }
 
-let con = {
-  error: msg=>{ console.error(msg); log_add('[error] '+msg); },
-  warn: msg=>{ console.warn(msg); log_add('[warn] '+msg); },
-  info: msg=>{ console.info(msg); log_add('[info] '+msg); },
-  log: msg=>{ console.log(msg); log_add('[log] '+msg); },
-};
-
-window.onunhandledrejection = function(event){
-  con.error('unhandled rejection: '+event.reason?.message
-    +'\n'+event.reason?.stack);
-  throw event.reason;
-};
-
 import Logger from 'blgr';
-
 function make_logger(){
   let logger = new Logger({level: 'debug', console: true});
   logger.writeConsole = function(level, module, args){
@@ -72,8 +59,16 @@ function make_logger(){
     let prefix = module ? `[${name}] (${module}) ` : `[${name}] `;
     log_add(prefix+msg);
   };
+  logger.warn = logger.warning;
   return logger;
 }
+let g_logger = make_logger();
+let con = g_logger;
+
+window.onunhandledrejection = function(event){
+  con.error('unhandled rejection: '+event.reason);
+  throw event.reason;
+};
 
 // Node
 let node_ref = null;
@@ -87,13 +82,13 @@ async function start_node(coin){
       ? await import('../bin/btc_node.js')
       : await import('../bin/lif_node.js');
   } catch(e){
-    con.error('load failed: '+e.message);
+    con.error('load failed: '+e);
     throw e;
   } finally {
     lp.remove();
   }
   con.log('Running');
-  await mod.main(['node', coin+'_node.js'], {logger: make_logger()});
+  await mod.main(['node', coin+'_node.js'], {logger: g_logger, createSocket});
   node_ref = mod.get_node?.();
 }
 
@@ -195,7 +190,7 @@ const App = ()=>{
     try {
       await start_node(c);
     } catch(e){
-      log.error('node failed: '+e.message);
+      con.error(e);
       setRunning(false);
     }
   }, [running]);
