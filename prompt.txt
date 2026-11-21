@@ -1532,3 +1532,21 @@ while Bitcoin was still connecting (before: about 45s later, after Bitcoin
 gave up). Server restored: all 13 wallets refreshed, Bitcoin and LIF.
 Not changed: the "Network Error" dialog of Bitcoin still shows over the app.
 ---
+---
+USER:
+hanlde #3
+
+CLAUDE:
+anycoin (~/BlueWallet-anycoin) class/deeplink-schema-match.ts,
+navigationRouteFor: a payment link of the coin of a wallet is accepted also
+in the wrapper form bluewallet:<scheme>:<address> (as bluewallet:bitcoin:).
+Tested in the app: bluewallet:lifcoin:<addr>?amount=0.4 and upper case route
+to SendDetails with the LIF wallet; no route without a LIF wallet;
+bluewallet:bitcoin:, bitcoin: and bluewallet:setelectrumserver as before.
+---
+USER: add taproot activation heights to networks.js and chain.js
+CLAUDE: added taprootHeight to all 6 networks in networks.js: main=709632,
+testnet=2032291, lifmain/liftest/regtest/simnet=0 (active from genesis).
+Added height-based VERIFY_TAPROOT flag activation in chain.js after the
+segwit check. All 2267 taproot tests and 3424 script tests pass.
+---
