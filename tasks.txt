@@ -412,12 +412,6 @@ Post release:
   make sure to use ETag/LMod on request, and make sure 304 response.
 - UI solution to update version: instead of
   Devtools->Application->Service Worker->Update->Unregister
-- missing feature from bitcoin-core
-  - Full RBF — Bitcoin Core 24.0+ defaults to mempoolfullrbf=1, replacing any
-    unconfirmed tx. lif-coin only has opt-in RBF.
-  - wtxid relay (BIP 339) — peers announce txs by witness txid instead of txid
-  - addrv2 (BIP 155) — supports Tor v3, I2P, CJDNS addresses
-  - Package relay — submit related txs as a package for CPFP fee evaluation
 
 Features
 --------
@@ -455,6 +449,12 @@ Low priority:
   clicking advanced will allow full JSON edit, and full key edit
 - tcpip.js/tcpip_s.js: Out-node transfers are hex inside JSON and fully
   buffered in lif_fetch: fine for API calls, poor for large downloads.
+- missing feature from bitcoin-core
+  - Full RBF — Bitcoin Core 24.0+ defaults to mempoolfullrbf=1, replacing any
+    unconfirmed tx. lif-coin only has opt-in RBF.
+  - wtxid relay (BIP 339) — peers announce txs by witness txid instead of txid
+  - addrv2 (BIP 155) — supports Tor v3, I2P, CJDNS addresses
+  - Package relay — submit related txs as a package for CPFP fee evaluation
 
 React rewrite
 -------------
