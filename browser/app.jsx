@@ -4,7 +4,7 @@ process.env.BCOIN_WORKER_FILE = import.meta.resolve('../lib/workers/worker.js');
 process.argv = ['lif-coin'];
 import fs from "./fs.js";
 import {html_elm} from 'lif-kernel/util';
-import {createSocket} from 'net';
+import {connect} from 'net';
 
 // Load Progress
 function load_progress(){
@@ -88,7 +88,8 @@ async function start_node(coin){
     lp.remove();
   }
   con.log('Running');
-  await mod.main(['node', coin+'_node.js'], {logger: g_logger, createSocket});
+  await mod.main(['node', coin+'_node.js'], {logger: g_logger,
+    createSocket: connect});
   node_ref = mod.get_node?.();
 }
 
