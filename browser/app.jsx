@@ -3,40 +3,8 @@ import './node_env.js';
 process.env.BCOIN_WORKER_FILE = import.meta.resolve('../lib/workers/worker.js');
 process.argv = ['lif-coin'];
 import fs from "./fs.js";
-import {html_elm} from 'lif-kernel/util';
+import {load_progress} from 'lif-kernel/load_progress';
 import {connect} from 'net';
-
-// Load Progress
-function load_progress(){
-  let elm = html_elm('div', {id: 'lif-loader', style:
-    'position:fixed;top:0;left:0;width:100%;height:100%;display:flex;'
-    +'align-items:center;justify-content:center;font-family:sans-serif;'
-    +'color:#888;font-size:14px;pointer-events:none;z-index:1000'});
-  let txt = document.createTextNode('Loading…');
-  elm.appendChild(txt);
-  document.body.appendChild(elm);
-  let last, diff;
-  let iv = setInterval(async()=>{
-    let stats = await globalThis.$lif.boot.kernel_stats();
-    let all = stats?.fetch?.all;
-    if (all==null || all==last)
-      return;
-    if (last==null)
-      diff = all;
-    last = all;
-    txt.textContent = 'Loading… '+(all-diff);
-  }, 200);
-  return {
-    elm,
-    remove(){
-      if (this.removed)
-        return;
-      this.removed = true;
-      clearInterval(iv);
-      elm.remove();
-    },
-  };
-}
 
 // Log
 const MAX_LOG = 500;
