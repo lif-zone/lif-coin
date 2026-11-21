@@ -1440,3 +1440,78 @@ shortened to stay under 100 lines.
 ---
 USER: Improve lpm_import_lookup() to resolve iteratively at each parent level instead of collecting info and deciding at the end. Overrides FORCE a version. Not recursive — iterative loop. Also fix npm_import_parse dep value workaround (/nodejs/ instead of /nodejs// until npm_import_parse is fixed).
 CLAUDE: Rewrote lpm_import_lookup() in kernel.js (lines 233-290) to iterate through lpm_pkg parents. Key changes: (1) at each level, sets resolved on the spot instead of collecting categories; (2) self's override wins over parent's override (is_over flag); (3) parent override applies to non-override resolutions; (4) tracks res_path from first resolution and appends it to final result when the override strips the path; (5) breaks early for non-npm registries. All existing + new tests (npm/net→local/nodejs//net, npm/net2→local/nodejs//net) pass. Used /nodejs/ workaround in test data until npm_import_parse // handling is fixed.
+---
+USER:
+LIF fiat value (#4): convert with a general purpose currency exchange rate
+provider, not through the Bitcoin price sources. Give the commit command when
+the test passes.
+
+CLAUDE:
+anycoin: models/fiatUnit.ts: getFiatToFiatRates(ticker) (fawazahmed0
+currency-api: latest.currency-api.pages.dev, jsdelivr mirror as fallback).
+blue_modules/currency.ts: fiatRates store (persisted under 'fiatToFiatRates',
+restored at start), updateFiatRates(currency) (twice a day, retry at most once
+a minute), coinRate() converts a coin price in another currency by that rate.
+web2: package.json lif.patches keys '/bluewallet//' and
+'/bluewallet/blue_modules/bc-ur//' renamed to 'local:/...' (lif-kernel commit
+4583142 dropped the '/mod/' form; the app did not boot).
+Tested by patch in ~/BlueWallet-lif: 1000 LIF = $10.00, EUR 9.10, ILS 33.24,
+ARS 15,647.08; IRT (not at the provider) stays without fiat value.
+---
+---
+USER:
+Overnight: work on the untested items (#4-#14); in the morning give a report
+and suggested fixes.
+
+CLAUDE:
+Tested in the app (4210): LIF home card and rows, Receive with amount, Send
+fee estimate, refresh and Send with Bitcoin unreachable, Add Wallet (Lightning
+option, LNDHub field, entropy indicator), language switch, fiat in AED/ILS/EUR,
+TLS to a P-384 server. Nothing broadcast; settings restored.
+Code changed: only web/tasks.txt in web2 (two upstream bugs recorded).
+Suggested fixes saved as patches in the scratchpad, not applied:
+night_1_fixes.patch (SendDetails fee estimate, loc currency symbol dots),
+night_2_lif_kernel_tls.patch (P-384 certificate with P-256 key exchange),
+night_3_anycoin_notifications.patch (no GroundControl calls for a coin).
+---
+---
+USER:
+ok - lets commit all the bluewallet patches on the relevant layers. please give me the commands to copy to the terminal to do it. (we will handle lif-kernel issues separatly)
+
+CLAUDE:
+Applied the overnight patches in their layers (not committed):
+- ~/BlueWallet-fixes: screen/send/SendDetails.tsx (fee precalc takes the
+  amount as a number), loc/index.ts (_leaveNumbersAndDots drops the dots of
+  a currency symbol).
+- ~/BlueWallet-anycoin: no notification server calls for a coin wallet in
+  Confirm.tsx, CPFP.js, ReceiveDetails.tsx, StorageProvider.tsx.
+web/tasks.txt (web2) goes in the same commit sequence. Gave the commands.
+---
+---
+USER:
+ok - so if its possible to include this UI addition in the web subdir (not in the shared dir) - so add it in web2 layer
+
+CLAUDE:
+web2 (~/BlueWallet-web), no original file touched:
+- web/tls_secure.js (new): the "End-to-end TLS" switch. Flag in localStorage
+  (bw_tls_secure), sets tcpip_opt.secure of lif-kernel net/tcpip.js at load.
+  A panel is drawn over the page (bottom right) while the address of the
+  page ends with ElectrumSettings (history.pushState/replaceState/popstate
+  are watched). A change closes the open TLS sockets, so the application
+  connects again the new way.
+- web/stubs/react-native-tcp-socket.js: registers the open TLS sockets in
+  tls_socks of web/tls_secure.js.
+- web/main.tsx: imports web/tls_secure.js.
+- web/tasks.txt: the "add a button" item updated.
+Tested in the app: on (about 40s to connect, socket secure), kept after a
+reload, off, hidden on other screens.
+---
+---
+USER:
+move those two lines in web/tasks.txt
+
+CLAUDE:
+~/BlueWallet-web/web/tasks.txt: the Send fee estimate and the currency
+amount field bugs moved from "Upstream bugs to report (not fixed here)" to
+the "Push web2 upstream" item, with the fixes branch changes to offer.
+---
