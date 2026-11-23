@@ -457,6 +457,7 @@ Low priority:
   - Package relay — submit related txs as a package for CPFP fee evaluation
 - add support for IPFS: wikipedia page
   https://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq.ipfs.inbrowser.link/wiki/
+- port https://github.com/hwy419/bitcoin-wallet to lif
 
 React rewrite
 -------------
