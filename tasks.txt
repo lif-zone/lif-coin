@@ -455,6 +455,8 @@ Low priority:
   - wtxid relay (BIP 339) — peers announce txs by witness txid instead of txid
   - addrv2 (BIP 155) — supports Tor v3, I2P, CJDNS addresses
   - Package relay — submit related txs as a package for CPFP fee evaluation
+- add support for IPFS: wikipedia page
+  https://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq.ipfs.inbrowser.link/wiki/
 
 React rewrite
 -------------
