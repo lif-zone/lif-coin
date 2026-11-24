@@ -276,11 +276,6 @@ c add lif-zone/the-guide
     + vps1-3: lif_server.js update, lif_server.js restart
 + write announce email
 
-Post mainnet release
--------------------
-- buy: lifnet-test.com lifocin-test.com
-- move old mainnet to testnet. add domains lifnet-test.com
-
 Post release:
 -------------
 + rename 'globDependencies' to 'override'
@@ -459,6 +454,7 @@ Low priority:
 - add support for IPFS: wikipedia page
   https://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq.ipfs.inbrowser.link/wiki/
 - port bitcoin extension https://github.com/hwy419/bitcoin-wallet to lif
+- add LIF testnet: buy lifnet-test.com lifocin-test.com
 
 React rewrite
 -------------
