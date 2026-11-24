@@ -1550,3 +1550,26 @@ testnet=2032291, lifmain/liftest/regtest/simnet=0 (active from genesis).
 Added height-based VERIFY_TAPROOT flag activation in chain.js after the
 segwit check. All 2267 taproot tests and 3424 script tests pass.
 ---
+---
+USER:
+does lif-coin electrum subscriptions on addresses - also update on mempool
+txs? what is common in electrum servers? can you please implement this
+(notify on any status change, as electrs does)
+
+CLAUDE:
+lib/node/http.js on_electrum(): blockchain.scripthash.subscribe now notifies
+on every status change, not only when a tx pays the scripthash.
+- sub_sh is a Map: scripthash -> last status sent.
+- sh_check() computes the status of every subscribed scripthash and notifies
+  only those that differ from the last status sent. Events that come during
+  a check are merged into one more check.
+- sh_check() runs on chain connect/disconnect/reset and on mempool
+  'add entry'/'remove entry'. Before computing it waits (up to 5 seconds)
+  for txindex and addrindex to reach the chain height.
+- Now covered: spending side (mempool and block), removal from the mempool,
+  reorg. No duplicate notifications.
+- Not changed: mempool tx height stays -1 (Electrum uses 0, or -1 for
+  unconfirmed inputs).
+Sanity check on regtest: fund, spend in mempool, remove from mempool,
+confirm, invalidate tip. All notified as expected.
+---
