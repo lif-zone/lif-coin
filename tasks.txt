@@ -335,19 +335,14 @@ Post release:
   + enable_follow for ?imp ?mjs: recirect+import in same result
   + enable_follow for ?meta: redirect+requie meta in same result
   + fix ieek lurking bug
-  - when modifing package.json patches, and just F5 fails to update it.
-    check in lif-explorer
-  - cdn failure: check for a 'good' (well known) file.
-    also ping a good CORS service (like google.com). So that it will
-    know what kind of cdn fail it is.
-  - jsdelivr sometimes returns 403 on throttle, which is NOT not_exist.
+  + jsdelivr sometimes returns 403 on throttle, which is NOT not_exist.
     it also returns 403 on not_exists (need to validate). So the handling
     should be to revalidate with a 'ping' file (a tiny file that tells the
     CDN is working well). And NOT to cache the not_exist (unless this CDN
     does not support file_list).
-    - reg_get() returns not_exist on the first CDN that says so, without trying
+    + reg_get() returns not_exist on the first CDN that says so, without trying
       the next CDN in the list.
-    - lpm_file_get() (kernel.js) then stores the negative answer in the cache
+    + lpm_file_get() (kernel.js) then stores the negative answer in the cache
       (cache_not_exist: cache_set('lpm_file', {lfile, not_exist: true})), so the
       app stays broken across reloads, until the cache is cleared.
   + add npm --file cdn support: get directory file listing and whole tgz
@@ -356,12 +351,17 @@ Post release:
     download)
     https://unpkg.com/react@18.3.1/?meta
     https://data.jsdelivr.com/v1/packages/npm/react@18.3.1
-  * add git --file cdn support
-  - in boot.js:require_sync, get from kernel the cjs version (meta redirect),
+  c in boot.js:require_sync, get from kernel the cjs version (meta redirect),
     not the mjs version (main, not module, exports default no import)
     https://unpkg.com/async-function@1.0.0/package.json
     should return both options?
     once done, remove the pactch lif-coin/package.json:async-function
+  * add git --file cdn support
+  - when modifing package.json patches, and just F5 fails to update it.
+    check in lif-explorer
+  - cdn failure: check for a 'good' (well known) file.
+    also ping a good CORS service (like google.com). So that it will
+    know what kind of cdn fail it is.
   - add semver support for git (XXX in kernel.js): read all refs.
   - new npm/git version check: only on service restart, or 2 forced fetch
     in 10 seconds. but dont wait for it if there is a version in cache
@@ -374,21 +374,19 @@ Post release:
   - fork all bcoin-org modules imported in lif-coin
   - make it work with lifnet (node<->browser will communicate of lifnet)
   - make it work with sockets over lifnet (tcp_out server)
-- lif-net
+* lif-net out
   + add jsonrpc over tcp/tls support
   + use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
     or lif:bitcoin/electrum
   + implement lifcoin tcp socket via lif:net/lifcoin/node out TCP proxy
-  - implement lifcoin tcp socket via lif:net/lifcoin/node incoming TCP proxy
-    Maybe map IPs to virtual 172.16.0.0/15
-    allocate virtual IP for server. each local
-    server remembers its IP<->rg_id mapping. once finished - reuse oldest.
   - add lif-kernel outgoing connections to github lif:net/ip_bridge/http_out.
     and lif_fetch('https://github.com/lif-zone/lif-kernel.git/info/refs?...')
   - Lifnet.init() on node always adds ws://localhost:1842, also when only
     --peer is wanted.
   - connect errors are all prefixed "no good <topic> servers online:", which
     hides the real cause (refused, policy, timeout).
++ UI solution to update version: instead of
+  Devtools->Application->Service Worker->Update->Unregister
 - support 2 VPS: support ns1 ns2 on different IPs: need acme ssl co-ordination in
   startup: proxy dns _acme-challenge from ns2 ns3... to ns1.
   Also need to transport the cert and key from ns1 to ns2 ns3...
@@ -410,8 +408,11 @@ Post release:
 - add caching of hi.js in kernel.js, when {spa: true}
 - improve perf of npm version list: https://registry.npmjs.org/express
   make sure to use ETag/LMod on request, and make sure 304 response.
-- UI solution to update version: instead of
-  Devtools->Application->Service Worker->Update->Unregister
+- lif-net incoming server connection
+  implement lifcoin tcp socket via lif:net/lifcoin/node incoming TCP proxy
+  Maybe map IPs to virtual 172.16.0.0/15
+  allocate virtual IP for server. each local
+  server remembers its IP<->rg_id mapping. once finished - reuse oldest.
 
 Features
 --------
