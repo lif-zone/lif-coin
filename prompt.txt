@@ -1573,3 +1573,14 @@ on every status change, not only when a tx pays the scripthash.
 Sanity check on regtest: fund, spend in mempool, remove from mempool,
 confirm, invalidate tip. All notified as expected.
 ---
+USER:
+check lif-wallet and make it standard (Electrum heights for mempool txs)
+
+CLAUDE:
+lib/node/http.js: new electrum_height(meta): >0 in a block, 0 in the mempool
+with all inputs confirmed, -1 in the mempool with an input that is itself in
+the mempool. Used by blockchain.scripthash.get_history and by the subscribe
+status hash. blockchain.scripthash.listunspent reports 0 for mempool outputs.
+Sanity check on regtest: parent 0, child -1, both get the block height when
+confirmed; notifications sent at each step.
+---
