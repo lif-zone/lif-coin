@@ -47,8 +47,8 @@ elif [ "$1" == update ] ; then
 elif [ "$1" == install ] ; then
   $0 update
   ~/lif-coin/install/install_bin.sh
-  (cd ~/lif-kernel && npm ci)
-  (cd ~/lif-coin && npm ci)
+  (cd ~/lif-kernel && git restore package-lock.json && npm install --no-audit --no-fund)
+  (cd ~/lif-coin && git restore package-lock.json && npm install --no-audit --no-fund)
 elif [ "$1" == install_restart ] ; then
   $0 install
   $0 restart
