@@ -351,24 +351,24 @@ Post release:
     https://unpkg.com/async-function@1.0.0/package.json
     should return both options?
     once done, remove the pactch lif-coin/package.json:async-function
-  * add git --file cdn support
-  - when modifing package.json patches, and just F5 fails to update it.
-    check in lif-explorer
-  - cdn failure: check for a 'good' (well known) file.
+  + add git --file cdn support
+  + cdn failure: check for a 'good' (well known) file.
     also ping a good CORS service (like google.com). So that it will
     know what kind of cdn fail it is.
-  - add semver support for git (XXX in kernel.js): read all refs.
+  - when modifing package.json patches, and just F5 fails to update it.
+    check in lif-explorer
   - new npm/git version check: only on service restart, or 2 forced fetch
     in 10 seconds. but dont wait for it if there is a version in cache
+  - add semver support for git (XXX in kernel.js): read all refs.
   - add support for html webapp in lif-kernel/boot.js:
     lif-explorer/client/package.json: "webapp": "index.html"
   - maybe: rename /lif-kernel/ to /.lif.local/lif-kernel
   - maybe: kernel.js cache SPA index.html result set by {lif: {spa: true}}
 - add lif-zone/the-guide
-- run node in browser
-  - fork all bcoin-org modules imported in lif-coin
-  - make it work with lifnet (node<->browser will communicate of lifnet)
-  - make it work with sockets over lifnet (tcp_out server)
++ run node in browser
+  + fork all bcoin-org modules imported in lif-coin
+  + make it work with lifnet (node<->browser will communicate of lifnet)
+  + make it work with sockets over lifnet (tcp_out server)
 * lif-net out
   + add jsonrpc over tcp/tls support
   + use lif:net/jsonrpc/tcp for btc bluewallet electrum server access
@@ -397,10 +397,9 @@ Post release:
   use revalidate options to revalidate etag/lmod
   mayne move part of kernel to sw_boot.js
   check that in DB and caches only cachable stuff is there
-- kernel.js cache_store: a patched file (lif.patches) is cached by URL only,
++ kernel.js cache_store: a patched file (lif.patches) is cached by URL only,
   so a changed patch is not seen. add a hash of its patch to the cache key.
   specially when parent patching dependency npm/gits modules.
-- add caching of hi.js in kernel.js, when {spa: true}
 - improve perf of npm version list: https://registry.npmjs.org/express
   make sure to use ETag/LMod on request, and make sure 304 response.
 - lif-net incoming server connection
