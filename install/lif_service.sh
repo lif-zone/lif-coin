@@ -42,9 +42,6 @@ elif [ "$1" == is-enabled ] ; then
 elif [ "$1" == update ] ; then
   (cd ~/lif-kernel && git pull)
   (cd ~/lif-coin && git pull)
-  (cd ~/lif-wallet && git pull)
-  (cd ~/lif-explorer && git pull)
-  (cd ~/lif-os && git pull)
   ~/lif-coin/install/install_bin.sh
   echo "now run: lif_service.sh restart"
 elif [ "$1" == install ] ; then
