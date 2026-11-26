@@ -45,6 +45,8 @@ elif [ "$1" == update ] ; then
   ~/lif-coin/install/install_bin.sh
   echo "now run: lif_service.sh restart"
 elif [ "$1" == install ] ; then
+  # run this once on servers to remove annoying warning on dangrous scripts
+  # npm config set allow-scripts=secp256k1,sodium-native --location=use
   $0 update
   ~/lif-coin/install/install_bin.sh
   (cd ~/lif-kernel && git restore package-lock.json && npm install --no-audit --no-fund)
